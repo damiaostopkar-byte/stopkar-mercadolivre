@@ -3,11 +3,25 @@ import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
 
 interface Env {
-  MELI_ACCESS_TOKEN?: string;
+  MELI_CLIENT_ID?: string;
+  MELI_CLIENT_SECRET?: string;
+  MELI_REDIRECT_URI?: string;
   MCP_SHARED_SECRET?: string;
+  MELI_TOKENS?: KVNamespace;
 }
 
+type StoredToken = {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  scope?: string;
+  user_id?: number;
+  expires_at: number;
+};
+
 const MELI_API = "https://api.mercadolibre.com";
+const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
+const TOKEN_KEY = "mercadolivre:oauth:tokens";
 
 function textResult(value: unknown) {
   return {
@@ -20,13 +34,133 @@ function textResult(value: unknown) {
   };
 }
 
-function getAccessToken(env: Env): string {
-  if (!env.MELI_ACCESS_TOKEN) {
-    throw new Error(
-      "Mercado Livre ainda nao autorizado. Configure MELI_ACCESS_TOKEN como secret na Cloudflare."
-    );
+function requireOAuthConfig(env: Env) {
+  if (!env.MELI_CLIENT_ID || !env.MELI_CLIENT_SECRET || !env.MELI_REDIRECT_URI) {
+    throw new Error("Credenciais OAuth do Mercado Livre ainda nao configuradas na Cloudflare.");
   }
-  return env.MELI_ACCESS_TOKEN;
+  if (!env.MELI_TOKENS) {
+    throw new Error("Binding MELI_TOKENS ainda nao configurado na Cloudflare.");
+  }
+
+  return {
+    clientId: env.MELI_CLIENT_ID,
+    clientSecret: env.MELI_CLIENT_SECRET,
+    redirectUri: env.MELI_REDIRECT_URI,
+    tokens: env.MELI_TOKENS
+  };
+}
+
+async function postToken(
+  env: Env,
+  params: Record<string, string>
+): Promise<any> {
+  const { clientId, clientSecret } = requireOAuthConfig(env);
+  const body = new URLSearchParams({
+    client_id: clientId,
+    client_secret: clientSecret,
+    ...params
+  });
+
+  const response = await fetch(`${MELI_API}/oauth/token`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body
+  });
+
+  const raw = await response.text();
+  let data: any;
+  try {
+    data = raw ? JSON.parse(raw) : null;
+  } catch {
+    data = raw;
+  }
+
+  if (!response.ok) {
+    const message =
+      data && typeof data === "object"
+        ? data.message || data.error || JSON.stringify(data)
+        : String(data);
+    throw new Error(`OAuth Mercado Livre ${response.status}: ${message}`);
+  }
+
+  return data;
+}
+
+async function saveTokenResponse(env: Env, data: any): Promise<StoredToken> {
+  const { tokens } = requireOAuthConfig(env);
+  if (!data?.access_token || !data?.refresh_token) {
+    throw new Error("Resposta OAuth do Mercado Livre nao trouxe access_token/refresh_token.");
+  }
+
+  const token: StoredToken = {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    token_type: data.token_type || "Bearer",
+    scope: data.scope,
+    user_id: data.user_id,
+    expires_at: Date.now() + Number(data.expires_in || 21600) * 1000
+  };
+
+  await tokens.put(TOKEN_KEY, JSON.stringify(token));
+  return token;
+}
+
+async function loadToken(env: Env): Promise<StoredToken | null> {
+  const { tokens } = requireOAuthConfig(env);
+  return (await tokens.get(TOKEN_KEY, "json")) as StoredToken | null;
+}
+
+async function refreshToken(env: Env): Promise<StoredToken> {
+  const current = await loadToken(env);
+  if (!current?.refresh_token) {
+    throw new Error("Mercado Livre ainda nao autorizado. Abra /oauth/start para conectar a conta.");
+  }
+
+  try {
+    const data = await postToken(env, {
+      grant_type: "refresh_token",
+      refresh_token: current.refresh_token
+    });
+    return await saveTokenResponse(env, data);
+  } catch (error) {
+    // Caso duas requisicoes tentem renovar ao mesmo tempo, outra pode ter
+    // gravado o novo refresh token. Releia o armazenamento antes de falhar.
+    await new Promise((resolve) => setTimeout(resolve, 750));
+    const latest = await loadToken(env);
+    if (
+      latest?.access_token &&
+      latest.access_token !== current.access_token &&
+      latest.expires_at > Date.now() + 30_000
+    ) {
+      return latest;
+    }
+    throw error;
+  }
+}
+
+async function getAccessToken(env: Env): Promise<string> {
+  const token = await loadToken(env);
+  if (!token?.access_token) {
+    throw new Error("Mercado Livre ainda nao autorizado. Abra /oauth/start para conectar a conta.");
+  }
+
+  if (token.expires_at <= Date.now() + 60_000) {
+    return (await refreshToken(env)).access_token;
+  }
+
+  return token.access_token;
+}
+
+async function parseApiResponse(response: Response): Promise<any> {
+  const raw = await response.text();
+  try {
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return raw;
+  }
 }
 
 async function meliGet(
@@ -41,20 +175,25 @@ async function meliGet(
     }
   }
 
-  const response = await fetch(url.toString(), {
+  let accessToken = await getAccessToken(env);
+  let response = await fetch(url.toString(), {
     headers: {
-      Authorization: `Bearer ${getAccessToken(env)}`,
+      Authorization: `Bearer ${accessToken}`,
       Accept: "application/json"
     }
   });
 
-  const raw = await response.text();
-  let data: any;
-  try {
-    data = raw ? JSON.parse(raw) : null;
-  } catch {
-    data = raw;
+  if (response.status === 401) {
+    accessToken = (await refreshToken(env)).access_token;
+    response = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json"
+      }
+    });
   }
+
+  const data = await parseApiResponse(response);
 
   if (!response.ok) {
     const message =
@@ -109,7 +248,7 @@ function compactItem(item: any) {
 function createServer(env: Env) {
   const server = new McpServer({
     name: "Stop Kar Mercado Livre",
-    version: "0.1.0"
+    version: "0.2.0"
   });
 
   server.registerTool(
@@ -276,16 +415,102 @@ function createServer(env: Env) {
   return server;
 }
 
+function html(message: string, status = 200) {
+  return new Response(
+    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Stop Kar Mercado Livre</title></head><body style="font-family:Arial,sans-serif;max-width:680px;margin:60px auto;padding:24px"><h1>Stop Kar Mercado Livre</h1><p>${message}</p></body></html>`,
+    { status, headers: { "Content-Type": "text/html; charset=utf-8" } }
+  );
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     if (url.pathname === "/health") {
+      let connected = false;
+      let userId: number | undefined;
+      try {
+        const token = await loadToken(env);
+        connected = Boolean(token?.access_token);
+        userId = token?.user_id;
+      } catch {
+        connected = false;
+      }
+
       return Response.json({
         ok: true,
         service: "Stop Kar Mercado Livre",
-        version: "0.1.0"
+        version: "0.2.0",
+        mercadolivre_connected: connected,
+        user_id: userId
       });
+    }
+
+    if (url.pathname === "/oauth/start") {
+      try {
+        const { clientId, redirectUri, tokens } = requireOAuthConfig(env);
+        const state = crypto.randomUUID();
+        await tokens.put(`oauth:state:${state}`, "1", { expirationTtl: 600 });
+
+        const authorizeUrl = new URL(MELI_AUTH);
+        authorizeUrl.searchParams.set("response_type", "code");
+        authorizeUrl.searchParams.set("client_id", clientId);
+        authorizeUrl.searchParams.set("redirect_uri", redirectUri);
+        authorizeUrl.searchParams.set("state", state);
+
+        return Response.redirect(authorizeUrl.toString(), 302);
+      } catch (error) {
+        return html(error instanceof Error ? error.message : "Falha ao iniciar OAuth.", 500);
+      }
+    }
+
+    if (url.pathname === "/oauth/callback") {
+      try {
+        const { redirectUri, tokens } = requireOAuthConfig(env);
+        const error = url.searchParams.get("error");
+        if (error) {
+          return html(`O Mercado Livre recusou a autorizacao: ${error}`, 400);
+        }
+
+        const code = url.searchParams.get("code");
+        const state = url.searchParams.get("state");
+        if (!code || !state) {
+          return html("Callback sem code/state. Inicie novamente em /oauth/start.", 400);
+        }
+
+        const stateKey = `oauth:state:${state}`;
+        const validState = await tokens.get(stateKey);
+        if (!validState) {
+          return html("Estado OAuth invalido ou expirado. Inicie novamente em /oauth/start.", 400);
+        }
+        await tokens.delete(stateKey);
+
+        const data = await postToken(env, {
+          grant_type: "authorization_code",
+          code,
+          redirect_uri: redirectUri
+        });
+        const stored = await saveTokenResponse(env, data);
+
+        return html(
+          `Conta autorizada com sucesso${stored.user_id ? ` (usuario ${stored.user_id})` : ""}. Os tokens foram guardados com seguranca na Cloudflare. Voce pode fechar esta aba.`
+        );
+      } catch (error) {
+        return html(error instanceof Error ? error.message : "Falha ao concluir OAuth.", 500);
+      }
+    }
+
+    if (url.pathname === "/oauth/status") {
+      try {
+        const token = await loadToken(env);
+        return Response.json({
+          connected: Boolean(token?.access_token),
+          user_id: token?.user_id,
+          expires_at: token?.expires_at
+        });
+      } catch {
+        return Response.json({ connected: false });
+      }
     }
 
     if (url.pathname === "/notifications") {
@@ -311,14 +536,6 @@ export default {
       }
 
       return new Response(null, { status: 200 });
-    }
-
-    if (url.pathname === "/oauth/callback") {
-      return Response.json({
-        ok: true,
-        message: "Callback OAuth da Stop Kar pronto para receber a autorizacao do Mercado Livre.",
-        has_code: url.searchParams.has("code")
-      });
     }
 
     if (url.pathname === "/mcp" && env.MCP_SHARED_SECRET) {
