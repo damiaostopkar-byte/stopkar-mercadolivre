@@ -6,6 +6,6 @@
   "main": "src/server.ts",
   "assets": {
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/mcp"]
+    "run_worker_first": ["/mcp", "/health", "/notifications", "/oauth/callback"]
   }
 }
