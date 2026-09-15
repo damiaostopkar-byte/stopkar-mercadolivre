@@ -4,8 +4,25 @@
   "compatibility_date": "2026-06-11",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  "keep_vars": true,
+  "secrets": {
+    "required": ["MELI_CLIENT_SECRET"]
+  },
+  "kv_namespaces": [
+    {
+      "binding": "MELI_TOKENS",
+      "id": "a32c77ebd17248ddb2d9d56dddc65790"
+    }
+  ],
   "assets": {
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/mcp", "/health", "/notifications", "/oauth/callback"]
+    "run_worker_first": [
+      "/mcp",
+      "/health",
+      "/notifications",
+      "/oauth/start",
+      "/oauth/callback",
+      "/oauth/status"
+    ]
   }
 }
