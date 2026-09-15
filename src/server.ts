@@ -288,6 +288,39 @@ export default {
       });
     }
 
+    if (url.pathname === "/notifications") {
+      if (request.method === "GET") {
+        return Response.json({ ok: true, endpoint: "mercadolivre-notifications" });
+      }
+
+      if (request.method !== "POST") {
+        return new Response("Method not allowed", { status: 405 });
+      }
+
+      try {
+        const payload = await request.json<any>();
+        console.log("Mercado Livre notification", {
+          topic: payload?.topic,
+          resource: payload?.resource,
+          user_id: payload?.user_id,
+          application_id: payload?.application_id,
+          sent: payload?.sent
+        });
+      } catch {
+        console.log("Mercado Livre notification received without JSON body");
+      }
+
+      return new Response(null, { status: 200 });
+    }
+
+    if (url.pathname === "/oauth/callback") {
+      return Response.json({
+        ok: true,
+        message: "Callback OAuth da Stop Kar pronto para receber a autorizacao do Mercado Livre.",
+        has_code: url.searchParams.has("code")
+      });
+    }
+
     if (url.pathname === "/mcp" && env.MCP_SHARED_SECRET) {
       const authorization = request.headers.get("authorization");
       if (authorization !== `Bearer ${env.MCP_SHARED_SECRET}`) {
