@@ -23,7 +23,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.4.2";
+const SERVER_VERSION = "0.4.3";
 
 function textResult(value: unknown) {
   return {
@@ -763,7 +763,7 @@ function createServer(env: Env) {
     "consultar_vendas",
     {
       description:
-        "Consulta pedidos/vendas da conta Mercado Livre da Stop Kar. Pode filtrar por periodo e status. Inclui shipping_id quando disponivel. Nao retorna dados pessoais do comprador.",
+        "Consulta pedidos/vendas da conta Mercado Livre da Stop Kar. Por padrao, o periodo usa a data de fechamento/pagamento da venda; opcionalmente pode usar a data de criacao do pedido. Inclui shipping_id quando disponivel. Nao retorna dados pessoais do comprador.",
       inputSchema: {
         data_inicial: z
           .string()
@@ -774,15 +774,23 @@ function createServer(env: Env) {
           .optional()
           .describe("Data/hora ISO final, por exemplo 2026-09-15T23:59:59-03:00"),
         status: z.string().optional().describe("Status do pedido, por exemplo paid ou cancelled"),
+        criterio_data: z
+          .enum(["fechamento", "criacao"])
+          .optional()
+          .default("fechamento")
+          .describe("Criterio do periodo: fechamento usa date_closed e e o padrao; criacao usa date_created."),
         limite: z.number().int().min(1).max(50).optional().default(20)
       }
     },
-    async ({ data_inicial, data_final, status, limite }) => {
+    async ({ data_inicial, data_final, status, criterio_data, limite }) => {
       const me = await meliGet(env, "/users/me");
+      const criterio = criterio_data || "fechamento";
+      const filtroInicial = criterio === "criacao" ? "order.date_created.from" : "order.date_closed.from";
+      const filtroFinal = criterio === "criacao" ? "order.date_created.to" : "order.date_closed.to";
       const orders = await meliGet(env, "/orders/search", {
         seller: String(me.id),
-        "order.date_created.from": data_inicial,
-        "order.date_created.to": data_final,
+        [filtroInicial]: data_inicial,
+        [filtroFinal]: data_final,
         "order.status": status,
         sort: "date_desc",
         limit: String(limite ?? 20),
@@ -794,6 +802,11 @@ function createServer(env: Env) {
         : [];
 
       return textResult({
+        periodo: {
+          criterio_data: criterio,
+          data_inicial: data_inicial ?? null,
+          data_final: data_final ?? null
+        },
         paging: orders?.paging,
         results
       });
