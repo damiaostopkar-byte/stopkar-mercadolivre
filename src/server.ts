@@ -23,7 +23,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.4.0";
+const SERVER_VERSION = "0.4.1";
 
 function textResult(value: unknown) {
   return {
@@ -318,49 +318,94 @@ function chunkArray<T>(values: T[], size: number): T[][] {
   return chunks;
 }
 
-const BULK_ITEM_ATTRIBUTES = [
-  "body.id",
-  "body.title",
-  "body.status",
-  "body.sub_status",
-  "body.category_id",
-  "body.price",
-  "body.base_price",
-  "body.original_price",
-  "body.currency_id",
-  "body.available_quantity",
-  "body.sold_quantity",
-  "body.listing_type_id",
-  "body.seller_custom_field",
-  "body.inventory_id",
-  "body.permalink",
-  "body.shipping",
-  "body.catalog_listing",
-  "body.date_created",
-  "body.last_updated",
-  "body.pictures",
-  "body.attributes"
-].join(",");
+const ITEM_FIELDS = [
+  "id",
+  "title",
+  "status",
+  "sub_status",
+  "category_id",
+  "price",
+  "base_price",
+  "original_price",
+  "currency_id",
+  "available_quantity",
+  "sold_quantity",
+  "listing_type_id",
+  "seller_custom_field",
+  "inventory_id",
+  "permalink",
+  "shipping",
+  "catalog_listing",
+  "date_created",
+  "last_updated",
+  "pictures",
+  "attributes"
+];
+
+const BULK_ITEM_ATTRIBUTES = ITEM_FIELDS.map((field) => `body.${field}`).join(",");
+const LEGACY_ITEM_ATTRIBUTES = ITEM_FIELDS.join(",");
+
+function unwrapMultiGet(payload: any) {
+  const entries = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.results)
+      ? payload.results
+      : [];
+
+  return entries.flatMap((entry: any) => {
+    const status = Number(entry?.status_code ?? entry?.code ?? entry?.status ?? 200);
+    const body = entry?.body ?? (entry?.id && entry?.title ? entry : null);
+    if (!body || status < 200 || status >= 300) return [];
+    return [body];
+  });
+}
 
 async function getItemsBulk(env: Env, ids: string[]) {
-  if (ids.length === 0) return [];
+  if (ids.length === 0) {
+    return { items: [] as any[], source: "none", errors: [] as string[] };
+  }
 
   const batches = chunkArray(ids, 20);
-  const responses = await Promise.all(
-    batches.map((batch) =>
-      meliGet(env, "/items/bulk", {
+  const items: any[] = [];
+  const errors: string[] = [];
+  let usedBulk = false;
+  let usedLegacy = false;
+
+  for (const batch of batches) {
+    let parsed: any[] = [];
+
+    try {
+      const response = await meliGet(env, "/items/bulk", {
         ids: batch.join(","),
         attributes: BULK_ITEM_ATTRIBUTES
-      })
-    )
-  );
+      });
+      parsed = unwrapMultiGet(response);
+      if (parsed.length > 0) usedBulk = true;
+    } catch (error) {
+      errors.push(`bulk: ${error instanceof Error ? error.message : String(error)}`);
+    }
 
-  return responses.flatMap((response: any) => {
-    if (!Array.isArray(response)) return [];
-    return response
-      .filter((entry: any) => (entry?.status_code ?? entry?.code) === 200 && entry?.body)
-      .map((entry: any) => entry.body);
-  });
+    if (parsed.length === 0) {
+      try {
+        const legacy = await meliGet(env, "/items", {
+          ids: batch.join(","),
+          attributes: LEGACY_ITEM_ATTRIBUTES
+        });
+        parsed = unwrapMultiGet(legacy);
+        if (parsed.length > 0) usedLegacy = true;
+      } catch (error) {
+        errors.push(`legacy: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+
+    items.push(...parsed);
+  }
+
+  return {
+    items,
+    source: usedBulk && usedLegacy ? "items_bulk+legacy" : usedBulk ? "items_bulk" : usedLegacy ? "items_legacy" : "none",
+    errors
+  };
 }
 
 async function getOrderShipments(env: Env, orderId: string | number) {
@@ -518,7 +563,7 @@ function createServer(env: Env) {
     "listar_anuncios",
     {
       description:
-        "Lista anuncios da conta Stop Kar no Mercado Livre e pode filtrar apenas anuncios que nunca venderam (sold_quantity igual a zero). Retorna titulo, preco, estoque, vendas, SKU, codigo personalizado, logistica, datas e quantidade de fotos.",
+        "Lista anuncios da conta Stop Kar no Mercado Livre e pode filtrar apenas anuncios que nunca venderam. Retorna titulo, preco, estoque, vendas, SKU, codigo personalizado, logistica, datas e quantidade de fotos.",
       inputSchema: {
         status: z
           .enum(["active", "paused", "closed", "all"])
@@ -540,37 +585,70 @@ function createServer(env: Env) {
     },
     async ({ status, somente_sem_vendas, limite, offset, ordenacao }) => {
       const me = await meliGet(env, "/users/me");
+      const currentStatus = status || "active";
+      const currentLimit = Number(limite ?? 50);
+      const currentOffset = Number(offset ?? 0);
+      const currentOrder = ordenacao || "last_updated_desc";
+
       const search = await meliGet(env, `/users/${encodeURIComponent(String(me.id))}/items/search`, {
-        status: status === "all" ? undefined : status,
-        limit: String(limite ?? 50),
-        offset: String(offset ?? 0),
-        orders: ordenacao || "last_updated_desc"
+        status: currentStatus === "all" ? undefined : currentStatus,
+        limit: String(currentLimit),
+        offset: String(currentOffset),
+        orders: currentOrder
       });
 
       const ids = Array.isArray(search?.results)
-        ? search.results.filter((id: unknown) => typeof id === "string")
+        ? search.results
+            .map((result: any) => (typeof result === "string" ? result : result?.id))
+            .filter((id: unknown): id is string => typeof id === "string" && id.length > 0)
         : [];
-      const items = await getItemsBulk(env, ids);
+
+      const multiGet = await getItemsBulk(env, ids);
+      let items = multiGet.items;
+      let detailSource = multiGet.source;
+      const detailErrors = [...multiGet.errors];
+
+      if (items.length === 0 && currentStatus === "active") {
+        try {
+          const siteSearch = await meliGet(env, `/sites/${encodeURIComponent(String(me.site_id || "MLB"))}/search`, {
+            seller_id: String(me.id),
+            limit: String(currentLimit),
+            offset: String(currentOffset),
+            sort: currentOrder
+          });
+          if (Array.isArray(siteSearch?.results) && siteSearch.results.length > 0) {
+            items = siteSearch.results;
+            detailSource = "site_search_fallback";
+          }
+        } catch (error) {
+          detailErrors.push(`site_search: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
+
       const compact = items.map((item: any) => compactListing(item));
       const results = somente_sem_vendas
         ? compact.filter((item: any) => Number(item.sold_quantity ?? 0) === 0)
         : compact;
 
       const total = Number(search?.paging?.total ?? 0);
-      const currentOffset = Number(offset ?? 0);
-      const currentLimit = Number(limite ?? 50);
       const nextOffset = currentOffset + currentLimit < total ? currentOffset + currentLimit : null;
 
       return textResult({
         filtro: {
-          status: status || "active",
+          status: currentStatus,
           somente_sem_vendas: somente_sem_vendas === true,
-          ordenacao: ordenacao || "last_updated_desc"
+          ordenacao: currentOrder
         },
         paging: search?.paging ?? {
           total,
           offset: currentOffset,
           limit: currentLimit
+        },
+        diagnostico: {
+          ids_encontrados_na_pagina: ids.length,
+          detalhes_encontrados: compact.length,
+          fonte_detalhes: detailSource,
+          erros_detalhes: detailErrors.slice(0, 5)
         },
         anuncios_consultados_na_pagina: compact.length,
         anuncios_retornados: results.length,
