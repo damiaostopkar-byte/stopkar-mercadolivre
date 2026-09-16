@@ -23,7 +23,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.4.1";
+const SERVER_VERSION = "0.4.2";
 
 function textResult(value: unknown) {
   return {
@@ -245,6 +245,12 @@ function compactListing(item: any) {
     seller_custom_field: item.seller_custom_field,
     listing_type_id: item.listing_type_id,
     inventory_id: item.inventory_id,
+    user_product_id: item.user_product_id ?? null,
+    family_id: item.family_id ?? null,
+    family_name: item.family_name ?? null,
+    catalog_product_id: item.catalog_product_id ?? null,
+    channels: Array.isArray(item.channels) ? item.channels : [],
+    tags: Array.isArray(item.tags) ? item.tags : [],
     permalink: item.permalink,
     logistic_type: item.shipping?.logistic_type,
     free_shipping: item.shipping?.free_shipping,
@@ -333,6 +339,12 @@ const ITEM_FIELDS = [
   "listing_type_id",
   "seller_custom_field",
   "inventory_id",
+  "user_product_id",
+  "family_id",
+  "family_name",
+  "catalog_product_id",
+  "channels",
+  "tags",
   "permalink",
   "shipping",
   "catalog_listing",
