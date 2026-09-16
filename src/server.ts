@@ -22,6 +22,7 @@ type StoredToken = {
 const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
+const SAO_PAULO_TZ = "America/Sao_Paulo";
 
 function textResult(value: unknown) {
   return {
@@ -126,8 +127,6 @@ async function refreshToken(env: Env): Promise<StoredToken> {
     });
     return await saveTokenResponse(env, data);
   } catch (error) {
-    // Caso duas requisicoes tentem renovar ao mesmo tempo, outra pode ter
-    // gravado o novo refresh token. Releia o armazenamento antes de falhar.
     await new Promise((resolve) => setTimeout(resolve, 750));
     const latest = await loadToken(env);
     if (
@@ -155,6 +154,7 @@ async function getAccessToken(env: Env): Promise<string> {
 }
 
 async function parseApiResponse(response: Response): Promise<any> {
+  if (response.status === 204) return null;
   const raw = await response.text();
   try {
     return raw ? JSON.parse(raw) : null;
@@ -166,7 +166,8 @@ async function parseApiResponse(response: Response): Promise<any> {
 async function meliGet(
   env: Env,
   path: string,
-  params: Record<string, string | undefined> = {}
+  params: Record<string, string | undefined> = {},
+  extraHeaders: Record<string, string> = {}
 ): Promise<any> {
   const url = new URL(path, MELI_API);
   for (const [key, value] of Object.entries(params)) {
@@ -176,26 +177,25 @@ async function meliGet(
   }
 
   let accessToken = await getAccessToken(env);
-  let response = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: "application/json"
-    }
-  });
+  const makeRequest = (token: string) =>
+    fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        ...extraHeaders
+      }
+    });
+
+  let response = await makeRequest(accessToken);
 
   if (response.status === 401) {
     accessToken = (await refreshToken(env)).access_token;
-    response = await fetch(url.toString(), {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: "application/json"
-      }
-    });
+    response = await makeRequest(accessToken);
   }
 
   const data = await parseApiResponse(response);
 
-  if (!response.ok) {
+  if (!response.ok && response.status !== 204) {
     const message =
       data && typeof data === "object"
         ? data.message || data.error || JSON.stringify(data)
@@ -204,6 +204,23 @@ async function meliGet(
   }
 
   return data;
+}
+
+function formatSaoPaulo(value: unknown) {
+  if (typeof value !== "string" || !value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    timeZone: SAO_PAULO_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  }).format(date);
 }
 
 function compactItem(item: any) {
@@ -245,10 +262,145 @@ function compactItem(item: any) {
   };
 }
 
+function compactOrder(order: any) {
+  return {
+    id: order.id,
+    status: order.status,
+    date_created: order.date_created,
+    date_created_sao_paulo: formatSaoPaulo(order.date_created),
+    date_closed: order.date_closed,
+    date_closed_sao_paulo: formatSaoPaulo(order.date_closed),
+    total_amount: order.total_amount,
+    paid_amount: order.paid_amount,
+    currency_id: order.currency_id,
+    pack_id: order.pack_id,
+    shipping_id: order.shipping?.id ?? null,
+    items: Array.isArray(order.order_items)
+      ? order.order_items.map((orderItem: any) => ({
+          item_id: orderItem.item?.id,
+          title: orderItem.item?.title,
+          seller_sku: orderItem.item?.seller_sku,
+          variation_id: orderItem.item?.variation_id,
+          quantity: orderItem.quantity,
+          unit_price: orderItem.unit_price,
+          full_unit_price: orderItem.full_unit_price,
+          sale_fee: orderItem.sale_fee
+        }))
+      : []
+  };
+}
+
+async function getOrderShipments(env: Env, orderId: string | number) {
+  const data = await meliGet(
+    env,
+    `/orders/${encodeURIComponent(String(orderId))}/shipments`,
+    { hosted: "true" },
+    { "X-New-Domain": "true" }
+  );
+
+  const shipments = data == null ? [] : Array.isArray(data) ? data : [data];
+  return shipments.filter((shipment: any) => shipment && (shipment.type === "forward" || !shipment.type));
+}
+
+function shipmentWasDispatched(shipment: any) {
+  if (!shipment) return false;
+  if (shipment.status_history?.date_shipped) return true;
+  return ["shipped", "delivered", "not_delivered"].includes(String(shipment.status || ""));
+}
+
+function logisticLabel(type: unknown) {
+  switch (String(type || "")) {
+    case "fulfillment":
+      return "Full";
+    case "xd_drop_off":
+      return "Coletas/Places/Agencia Mercado Livre";
+    case "drop_off":
+      return "Mercado Envios drop-off";
+    case "cross_docking":
+      return "Cross docking";
+    case "self_service":
+      return "Flex/Self service";
+    default:
+      return type || null;
+  }
+}
+
+async function getShipmentSummary(env: Env, shipmentRef: any) {
+  const shipmentId = shipmentRef?.id;
+  if (!shipmentId) return null;
+
+  const shipment = await meliGet(
+    env,
+    `/shipments/${encodeURIComponent(String(shipmentId))}`,
+    {},
+    { "x-format-new": "true" }
+  );
+
+  const logisticType = shipment?.logistic?.type ?? shipment?.logistic_type ?? null;
+  const isFulfillment = logisticType === "fulfillment";
+  const isCancelled = shipment?.status === "cancelled";
+  const dispatched = shipmentWasDispatched(shipment);
+
+  let sla: any = null;
+  let slaError: string | null = null;
+
+  if (!isFulfillment && !isCancelled) {
+    try {
+      sla = await meliGet(env, `/shipments/${encodeURIComponent(String(shipmentId))}/sla`);
+    } catch (error) {
+      slaError = error instanceof Error ? error.message : String(error);
+    }
+  }
+
+  return {
+    id: shipmentId,
+    type: shipmentRef?.type ?? shipment?.logistic?.direction ?? null,
+    status: shipment?.status ?? null,
+    substatus: shipment?.substatus ?? null,
+    logistic_mode: shipment?.logistic?.mode ?? shipment?.mode ?? null,
+    logistic_type: logisticType,
+    logistic_label: logisticLabel(logisticType),
+    tags: Array.isArray(shipment?.tags) ? shipment.tags : [],
+    date_created: shipment?.date_created ?? null,
+    date_created_sao_paulo: formatSaoPaulo(shipment?.date_created),
+    last_updated: shipment?.last_updated ?? null,
+    date_handling: shipment?.status_history?.date_handling ?? null,
+    date_shipped: shipment?.status_history?.date_shipped ?? null,
+    pendente_despacho: !isFulfillment && !isCancelled && !dispatched,
+    sla: sla
+      ? {
+          status: sla.status ?? null,
+          service: sla.service ?? null,
+          expected_date: sla.expected_date ?? null,
+          expected_date_sao_paulo: formatSaoPaulo(sla.expected_date),
+          last_updated: sla.last_updated ?? null
+        }
+      : null,
+    sla_error: slaError
+  };
+}
+
+async function enrichOrderWithShipments(env: Env, order: any) {
+  try {
+    const refs = await getOrderShipments(env, order.id);
+    const shipments = await Promise.all(refs.map((ref: any) => getShipmentSummary(env, ref)));
+    return {
+      ...compactOrder(order),
+      shipments: shipments.filter(Boolean)
+    };
+  } catch (error) {
+    return {
+      ...compactOrder(order),
+      shipments: [],
+      shipment_error: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+
 function createServer(env: Env) {
   const server = new McpServer({
     name: "Stop Kar Mercado Livre",
-    version: "0.2.0"
+    version: "0.3.0"
   });
 
   server.registerTool(
@@ -351,7 +503,7 @@ function createServer(env: Env) {
     "consultar_vendas",
     {
       description:
-        "Consulta pedidos/vendas da conta Mercado Livre da Stop Kar. Pode filtrar por periodo e status. Nao retorna dados pessoais do comprador.",
+        "Consulta pedidos/vendas da conta Mercado Livre da Stop Kar. Pode filtrar por periodo e status. Inclui shipping_id quando disponivel. Nao retorna dados pessoais do comprador.",
       inputSchema: {
         data_inicial: z
           .string()
@@ -380,33 +532,108 @@ function createServer(env: Env) {
         offset: "0"
       });
 
-      const results = Array.isArray(orders.results)
-        ? orders.results.map((order: any) => ({
-            id: order.id,
-            status: order.status,
-            date_created: order.date_created,
-            date_closed: order.date_closed,
-            total_amount: order.total_amount,
-            paid_amount: order.paid_amount,
-            currency_id: order.currency_id,
-            pack_id: order.pack_id,
-            items: Array.isArray(order.order_items)
-              ? order.order_items.map((orderItem: any) => ({
-                  item_id: orderItem.item?.id,
-                  title: orderItem.item?.title,
-                  seller_sku: orderItem.item?.seller_sku,
-                  variation_id: orderItem.item?.variation_id,
-                  quantity: orderItem.quantity,
-                  unit_price: orderItem.unit_price,
-                  full_unit_price: orderItem.full_unit_price,
-                  sale_fee: orderItem.sale_fee
-                }))
-              : []
-          }))
+      const results = Array.isArray(orders?.results)
+        ? orders.results.map((order: any) => compactOrder(order))
         : [];
 
       return textResult({
-        paging: orders.paging,
+        paging: orders?.paging,
+        results
+      });
+    }
+  );
+
+  server.registerTool(
+    "consultar_envio_pedido",
+    {
+      description:
+        "Consulta o envio e o prazo maximo de despacho (SLA) de um pedido Mercado Livre da Stop Kar. Retorna shipment_id, status, tipo logistico e expected_date sem dados pessoais do comprador.",
+      inputSchema: {
+        order_id: z
+          .union([z.string().min(3), z.number().int().positive()])
+          .describe("Numero do pedido Mercado Livre, por exemplo 2000018481636328")
+      }
+    },
+    async ({ order_id }) => {
+      const order = await meliGet(env, `/orders/${encodeURIComponent(String(order_id))}`);
+      const enriched = await enrichOrderWithShipments(env, order);
+      return textResult(enriched);
+    }
+  );
+
+  server.registerTool(
+    "consultar_envios",
+    {
+      description:
+        "Consulta pedidos da Stop Kar e cruza cada pedido com shipment e SLA para identificar o que ainda precisa ser despachado. Pode filtrar pela data limite de despacho no formato YYYY-MM-DD. Nao retorna dados pessoais do comprador.",
+      inputSchema: {
+        data_inicial: z
+          .string()
+          .optional()
+          .describe("Data/hora ISO inicial da venda, por exemplo 2026-09-14T00:00:00-03:00"),
+        data_final: z
+          .string()
+          .optional()
+          .describe("Data/hora ISO final da venda, por exemplo 2026-09-16T23:59:59-03:00"),
+        status: z
+          .string()
+          .optional()
+          .default("paid")
+          .describe("Status do pedido; por padrao paid"),
+        data_despacho: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional()
+          .describe("Filtra pelo dia do SLA/expected_date, no formato YYYY-MM-DD"),
+        somente_pendentes: z
+          .boolean()
+          .optional()
+          .default(true)
+          .describe("Se true, retorna apenas pedidos com envio ainda pendente de despacho"),
+        limite: z.number().int().min(1).max(30).optional().default(20)
+      }
+    },
+    async ({ data_inicial, data_final, status, data_despacho, somente_pendentes, limite }) => {
+      const me = await meliGet(env, "/users/me");
+      const orders = await meliGet(env, "/orders/search", {
+        seller: String(me.id),
+        "order.date_created.from": data_inicial,
+        "order.date_created.to": data_final,
+        "order.status": status || "paid",
+        sort: "date_desc",
+        limit: String(limite ?? 20),
+        offset: "0"
+      });
+
+      const sourceOrders = Array.isArray(orders?.results) ? orders.results : [];
+      const enriched = await Promise.all(sourceOrders.map((order: any) => enrichOrderWithShipments(env, order)));
+
+      const results = enriched.filter((order: any) => {
+        const shipments = Array.isArray(order.shipments) ? order.shipments : [];
+        const matching = shipments.filter((shipment: any) => {
+          if (somente_pendentes !== false && !shipment.pendente_despacho) return false;
+          if (data_despacho) {
+            const expectedDate = shipment?.sla?.expected_date;
+            if (typeof expectedDate !== "string" || expectedDate.slice(0, 10) !== data_despacho) {
+              return false;
+            }
+          }
+          return true;
+        });
+
+        order.shipments = matching;
+        return matching.length > 0;
+      });
+
+      return textResult({
+        periodo_vendas: {
+          data_inicial: data_inicial ?? null,
+          data_final: data_final ?? null,
+          status: status || "paid"
+        },
+        filtro_despacho: data_despacho ?? null,
+        somente_pendentes: somente_pendentes !== false,
+        total_pedidos: results.length,
         results
       });
     }
@@ -440,7 +667,7 @@ export default {
       return Response.json({
         ok: true,
         service: "Stop Kar Mercado Livre",
-        version: "0.2.0",
+        version: "0.3.0",
         mercadolivre_connected: connected,
         user_id: userId
       });
