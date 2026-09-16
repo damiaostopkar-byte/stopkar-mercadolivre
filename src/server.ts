@@ -23,6 +23,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
+const SERVER_VERSION = "0.4.0";
 
 function textResult(value: unknown) {
   return {
@@ -51,10 +52,7 @@ function requireOAuthConfig(env: Env) {
   };
 }
 
-async function postToken(
-  env: Env,
-  params: Record<string, string>
-): Promise<any> {
+async function postToken(env: Env, params: Record<string, string>): Promise<any> {
   const { clientId, clientSecret } = requireOAuthConfig(env);
   const body = new URLSearchParams({
     client_id: clientId,
@@ -223,30 +221,52 @@ function formatSaoPaulo(value: unknown) {
   }).format(date);
 }
 
-function compactItem(item: any) {
+function getSellerSku(item: any) {
+  if (typeof item?.seller_sku === "string" && item.seller_sku) return item.seller_sku;
+  if (!Array.isArray(item?.attributes)) return null;
+  const sellerSku = item.attributes.find((attribute: any) => attribute?.id === "SELLER_SKU");
+  return sellerSku?.value_name ?? sellerSku?.values?.[0]?.name ?? null;
+}
+
+function compactListing(item: any) {
   return {
     id: item.id,
     title: item.title,
     status: item.status,
     sub_status: item.sub_status,
+    category_id: item.category_id,
     price: item.price,
     base_price: item.base_price,
     original_price: item.original_price,
     currency_id: item.currency_id,
     available_quantity: item.available_quantity,
     sold_quantity: item.sold_quantity,
-    listing_type_id: item.listing_type_id,
+    seller_sku: getSellerSku(item),
     seller_custom_field: item.seller_custom_field,
+    listing_type_id: item.listing_type_id,
     inventory_id: item.inventory_id,
     permalink: item.permalink,
     logistic_type: item.shipping?.logistic_type,
     free_shipping: item.shipping?.free_shipping,
+    catalog_listing: item.catalog_listing ?? false,
+    date_created: item.date_created ?? null,
+    date_created_sao_paulo: formatSaoPaulo(item.date_created),
+    last_updated: item.last_updated ?? null,
+    last_updated_sao_paulo: formatSaoPaulo(item.last_updated),
+    pictures_count: Array.isArray(item.pictures) ? item.pictures.length : 0
+  };
+}
+
+function compactItem(item: any) {
+  return {
+    ...compactListing(item),
     variations: Array.isArray(item.variations)
       ? item.variations.map((variation: any) => ({
           id: variation.id,
           price: variation.price,
           available_quantity: variation.available_quantity,
           sold_quantity: variation.sold_quantity,
+          seller_sku: getSellerSku(variation),
           seller_custom_field: variation.seller_custom_field,
           inventory_id: variation.inventory_id,
           attributes: Array.isArray(variation.attribute_combinations)
@@ -288,6 +308,59 @@ function compactOrder(order: any) {
         }))
       : []
   };
+}
+
+function chunkArray<T>(values: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let index = 0; index < values.length; index += size) {
+    chunks.push(values.slice(index, index + size));
+  }
+  return chunks;
+}
+
+const BULK_ITEM_ATTRIBUTES = [
+  "body.id",
+  "body.title",
+  "body.status",
+  "body.sub_status",
+  "body.category_id",
+  "body.price",
+  "body.base_price",
+  "body.original_price",
+  "body.currency_id",
+  "body.available_quantity",
+  "body.sold_quantity",
+  "body.listing_type_id",
+  "body.seller_custom_field",
+  "body.inventory_id",
+  "body.permalink",
+  "body.shipping",
+  "body.catalog_listing",
+  "body.date_created",
+  "body.last_updated",
+  "body.pictures",
+  "body.attributes"
+].join(",");
+
+async function getItemsBulk(env: Env, ids: string[]) {
+  if (ids.length === 0) return [];
+
+  const batches = chunkArray(ids, 20);
+  const responses = await Promise.all(
+    batches.map((batch) =>
+      meliGet(env, "/items/bulk", {
+        ids: batch.join(","),
+        attributes: BULK_ITEM_ATTRIBUTES
+      })
+    )
+  );
+
+  return responses.flatMap((response: any) => {
+    if (!Array.isArray(response)) return [];
+    return response
+      .filter((entry: any) => (entry?.status_code ?? entry?.code) === 200 && entry?.body)
+      .map((entry: any) => entry.body);
+  });
 }
 
 async function getOrderShipments(env: Env, orderId: string | number) {
@@ -400,7 +473,7 @@ async function enrichOrderWithShipments(env: Env, order: any) {
 function createServer(env: Env) {
   const server = new McpServer({
     name: "Stop Kar Mercado Livre",
-    version: "0.3.0"
+    version: SERVER_VERSION
   });
 
   server.registerTool(
@@ -428,12 +501,9 @@ function createServer(env: Env) {
     "buscar_anuncio",
     {
       description:
-        "Busca um anuncio da Stop Kar pelo codigo MLB e retorna preco, estoque, vendas, status, logistica e variacoes.",
+        "Busca um anuncio da Stop Kar pelo codigo MLB e retorna preco, estoque, vendas, SKU, codigo personalizado, status, logistica e variacoes.",
       inputSchema: {
-        item_id: z
-          .string()
-          .min(3)
-          .describe("Codigo do anuncio, por exemplo MLB1234567890")
+        item_id: z.string().min(3).describe("Codigo do anuncio, por exemplo MLB1234567890")
       }
     },
     async ({ item_id }) => {
@@ -441,6 +511,106 @@ function createServer(env: Env) {
         include_attributes: "all"
       });
       return textResult(compactItem(item));
+    }
+  );
+
+  server.registerTool(
+    "listar_anuncios",
+    {
+      description:
+        "Lista anuncios da conta Stop Kar no Mercado Livre e pode filtrar apenas anuncios que nunca venderam (sold_quantity igual a zero). Retorna titulo, preco, estoque, vendas, SKU, codigo personalizado, logistica, datas e quantidade de fotos.",
+      inputSchema: {
+        status: z
+          .enum(["active", "paused", "closed", "all"])
+          .optional()
+          .default("active")
+          .describe("Status dos anuncios. Use all para nao filtrar por status."),
+        somente_sem_vendas: z
+          .boolean()
+          .optional()
+          .default(false)
+          .describe("Se true, retorna somente anuncios com sold_quantity igual a zero na pagina consultada."),
+        limite: z.number().int().min(1).max(100).optional().default(50),
+        offset: z.number().int().min(0).optional().default(0),
+        ordenacao: z
+          .enum(["last_updated_desc", "last_updated_asc", "price_asc", "price_desc", "available_quantity_desc"])
+          .optional()
+          .default("last_updated_desc")
+      }
+    },
+    async ({ status, somente_sem_vendas, limite, offset, ordenacao }) => {
+      const me = await meliGet(env, "/users/me");
+      const search = await meliGet(env, `/users/${encodeURIComponent(String(me.id))}/items/search`, {
+        status: status === "all" ? undefined : status,
+        limit: String(limite ?? 50),
+        offset: String(offset ?? 0),
+        orders: ordenacao || "last_updated_desc"
+      });
+
+      const ids = Array.isArray(search?.results)
+        ? search.results.filter((id: unknown) => typeof id === "string")
+        : [];
+      const items = await getItemsBulk(env, ids);
+      const compact = items.map((item: any) => compactListing(item));
+      const results = somente_sem_vendas
+        ? compact.filter((item: any) => Number(item.sold_quantity ?? 0) === 0)
+        : compact;
+
+      const total = Number(search?.paging?.total ?? 0);
+      const currentOffset = Number(offset ?? 0);
+      const currentLimit = Number(limite ?? 50);
+      const nextOffset = currentOffset + currentLimit < total ? currentOffset + currentLimit : null;
+
+      return textResult({
+        filtro: {
+          status: status || "active",
+          somente_sem_vendas: somente_sem_vendas === true,
+          ordenacao: ordenacao || "last_updated_desc"
+        },
+        paging: search?.paging ?? {
+          total,
+          offset: currentOffset,
+          limit: currentLimit
+        },
+        anuncios_consultados_na_pagina: compact.length,
+        anuncios_retornados: results.length,
+        next_offset: nextOffset,
+        results
+      });
+    }
+  );
+
+  server.registerTool(
+    "consultar_visitas_anuncio",
+    {
+      description:
+        "Consulta as visitas de um anuncio Mercado Livre em uma janela de ate 150 dias. Util para identificar anuncios sem trafego ou com visitas mas sem vendas.",
+      inputSchema: {
+        item_id: z.string().min(3).describe("Codigo MLB do anuncio"),
+        dias: z.number().int().min(1).max(150).optional().default(30),
+        data_final: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional()
+          .describe("Data final opcional no formato YYYY-MM-DD")
+      }
+    },
+    async ({ item_id, dias, data_final }) => {
+      const visits = await meliGet(env, `/items/${encodeURIComponent(item_id)}/visits/time_window`, {
+        last: String(dias ?? 30),
+        unit: "day",
+        ending: data_final
+      });
+
+      return textResult({
+        item_id: visits?.item_id ?? item_id,
+        date_from: visits?.date_from ?? null,
+        date_to: visits?.date_to ?? null,
+        total_visits: visits?.total_visits ?? 0,
+        last: visits?.last ?? dias ?? 30,
+        unit: visits?.unit ?? "day",
+        results: Array.isArray(visits?.results) ? visits.results : []
+      });
     }
   );
 
@@ -467,6 +637,7 @@ function createServer(env: Env) {
               id: variation.id,
               available_quantity: variation.available_quantity,
               sold_quantity: variation.sold_quantity,
+              seller_sku: getSellerSku(variation),
               seller_custom_field: variation.seller_custom_field,
               inventory_id: variation.inventory_id
             }))
@@ -478,8 +649,7 @@ function createServer(env: Env) {
   server.registerTool(
     "consultar_preco",
     {
-      description:
-        "Consulta o preco atual de um anuncio Mercado Livre da Stop Kar.",
+      description: "Consulta o preco atual de um anuncio Mercado Livre da Stop Kar.",
       inputSchema: {
         item_id: z.string().min(3).describe("Codigo MLB do anuncio")
       }
@@ -513,10 +683,7 @@ function createServer(env: Env) {
           .string()
           .optional()
           .describe("Data/hora ISO final, por exemplo 2026-09-15T23:59:59-03:00"),
-        status: z
-          .string()
-          .optional()
-          .describe("Status do pedido, por exemplo paid ou cancelled"),
+        status: z.string().optional().describe("Status do pedido, por exemplo paid ou cancelled"),
         limite: z.number().int().min(1).max(50).optional().default(20)
       }
     },
@@ -575,11 +742,7 @@ function createServer(env: Env) {
           .string()
           .optional()
           .describe("Data/hora ISO final da venda, por exemplo 2026-09-16T23:59:59-03:00"),
-        status: z
-          .string()
-          .optional()
-          .default("paid")
-          .describe("Status do pedido; por padrao paid"),
+        status: z.string().optional().default("paid").describe("Status do pedido; por padrao paid"),
         data_despacho: z
           .string()
           .regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -606,7 +769,9 @@ function createServer(env: Env) {
       });
 
       const sourceOrders = Array.isArray(orders?.results) ? orders.results : [];
-      const enriched = await Promise.all(sourceOrders.map((order: any) => enrichOrderWithShipments(env, order)));
+      const enriched = await Promise.all(
+        sourceOrders.map((order: any) => enrichOrderWithShipments(env, order))
+      );
 
       const results = enriched.filter((order: any) => {
         const shipments = Array.isArray(order.shipments) ? order.shipments : [];
@@ -667,7 +832,7 @@ export default {
       return Response.json({
         ok: true,
         service: "Stop Kar Mercado Livre",
-        version: "0.3.0",
+        version: SERVER_VERSION,
         mercadolivre_connected: connected,
         user_id: userId
       });
