@@ -23,7 +23,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.4.3";
+const SERVER_VERSION = "0.5.0";
 
 function textResult(value: unknown) {
   return {
@@ -902,6 +902,198 @@ function createServer(env: Env) {
         filtro_despacho: data_despacho ?? null,
         somente_pendentes: somente_pendentes !== false,
         total_pedidos: results.length,
+        results
+      });
+    }
+  );
+
+  server.registerTool(
+    "consultar_tendencias",
+    {
+      description:
+        "Consulta as tendencias semanais de busca do Mercado Livre para o Brasil, opcionalmente filtradas por categoria. Retorna ate 50 termos com a posicao e o grupo de tendencia documentado pelo Mercado Livre.",
+      inputSchema: {
+        category_id: z
+          .string()
+          .min(3)
+          .optional()
+          .describe("Categoria Mercado Livre, por exemplo MLB22664. Se omitida, consulta tendencias gerais do site."),
+        termo: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("Filtro local opcional para retornar apenas tendencias que contenham este termo.")
+      }
+    },
+    async ({ category_id, termo }) => {
+      const me = await meliGet(env, "/users/me");
+      const siteId = String(me?.site_id || "MLB");
+      const path = category_id
+        ? `/trends/${encodeURIComponent(siteId)}/${encodeURIComponent(category_id)}`
+        : `/trends/${encodeURIComponent(siteId)}`;
+      const trends = await meliGet(env, path);
+      const entries = Array.isArray(trends) ? trends : [];
+
+      const normalized = entries.map((entry: any, index: number) => ({
+        position: index + 1,
+        grupo:
+          index < 10
+            ? "crescimento_mais_rapido"
+            : index < 30
+              ? "maior_volume_de_busca"
+              : "tendencia_popular",
+        keyword: entry?.keyword ?? null,
+        url: entry?.url ?? null
+      }));
+
+      const filterTerm = termo?.trim().toLocaleLowerCase("pt-BR");
+      const results = filterTerm
+        ? normalized.filter((entry: any) =>
+            String(entry.keyword || "").toLocaleLowerCase("pt-BR").includes(filterTerm)
+          )
+        : normalized;
+
+      return textResult({
+        site_id: siteId,
+        category_id: category_id ?? null,
+        atualizacao: "semanal",
+        legenda_grupos: {
+          posicoes_1_a_10: "crescimento_mais_rapido",
+          posicoes_11_a_30: "maior_volume_de_busca",
+          posicoes_31_a_50: "tendencia_popular"
+        },
+        total_recebido: normalized.length,
+        total_retornado: results.length,
+        results
+      });
+    }
+  );
+
+  server.registerTool(
+    "consultar_mais_vendidos_categoria",
+    {
+      description:
+        "Consulta o ranking de ate 20 produtos ou anuncios mais vendidos de uma categoria do Mercado Livre. Pode detalhar os primeiros resultados para mostrar titulo/nome e dados uteis para comparar concorrentes.",
+      inputSchema: {
+        category_id: z.string().min(3).describe("Categoria Mercado Livre, por exemplo MLB22664"),
+        limite_detalhes: z
+          .number()
+          .int()
+          .min(0)
+          .max(20)
+          .optional()
+          .default(10)
+          .describe("Quantos resultados do ranking devem receber consulta de detalhes. Use 0 para retornar apenas o ranking.")
+      }
+    },
+    async ({ category_id, limite_detalhes }) => {
+      const me = await meliGet(env, "/users/me");
+      const siteId = String(me?.site_id || "MLB");
+      const highlights = await meliGet(
+        env,
+        `/highlights/${encodeURIComponent(siteId)}/category/${encodeURIComponent(category_id)}`
+      );
+
+      const content = Array.isArray(highlights?.content) ? highlights.content : [];
+      const detailsLimit = Math.max(0, Math.min(20, Number(limite_detalhes ?? 10)));
+
+      const results = await Promise.all(
+        content.map(async (entry: any, index: number) => {
+          const base = {
+            id: entry?.id ?? null,
+            position: entry?.position ?? index + 1,
+            type: entry?.type ?? null
+          };
+
+          if (index >= detailsLimit || !entry?.id || !entry?.type) {
+            return base;
+          }
+
+          try {
+            if (entry.type === "ITEM") {
+              const item = await meliGet(env, `/items/${encodeURIComponent(String(entry.id))}`);
+              return {
+                ...base,
+                detalhe: {
+                  id: item?.id ?? entry.id,
+                  title: item?.title ?? null,
+                  category_id: item?.category_id ?? null,
+                  price: item?.price ?? null,
+                  currency_id: item?.currency_id ?? null,
+                  sold_quantity: item?.sold_quantity ?? null,
+                  listing_type_id: item?.listing_type_id ?? null,
+                  free_shipping: item?.shipping?.free_shipping ?? null,
+                  permalink: item?.permalink ?? null,
+                  catalog_product_id: item?.catalog_product_id ?? null,
+                  user_product_id: item?.user_product_id ?? null
+                }
+              };
+            }
+
+            if (entry.type === "PRODUCT") {
+              const product = await meliGet(env, `/products/${encodeURIComponent(String(entry.id))}`);
+              return {
+                ...base,
+                detalhe: {
+                  id: product?.id ?? entry.id,
+                  name: product?.name ?? product?.title ?? null,
+                  status: product?.status ?? null,
+                  domain_id: product?.domain_id ?? null,
+                  family_name: product?.family_name ?? null,
+                  attributes: Array.isArray(product?.attributes)
+                    ? product.attributes.map((attribute: any) => ({
+                        id: attribute?.id ?? null,
+                        name: attribute?.name ?? null,
+                        value_name: attribute?.value_name ?? attribute?.values?.[0]?.name ?? null
+                      }))
+                    : []
+                }
+              };
+            }
+
+            if (entry.type === "USER_PRODUCT") {
+              const userProduct = await meliGet(
+                env,
+                `/user-products/${encodeURIComponent(String(entry.id))}`
+              );
+              return {
+                ...base,
+                detalhe: {
+                  id: userProduct?.id ?? entry.id,
+                  name: userProduct?.name ?? null,
+                  family_name: userProduct?.family_name ?? null,
+                  family_id: userProduct?.family_id ?? null,
+                  domain_id: userProduct?.domain_id ?? null,
+                  user_id: userProduct?.user_id ?? null,
+                  catalog_product_id: userProduct?.catalog_product_id ?? null,
+                  attributes: Array.isArray(userProduct?.attributes)
+                    ? userProduct.attributes.map((attribute: any) => ({
+                        id: attribute?.id ?? null,
+                        name: attribute?.name ?? null,
+                        value_name: attribute?.value_name ?? attribute?.values?.[0]?.name ?? null
+                      }))
+                    : []
+                }
+              };
+            }
+
+            return base;
+          } catch (error) {
+            return {
+              ...base,
+              detalhe: null,
+              erro_detalhe: error instanceof Error ? error.message : String(error)
+            };
+          }
+        })
+      );
+
+      return textResult({
+        site_id: siteId,
+        category_id,
+        query_data: highlights?.query_data ?? null,
+        total: results.length,
+        detalhes_solicitados: detailsLimit,
         results
       });
     }
