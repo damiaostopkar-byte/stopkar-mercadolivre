@@ -23,7 +23,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.7.0";
+const SERVER_VERSION = "0.8.0";
 
 function textResult(value: unknown) {
   return {
@@ -605,6 +605,252 @@ function compactPromotionItem(entry: any) {
   };
 }
 
+
+const PRODUCT_ADS_METRICS = [
+  "clicks",
+  "prints",
+  "cost",
+  "cpc",
+  "ctr",
+  "direct_amount",
+  "indirect_amount",
+  "total_amount",
+  "direct_units_quantity",
+  "indirect_units_quantity",
+  "units_quantity",
+  "direct_items_quantity",
+  "indirect_items_quantity",
+  "advertising_items_quantity",
+  "organic_units_quantity",
+  "organic_units_amount",
+  "organic_items_quantity",
+  "acos",
+  "tacos",
+  "sov",
+  "cvr",
+  "roas"
+];
+
+function saoPauloDateOnly(value: unknown) {
+  if (typeof value !== "string" || !value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: SAO_PAULO_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(date);
+
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+  return year && month && day ? `${year}-${month}-${day}` : null;
+}
+
+function shiftIsoDate(date: string, days: number) {
+  const parsed = new Date(`${date}T12:00:00Z`);
+  parsed.setUTCDate(parsed.getUTCDate() + days);
+  return parsed.toISOString().slice(0, 10);
+}
+
+async function resolveSaleReference(env: Env, reference: string | number) {
+  const id = String(reference);
+
+  try {
+    const order = await meliGet(env, `/orders/${encodeURIComponent(id)}`);
+    if (order?.id) {
+      return {
+        reference_type: "order",
+        pack: order.pack_id ? { id: order.pack_id } : null,
+        orders: [order]
+      };
+    }
+  } catch {}
+
+  const pack = await meliGet(env, `/packs/${encodeURIComponent(id)}`);
+  const refs = Array.isArray(pack?.orders) ? pack.orders : [];
+  const orders = (
+    await Promise.all(
+      refs.map(async (entry: any) => {
+        try {
+          return await meliGet(env, `/orders/${encodeURIComponent(String(entry?.id))}`);
+        } catch {
+          return null;
+        }
+      })
+    )
+  ).filter(Boolean);
+
+  if (orders.length === 0) {
+    throw new Error("A referencia informada nao retornou nenhuma order acessivel da Stop Kar.");
+  }
+
+  return {
+    reference_type: "pack",
+    pack: {
+      id: pack?.id ?? reference,
+      status: pack?.status ?? null,
+      shipment_id: pack?.shipment?.id ?? null
+    },
+    orders
+  };
+}
+
+async function getPadsAdvertiser(env: Env, siteId: string) {
+  const data = await meliGet(
+    env,
+    "/advertising/advertisers",
+    { product_id: "PADS" },
+    { "Api-Version": "1" }
+  );
+
+  const advertisers = Array.isArray(data?.advertisers) ? data.advertisers : [];
+  return (
+    advertisers.find((entry: any) => String(entry?.site_id || "") === siteId) ??
+    advertisers[0] ??
+    null
+  );
+}
+
+function sumAdsMetrics(rows: any[]) {
+  const totals: Record<string, number> = {};
+  for (const field of PRODUCT_ADS_METRICS) totals[field] = 0;
+
+  for (const row of rows) {
+    const metrics = row?.metrics ?? row?.metrics_summary ?? row ?? {};
+    for (const field of PRODUCT_ADS_METRICS) {
+      const value = Number(metrics?.[field]);
+      if (Number.isFinite(value)) totals[field] += value;
+    }
+  }
+
+  for (const field of PRODUCT_ADS_METRICS) {
+    totals[field] = Number(totals[field].toFixed(4));
+  }
+
+  return totals;
+}
+
+async function getAdsRowsForItemPeriod(
+  env: Env,
+  siteId: string,
+  advertiserId: string | number,
+  itemId: string,
+  dateFrom: string,
+  dateTo: string
+) {
+  const search = await meliGet(
+    env,
+    `/advertising/${encodeURIComponent(siteId)}/advertisers/${encodeURIComponent(
+      String(advertiserId)
+    )}/product_ads/ad_groups/search`,
+    { "filters[item_ids]": itemId },
+    { "api-version": "2" }
+  );
+
+  const adGroups = Array.isArray(search?.results) ? search.results : [];
+  const rows: any[] = [];
+  const errors: string[] = [];
+
+  for (const group of adGroups) {
+    try {
+      const data = await meliGet(
+        env,
+        `/advertising/${encodeURIComponent(siteId)}/product_ads/ad_groups/${encodeURIComponent(
+          String(group?.id)
+        )}/ads`,
+        {
+          date_from: dateFrom,
+          date_to: dateTo,
+          metrics: PRODUCT_ADS_METRICS.join(",")
+        },
+        { "api-version": "2" }
+      );
+
+      const results = Array.isArray(data?.results) ? data.results : [];
+      for (const row of results) {
+        if (String(row?.item_id || "") === itemId) {
+          rows.push({
+            ...row,
+            ad_group_id: row?.ad_group_id ?? group?.id ?? null,
+            campaign_id: row?.campaign_id ?? group?.campaign_id ?? null
+          });
+        }
+      }
+    } catch (error) {
+      errors.push(
+        `ad_group ${String(group?.id ?? "")}: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  return {
+    ad_groups: adGroups.map((group: any) => ({
+      id: group?.id ?? null,
+      campaign_id: group?.campaign_id ?? null,
+      status: group?.status ?? null,
+      ad_group_type: group?.ad_group_type ?? null,
+      ad_group_external_id: group?.ad_group_external_id ?? null
+    })),
+    rows,
+    metrics: sumAdsMetrics(rows),
+    errors
+  };
+}
+
+async function countItemOrdersOnDate(env: Env, sellerId: string | number, itemId: string, date: string) {
+  const results: any[] = [];
+  let offset = 0;
+  const limit = 50;
+  let total = 0;
+
+  for (let page = 0; page < 10; page += 1) {
+    const data = await meliGet(env, "/orders/search", {
+      seller: String(sellerId),
+      "order.date_closed.from": `${date}T00:00:00-03:00`,
+      "order.date_closed.to": `${date}T23:59:59-03:00`,
+      "order.status": "paid",
+      sort: "date_desc",
+      limit: String(limit),
+      offset: String(offset)
+    });
+
+    const pageResults = Array.isArray(data?.results) ? data.results : [];
+    results.push(...pageResults);
+    total = Number(data?.paging?.total ?? results.length);
+    offset += limit;
+    if (results.length >= total || pageResults.length === 0) break;
+  }
+
+  let ordersWithItem = 0;
+  let units = 0;
+  let amount = 0;
+
+  for (const order of results) {
+    const matching = Array.isArray(order?.order_items)
+      ? order.order_items.filter((entry: any) => String(entry?.item?.id || "") === itemId)
+      : [];
+    if (matching.length > 0) ordersWithItem += 1;
+    for (const entry of matching) {
+      const quantity = Number(entry?.quantity ?? 0);
+      const unitPrice = Number(entry?.unit_price ?? 0);
+      units += Number.isFinite(quantity) ? quantity : 0;
+      amount += Number.isFinite(quantity * unitPrice) ? quantity * unitPrice : 0;
+    }
+  }
+
+  return {
+    orders_with_item: ordersWithItem,
+    units: Number(units.toFixed(4)),
+    amount: Number(amount.toFixed(2)),
+    orders_scanned: results.length,
+    total_orders_day: total,
+    scan_truncated: results.length < total
+  };
+}
+
 function createServer(env: Env) {
   const server = new McpServer({
     name: "Stop Kar Mercado Livre",
@@ -986,6 +1232,188 @@ function createServer(env: Env) {
   );
 
 
+
+  server.registerTool(
+    "consultar_ads_venda",
+    {
+      description:
+        "Cruza uma venda/order ou pack da Stop Kar com metricas oficiais de Product Ads na data da venda. Retorna custo do item em Ads, TACOS/ACOS, vendas diretas/indiretas e nivel de confianca da atribuicao. Somente leitura.",
+      inputSchema: {
+        venda_id: z
+          .union([z.string().min(3), z.number().int().positive()])
+          .describe("Order ID ou pack_id da venda Mercado Livre"),
+        janela_dias: z
+          .number()
+          .int()
+          .min(1)
+          .max(30)
+          .optional()
+          .default(14)
+          .describe("Janela para analisar custo e TACOS do item; padrao 14 dias.")
+      }
+    },
+    async ({ venda_id, janela_dias }) => {
+      const me = await meliGet(env, "/users/me");
+      const siteId = String(me?.site_id || "MLB");
+      const advertiser = await getPadsAdvertiser(env, siteId);
+
+      if (!advertiser?.advertiser_id) {
+        return textResult({
+          venda_id,
+          product_ads_disponivel: false,
+          motivo:
+            "A conta nao retornou advertiser de Product Ads. Confirme se Mercado Ads/Product Ads esta habilitado para a conta."
+        });
+      }
+
+      const resolved = await resolveSaleReference(env, venda_id);
+      const itemCache = new Map<string, any>();
+      const salesDayCache = new Map<string, any>();
+      const outputs: any[] = [];
+
+      for (const order of resolved.orders) {
+        const saleDate = saoPauloDateOnly(order?.date_closed ?? order?.date_created);
+        if (!saleDate) continue;
+        const windowDays = Number(janela_dias ?? 14);
+        const windowFrom = shiftIsoDate(saleDate, -(windowDays - 1));
+
+        for (const entry of Array.isArray(order?.order_items) ? order.order_items : []) {
+          const itemId = String(entry?.item?.id || "");
+          if (!itemId) continue;
+
+          const quantity = Number(entry?.quantity ?? 0);
+          const unitPrice = Number(entry?.unit_price ?? 0);
+          const saleAmount = Number((quantity * unitPrice).toFixed(2));
+
+          const dayKey = `${itemId}|${saleDate}`;
+          let salesDay = salesDayCache.get(dayKey);
+          if (!salesDay) {
+            salesDay = await countItemOrdersOnDate(env, me.id, itemId, saleDate);
+            salesDayCache.set(dayKey, salesDay);
+          }
+
+          let dayAds = itemCache.get(`day|${dayKey}`);
+          if (!dayAds) {
+            dayAds = await getAdsRowsForItemPeriod(
+              env,
+              siteId,
+              advertiser.advertiser_id,
+              itemId,
+              saleDate,
+              saleDate
+            );
+            itemCache.set(`day|${dayKey}`, dayAds);
+          }
+
+          let windowAds = itemCache.get(`window|${itemId}|${windowFrom}|${saleDate}`);
+          if (!windowAds) {
+            windowAds = await getAdsRowsForItemPeriod(
+              env,
+              siteId,
+              advertiser.advertiser_id,
+              itemId,
+              windowFrom,
+              saleDate
+            );
+            itemCache.set(`window|${itemId}|${windowFrom}|${saleDate}`, windowAds);
+          }
+
+          const directSalesDay = Number(dayAds.metrics.direct_items_quantity ?? 0);
+          const directAmountDay = Number(dayAds.metrics.direct_amount ?? 0);
+          const adsSalesDay = Number(dayAds.metrics.advertising_items_quantity ?? 0);
+          const dailyCost = Number(dayAds.metrics.cost ?? 0);
+          const windowCost = Number(windowAds.metrics.cost ?? 0);
+          const windowDirectSales = Number(windowAds.metrics.direct_items_quantity ?? 0);
+
+          const amountTolerance = Math.max(0.1, saleAmount * 0.02);
+          const amountMatches =
+            directAmountDay > 0 && Math.abs(directAmountDay - saleAmount) <= amountTolerance;
+
+          let attributionStatus = "indeterminada";
+          let attributionConfidence = "baixa";
+
+          if (dayAds.ad_groups.length === 0) {
+            attributionStatus = "item_sem_ad_group_product_ads_encontrado";
+          } else if (dayAds.rows.length === 0) {
+            attributionStatus = "sem_metricas_ads_para_o_item_na_data";
+          } else if (directSalesDay <= 0) {
+            attributionStatus = "nenhuma_venda_direta_product_ads_detectada_para_o_item_na_data";
+            attributionConfidence = "media";
+          } else if (
+            salesDay.orders_with_item === 1 &&
+            directSalesDay === 1 &&
+            amountMatches
+          ) {
+            attributionStatus = "forte_indicio_de_que_esta_venda_foi_direta_via_product_ads";
+            attributionConfidence = "alta";
+          } else {
+            attributionStatus =
+              "houve_venda_direta_via_product_ads_no_item_na_data_mas_a_order_exata_nao_e_exposta_pela_api";
+            attributionConfidence = "media";
+          }
+
+          outputs.push({
+            order_id: order?.id ?? null,
+            pack_id: order?.pack_id ?? null,
+            item_id: itemId,
+            title: entry?.item?.title ?? null,
+            seller_sku: entry?.item?.seller_sku ?? null,
+            quantity,
+            unit_price: unitPrice,
+            sale_amount: saleAmount,
+            sale_fee: entry?.sale_fee ?? null,
+            sale_date: saleDate,
+            ads: {
+              advertiser_id: advertiser.advertiser_id,
+              atribuicao: {
+                status: attributionStatus,
+                confianca: attributionConfidence,
+                exata_por_order_id: false,
+                observacao:
+                  "Product Ads retorna custo e conversoes por item/ad group e periodo, mas nao informa o order_id de cada conversao."
+              },
+              metricas_no_dia_da_venda: {
+                ...dayAds.metrics,
+                custo_ads_do_item_no_dia: dailyCost,
+                houve_venda_ads_no_dia: adsSalesDay > 0,
+                houve_venda_direta_ads_no_dia: directSalesDay > 0
+              },
+              vendas_reais_do_item_no_dia: salesDay,
+              janela: {
+                dias: windowDays,
+                date_from: windowFrom,
+                date_to: saleDate,
+                metrics: windowAds.metrics,
+                custo_ads_total: windowCost,
+                custo_ads_medio_por_venda_direta:
+                  windowDirectSales > 0
+                    ? Number((windowCost / windowDirectSales).toFixed(2))
+                    : null
+              },
+              erros: [...dayAds.errors, ...windowAds.errors].slice(0, 10)
+            }
+          });
+        }
+      }
+
+      return textResult({
+        reference_type: resolved.reference_type,
+        pack: resolved.pack,
+        advertiser: {
+          advertiser_id: advertiser.advertiser_id,
+          site_id: advertiser.site_id ?? siteId,
+          advertiser_name: advertiser.advertiser_name ?? null,
+          account_name: advertiser.account_name ?? null
+        },
+        itens: outputs,
+        observacoes: [
+          "Metricas de Product Ads podem ter atraso de atualizacao.",
+          "A API de Ads nao expoe o order_id da conversao; a atribuicao individual pode ser inferida com alta confianca apenas em alguns casos.",
+          "Para precificacao previa, mantenha uma reserva de Ads; para auditoria pos-venda, use o custo/TACOS observado desta consulta."
+        ]
+      });
+    }
+  );
 
   server.registerTool(
     "consultar_custo_frete_envio",
