@@ -23,7 +23,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.5.0";
+const SERVER_VERSION = "0.6.0";
 
 function textResult(value: unknown) {
   return {
@@ -253,6 +253,7 @@ function compactListing(item: any) {
     tags: Array.isArray(item.tags) ? item.tags : [],
     permalink: item.permalink,
     logistic_type: item.shipping?.logistic_type,
+    shipping_mode: item.shipping?.mode ?? null,
     free_shipping: item.shipping?.free_shipping,
     catalog_listing: item.catalog_listing ?? false,
     date_created: item.date_created ?? null,
@@ -525,6 +526,49 @@ async function enrichOrderWithShipments(env: Env, order: any) {
       shipment_error: error instanceof Error ? error.message : String(error)
     };
   }
+}
+
+
+function percentDiscount(originalPrice: unknown, currentPrice: unknown) {
+  const original = Number(originalPrice);
+  const current = Number(currentPrice);
+  if (
+    !Number.isFinite(original) ||
+    !Number.isFinite(current) ||
+    original <= 0 ||
+    current <= 0 ||
+    current > original
+  ) {
+    return null;
+  }
+
+  return Number((((original - current) / original) * 100).toFixed(2));
+}
+
+function compactPromotionItem(entry: any) {
+  return {
+    id: entry?.id ?? null,
+    promotion_id: entry?.promotion_id ?? entry?.id ?? null,
+    ref_id: entry?.ref_id ?? entry?.offer_id ?? null,
+    type: entry?.type ?? null,
+    sub_type: entry?.sub_type ?? null,
+    status: entry?.status ?? null,
+    name: entry?.name ?? null,
+    price: entry?.price ?? null,
+    original_price: entry?.original_price ?? null,
+    desconto_total_percentual: percentDiscount(entry?.original_price, entry?.price),
+    min_discounted_price: entry?.min_discounted_price ?? null,
+    max_discounted_price: entry?.max_discounted_price ?? null,
+    suggested_discounted_price: entry?.suggested_discounted_price ?? null,
+    seller_percentage: entry?.seller_percentage ?? null,
+    meli_percentage: entry?.meli_percentage ?? null,
+    start_date: entry?.start_date ?? null,
+    end_date: entry?.end_date ?? entry?.finish_date ?? null,
+    boosted_offer: entry?.boosted_offer ?? false,
+    discount_meli_boosted_percentage: entry?.discount_meli_boosted_percentage ?? null,
+    discount_meli_boost_amount: entry?.discount_meli_boost_amount ?? null,
+    total_price_for_boosted_offer: entry?.total_price_for_boosted_offer ?? null
+  };
 }
 
 function createServer(env: Env) {
@@ -903,6 +947,295 @@ function createServer(env: Env) {
         somente_pendentes: somente_pendentes !== false,
         total_pedidos: results.length,
         results
+      });
+    }
+  );
+
+
+  server.registerTool(
+    "listar_promocoes",
+    {
+      description:
+        "Lista campanhas/promocoes disponiveis para a conta Stop Kar no Mercado Livre. Somente leitura. Por padrao retorna campanhas iniciadas (started).",
+      inputSchema: {
+        status: z
+          .enum(["started", "pending", "finished", "all"])
+          .optional()
+          .default("started")
+          .describe("Status da campanha. Use all para retornar todos os status."),
+        tipo: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("Filtro local opcional pelo tipo da promocao, por exemplo DEAL, PRICE_DISCOUNT, SMART ou SELLER_CAMPAIGN.")
+      }
+    },
+    async ({ status, tipo }) => {
+      const me = await meliGet(env, "/users/me");
+      const data = await meliGet(
+        env,
+        `/seller-promotions/users/${encodeURIComponent(String(me.id))}`,
+        { app_version: "v2" }
+      );
+
+      const campaigns = Array.isArray(data?.results)
+        ? data.results
+        : Array.isArray(data)
+          ? data
+          : [];
+
+      const statusFilter = status || "started";
+      const typeFilter = tipo?.trim().toUpperCase();
+
+      const results = campaigns
+        .filter((campaign: any) => statusFilter === "all" || campaign?.status === statusFilter)
+        .filter(
+          (campaign: any) =>
+            !typeFilter || String(campaign?.type || "").toUpperCase() === typeFilter
+        )
+        .map((campaign: any) => ({
+          id: campaign?.id ?? null,
+          type: campaign?.type ?? null,
+          sub_type: campaign?.sub_type ?? null,
+          status: campaign?.status ?? null,
+          name: campaign?.name ?? null,
+          start_date: campaign?.start_date ?? null,
+          finish_date: campaign?.finish_date ?? null,
+          deadline_date: campaign?.deadline_date ?? null,
+          benefits: campaign?.benefits ?? null
+        }));
+
+      return textResult({
+        seller_id: me.id,
+        status: statusFilter,
+        tipo: typeFilter ?? null,
+        total: results.length,
+        results
+      });
+    }
+  );
+
+  server.registerTool(
+    "consultar_promocoes_anuncio",
+    {
+      description:
+        "Consulta todas as promocoes associadas a um anuncio da Stop Kar, incluindo preco promocional, preco original, percentuais do vendedor/Mercado Livre e campos de boost quando existirem. Somente leitura.",
+      inputSchema: {
+        item_id: z.string().min(3).describe("Codigo MLB do anuncio")
+      }
+    },
+    async ({ item_id }) => {
+      const item = await meliGet(env, `/items/${encodeURIComponent(item_id)}`);
+      const data = await meliGet(
+        env,
+        `/seller-promotions/items/${encodeURIComponent(item_id)}`,
+        { app_version: "v2" }
+      );
+
+      const entries = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.results)
+          ? data.results
+          : [];
+
+      return textResult({
+        item: {
+          id: item?.id ?? item_id,
+          title: item?.title ?? null,
+          status: item?.status ?? null,
+          price: item?.price ?? null,
+          base_price: item?.base_price ?? null,
+          original_price: item?.original_price ?? null,
+          listing_type_id: item?.listing_type_id ?? null,
+          category_id: item?.category_id ?? null,
+          logistic_type: item?.shipping?.logistic_type ?? null,
+          shipping_mode: item?.shipping?.mode ?? null,
+          free_shipping: item?.shipping?.free_shipping ?? null
+        },
+        total: entries.length,
+        results: entries.map((entry: any) => compactPromotionItem(entry))
+      });
+    }
+  );
+
+  server.registerTool(
+    "listar_itens_promocao",
+    {
+      description:
+        "Lista os anuncios pertencentes a uma campanha do Mercado Livre e mostra preco promocional, preco original, desconto efetivo e participacao do vendedor/Mercado Livre quando disponivel. Somente leitura.",
+      inputSchema: {
+        promotion_id: z.string().min(2).describe("ID da campanha/promocao"),
+        promotion_type: z
+          .string()
+          .min(2)
+          .describe("Tipo da promocao, por exemplo DEAL, MARKETPLACE_CAMPAIGN, PRICE_DISCOUNT, SELLER_CAMPAIGN, SMART ou PRICE_MATCHING"),
+        status: z
+          .enum(["started", "pending", "candidate"])
+          .optional()
+          .describe("Filtro opcional pelo status do item na promocao"),
+        status_item: z
+          .enum(["active", "paused"])
+          .optional()
+          .describe("Filtro opcional pelo status atual do anuncio"),
+        item_id: z.string().min(3).optional().describe("Filtro opcional por codigo MLB"),
+        limite: z.number().int().min(1).max(50).optional().default(50),
+        search_after: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("Cursor de paginacao retornado pela consulta anterior")
+      }
+    },
+    async ({
+      promotion_id,
+      promotion_type,
+      status,
+      status_item,
+      item_id,
+      limite,
+      search_after
+    }) => {
+      const data = await meliGet(
+        env,
+        `/seller-promotions/promotions/${encodeURIComponent(promotion_id)}/items`,
+        {
+          promotion_type,
+          status,
+          status_item,
+          item_id,
+          app_version: "v2",
+          limit: String(limite ?? 50),
+          search_after
+        }
+      );
+
+      const entries = Array.isArray(data?.results)
+        ? data.results
+        : Array.isArray(data)
+          ? data
+          : [];
+
+      return textResult({
+        promotion_id,
+        promotion_type,
+        total_retornado: entries.length,
+        paging: data?.paging ?? null,
+        next_search_after:
+          data?.searchAfter ?? data?.search_after ?? data?.paging?.searchAfter ?? null,
+        results: entries.map((entry: any) => compactPromotionItem(entry))
+      });
+    }
+  );
+
+  server.registerTool(
+    "simular_custo_venda",
+    {
+      description:
+        "Consulta o calculador oficial listing_prices do Mercado Livre antes de publicar ou alterar um produto. Retorna sale_fee_amount, percentual de comissao, taxa fixa e custo efetivo da venda. Somente leitura.",
+      inputSchema: {
+        preco: z.number().positive().describe("Preco final de venda a ser simulado"),
+        category_id: z.string().min(3).describe("Categoria Mercado Livre, por exemplo MLB428983"),
+        listing_type_id: z
+          .enum(["gold_special", "gold_pro", "free"])
+          .describe("Tipo de anuncio: gold_special=Classico, gold_pro=Premium"),
+        logistic_type: z
+          .string()
+          .min(1)
+          .describe("Tipo logistico previsto, por exemplo fulfillment ou xd_drop_off"),
+        shipping_mode: z
+          .string()
+          .min(1)
+          .describe("Modo de envio previsto, normalmente me2 no Mercado Envios"),
+        currency_id: z.string().min(3).optional().default("BRL"),
+        billable_weight: z
+          .number()
+          .positive()
+          .optional()
+          .describe("Peso faturavel quando conhecido, para aumentar a precisao do custo"),
+        channel: z
+          .string()
+          .min(1)
+          .optional()
+          .default("marketplace")
+          .describe("Canal da venda; por padrao marketplace")
+      }
+    },
+    async ({
+      preco,
+      category_id,
+      listing_type_id,
+      logistic_type,
+      shipping_mode,
+      currency_id,
+      billable_weight,
+      channel
+    }) => {
+      const me = await meliGet(env, "/users/me");
+      const siteId = String(me?.site_id || "MLB");
+
+      const data = await meliGet(env, `/sites/${encodeURIComponent(siteId)}/listing_prices`, {
+        price: String(preco),
+        category_id,
+        listing_type_id,
+        currency_id: currency_id || "BRL",
+        logistic_type,
+        shipping_mode,
+        billable_weight:
+          typeof billable_weight === "number" ? String(billable_weight) : undefined,
+        channel: channel || "marketplace"
+      });
+
+      const entries = Array.isArray(data) ? data : data ? [data] : [];
+      const selected =
+        entries.find((entry: any) => entry?.listing_type_id === listing_type_id) ??
+        entries[0] ??
+        null;
+
+      if (!selected) {
+        throw new Error("O Mercado Livre nao retornou uma cotacao de custo para os parametros informados.");
+      }
+
+      const saleFeeAmount = Number(selected?.sale_fee_amount);
+      const effectivePercentage =
+        Number.isFinite(saleFeeAmount) && Number(preco) > 0
+          ? Number(((saleFeeAmount / Number(preco)) * 100).toFixed(4))
+          : null;
+
+      return textResult({
+        site_id: siteId,
+        entrada: {
+          preco,
+          category_id,
+          listing_type_id,
+          logistic_type,
+          shipping_mode,
+          currency_id: currency_id || "BRL",
+          billable_weight: billable_weight ?? null,
+          channel: channel || "marketplace"
+        },
+        resultado: {
+          listing_type_id: selected?.listing_type_id ?? listing_type_id,
+          listing_type_name: selected?.listing_type_name ?? null,
+          listing_exposure: selected?.listing_exposure ?? null,
+          currency_id: selected?.currency_id ?? currency_id ?? "BRL",
+          listing_fee_amount: selected?.listing_fee_amount ?? null,
+          sale_fee_amount: selected?.sale_fee_amount ?? null,
+          percentual_efetivo_total: effectivePercentage,
+          percentage_fee: selected?.sale_fee_details?.percentage_fee ?? null,
+          meli_percentage_fee: selected?.sale_fee_details?.meli_percentage_fee ?? null,
+          fixed_fee: selected?.sale_fee_details?.fixed_fee ?? null,
+          financing_add_on_fee: selected?.sale_fee_details?.financing_add_on_fee ?? null,
+          gross_amount: selected?.sale_fee_details?.gross_amount ?? null,
+          stop_time: selected?.stop_time ?? null
+        },
+        observacoes: [
+          "O fixed_fee ja esta incluido em sale_fee_amount e nao deve ser somado novamente.",
+          ...(billable_weight == null
+            ? [
+                "billable_weight nao foi informado. Se ele for relevante para a modalidade logistica, confirme o peso faturavel antes de considerar a precificacao definitiva."
+              ]
+            : [])
+        ]
       });
     }
   );
