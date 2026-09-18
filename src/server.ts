@@ -23,7 +23,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.8.0";
+const SERVER_VERSION = "0.9.0";
 
 function textResult(value: unknown) {
   return {
@@ -848,6 +848,93 @@ async function countItemOrdersOnDate(env: Env, sellerId: string | number, itemId
     orders_scanned: results.length,
     total_orders_day: total,
     scan_truncated: results.length < total
+  };
+}
+
+
+const ADS_CAMPAIGN_METRICS = [
+  "clicks",
+  "prints",
+  "ctr",
+  "cost",
+  "cpc",
+  "acos",
+  "organic_units_quantity",
+  "organic_units_amount",
+  "organic_items_quantity",
+  "direct_items_quantity",
+  "indirect_items_quantity",
+  "advertising_items_quantity",
+  "cvr",
+  "roas",
+  "sov",
+  "direct_units_quantity",
+  "indirect_units_quantity",
+  "units_quantity",
+  "direct_amount",
+  "indirect_amount",
+  "total_amount"
+].join(",");
+
+const ADS_AD_GROUP_METRICS = [
+  "CLICKS",
+  "PRINTS",
+  "COST",
+  "CPC",
+  "CTR",
+  "DIRECT_AMOUNT",
+  "INDIRECT_AMOUNT",
+  "TOTAL_AMOUNT",
+  "DIRECT_UNITS_QUANTITY",
+  "INDIRECT_UNITS_QUANTITY",
+  "UNITS_QUANTITY",
+  "DIRECT_ITEMS_QUANTITY",
+  "INDIRECT_ITEMS_QUANTITY",
+  "ADVERTISING_ITEMS_QUANTITY",
+  "ORGANIC_UNITS_QUANTITY",
+  "ORGANIC_UNITS_AMOUNT",
+  "ORGANIC_ITEMS_QUANTITY",
+  "ACOS",
+  "TACOS",
+  "SOV",
+  "CVR",
+  "ROAS"
+].join(",");
+
+async function getProductAdsAdvertiser(env: Env) {
+  let data: any;
+  try {
+    data = await meliGet(
+      env,
+      "/advertising/advertisers",
+      { product_id: "PADS" },
+      { "Api-Version": "1" }
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Nao foi possivel acessar Mercado Ads Product Ads. Confirme que o aplicativo do Mercado Livre tem a permissao funcional Publicidade e, se a permissao tiver sido adicionada agora, autorize novamente a conta em /oauth/start. Detalhe: ${message}`
+    );
+  }
+
+  const advertisers = Array.isArray(data?.advertisers) ? data.advertisers : [];
+  if (advertisers.length === 0) {
+    throw new Error(
+      "A conta autorizada nao retornou advertiser de Product Ads (PADS). Confirme que a conta possui Mercado Ads ativo e que o aplicativo tem permissao Publicidade."
+    );
+  }
+
+  const me = await meliGet(env, "/users/me");
+  const sellerSiteId = String(me?.site_id || "MLB");
+  const advertiser =
+    advertisers.find((entry: any) => String(entry?.site_id || "") === sellerSiteId) ||
+    advertisers[0];
+
+  return {
+    advertiser_id: advertiser?.advertiser_id,
+    site_id: String(advertiser?.site_id || sellerSiteId),
+    advertiser_name: advertiser?.advertiser_name ?? null,
+    raw: advertiser
   };
 }
 
@@ -2055,6 +2142,234 @@ function createServer(env: Env) {
         query_data: highlights?.query_data ?? null,
         total: results.length,
         detalhes_solicitados: detailsLimit,
+        results
+      });
+    }
+  );
+
+
+  server.registerTool(
+    "consultar_ads_conta",
+    {
+      description:
+        "Consulta, somente leitura, o anunciante Product Ads da Stop Kar e valida se a integracao do Mercado Ads esta autorizada.",
+      inputSchema: {}
+    },
+    async () => {
+      const advertiser = await getProductAdsAdvertiser(env);
+      return textResult({
+        product_id: "PADS",
+        advertiser_id: advertiser.advertiser_id,
+        site_id: advertiser.site_id,
+        advertiser_name: advertiser.advertiser_name,
+        modo: "somente_leitura"
+      });
+    }
+  );
+
+  server.registerTool(
+    "consultar_ads_campanhas",
+    {
+      description:
+        "Consulta campanhas Product Ads da Stop Kar com metricas de desempenho. Somente leitura. Retorna investimento, impressoes, cliques, CTR, CPC, ACOS, ROAS, vendas atribuidas, vendas organicas e outras metricas oficiais do Mercado Ads.",
+      inputSchema: {
+        data_inicial: z
+          .string()
+          .regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+          .describe("Data inicial YYYY-MM-DD. As metricas do Mercado Ads aceitam janela recente de ate 90 dias."),
+        data_final: z
+          .string()
+          .regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+          .describe("Data final YYYY-MM-DD."),
+        status: z
+          .enum(["active", "paused"])
+          .optional()
+          .describe("Filtra campanhas ativas ou pausadas."),
+        limite: z.number().int().min(1).max(100).optional().default(50),
+        offset: z.number().int().min(0).optional().default(0)
+      }
+    },
+    async ({ data_inicial, data_final, status, limite, offset }) => {
+      const advertiser = await getProductAdsAdvertiser(env);
+      const data = await meliGet(
+        env,
+        `/advertising/${encodeURIComponent(advertiser.site_id)}/advertisers/${encodeURIComponent(
+          String(advertiser.advertiser_id)
+        )}/product_ads/campaigns/search`,
+        {
+          limit: String(limite ?? 50),
+          offset: String(offset ?? 0),
+          date_from: data_inicial,
+          date_to: data_final,
+          metrics: ADS_CAMPAIGN_METRICS,
+          metrics_summary: "true",
+          "filters[status]": status,
+          "filters[channel]": "marketplace"
+        },
+        { "api-version": "2" }
+      );
+
+      return textResult({
+        advertiser: {
+          advertiser_id: advertiser.advertiser_id,
+          site_id: advertiser.site_id,
+          advertiser_name: advertiser.advertiser_name
+        },
+        periodo: {
+          data_inicial,
+          data_final
+        },
+        paging: data?.paging ?? null,
+        metrics_summary: data?.metrics_summary ?? null,
+        results: Array.isArray(data?.results) ? data.results : []
+      });
+    }
+  );
+
+  server.registerTool(
+    "consultar_ads_anuncios",
+    {
+      description:
+        "Consulta Ad Groups/anuncios Product Ads da Stop Kar com metricas por produto. Somente leitura. Inclui investimento, cliques, impressoes, CTR, CPC, ACOS, TACOS, CVR, ROAS, vendas atribuidas e organicas.",
+      inputSchema: {
+        data_inicial: z
+          .string()
+          .regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+          .describe("Data inicial YYYY-MM-DD."),
+        data_final: z
+          .string()
+          .regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+          .describe("Data final YYYY-MM-DD."),
+        campaign_id: z
+          .union([z.string().min(1), z.number().int().positive()])
+          .optional()
+          .describe("ID opcional de uma campanha Product Ads."),
+        status: z
+          .enum(["active", "paused"])
+          .optional()
+          .describe("Filtra Ad Groups ativos ou pausados."),
+        limite: z.number().int().min(1).max(200).optional().default(50),
+        offset: z.number().int().min(0).optional().default(0),
+        ordenar_por: z
+          .enum(["cost", "clicks", "prints", "total_amount", "roas", "acos", "tacos"])
+          .optional()
+          .default("cost")
+      }
+    },
+    async ({ data_inicial, data_final, campaign_id, status, limite, offset, ordenar_por }) => {
+      const advertiser = await getProductAdsAdvertiser(env);
+      const data = await meliGet(
+        env,
+        `/advertising/${encodeURIComponent(advertiser.site_id)}/advertisers/${encodeURIComponent(
+          String(advertiser.advertiser_id)
+        )}/product_ads/ad_groups/search`,
+        {
+          date_from: data_inicial,
+          date_to: data_final,
+          limit: String(limite ?? 50),
+          offset: String(offset ?? 0),
+          sort: "desc",
+          sort_by: ordenar_por || "cost",
+          metrics: ADS_AD_GROUP_METRICS,
+          metrics_summary: "true",
+          "filters[campaigns]": campaign_id !== undefined ? String(campaign_id) : undefined,
+          "filters[statuses]": status,
+          "filters[channel]": "marketplace",
+          sll: "false"
+        },
+        { "api-version": "2" }
+      );
+
+      return textResult({
+        advertiser: {
+          advertiser_id: advertiser.advertiser_id,
+          site_id: advertiser.site_id,
+          advertiser_name: advertiser.advertiser_name
+        },
+        periodo: {
+          data_inicial,
+          data_final
+        },
+        paging: data?.paging ?? null,
+        metrics_summary: data?.metrics_summary ?? null,
+        results: Array.isArray(data?.results) ? data.results : []
+      });
+    }
+  );
+
+  server.registerTool(
+    "consultar_ads_anuncio",
+    {
+      description:
+        "Consulta as metricas Product Ads de um anuncio especifico pelo codigo MLB. Somente leitura. Mapeia o item para o Ad Group atual e retorna investimento, vendas atribuidas, TACOS, ACOS, ROAS, cliques, impressoes, CTR, CPC e CVR.",
+      inputSchema: {
+        item_id: z.string().min(3).describe("Codigo MLB do anuncio, por exemplo MLB1234567890"),
+        data_inicial: z
+          .string()
+          .regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+          .describe("Data inicial YYYY-MM-DD."),
+        data_final: z
+          .string()
+          .regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+          .describe("Data final YYYY-MM-DD.")
+      }
+    },
+    async ({ item_id, data_inicial, data_final }) => {
+      const advertiser = await getProductAdsAdvertiser(env);
+      const adGroups = await meliGet(
+        env,
+        `/advertising/${encodeURIComponent(advertiser.site_id)}/advertisers/${encodeURIComponent(
+          String(advertiser.advertiser_id)
+        )}/product_ads/ad_groups/search`,
+        {
+          "filters[item_ids]": item_id,
+          limit: "50"
+        },
+        { "api-version": "2" }
+      );
+
+      const groups = Array.isArray(adGroups?.results) ? adGroups.results : [];
+      const results = await Promise.all(
+        groups.map(async (group: any) => {
+          const metrics = await meliGet(
+            env,
+            `/advertising/${encodeURIComponent(advertiser.site_id)}/product_ads/ad_groups/${encodeURIComponent(
+              String(group?.id)
+            )}/ads`,
+            {
+              date_from: data_inicial,
+              date_to: data_final,
+              metrics: ADS_AD_GROUP_METRICS.toLowerCase()
+            },
+            { "api-version": "2" }
+          );
+
+          return {
+            ad_group: {
+              id: group?.id ?? null,
+              ad_group_external_id: group?.ad_group_external_id ?? null,
+              status: group?.status ?? null,
+              campaign_id: group?.campaign_id ?? null,
+              advertiser_id: group?.advertiser_id ?? null,
+              ad_group_type: group?.ad_group_type ?? null
+            },
+            metrics
+          };
+        })
+      );
+
+      return textResult({
+        item_id,
+        periodo: {
+          data_inicial,
+          data_final
+        },
+        advertiser: {
+          advertiser_id: advertiser.advertiser_id,
+          site_id: advertiser.site_id,
+          advertiser_name: advertiser.advertiser_name
+        },
+        ad_groups_encontrados: groups.length,
         results
       });
     }
