@@ -23,7 +23,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.9.0";
+const SERVER_VERSION = "0.9.1";
 
 function textResult(value: unknown) {
   return {
@@ -2175,11 +2175,11 @@ function createServer(env: Env) {
       inputSchema: {
         data_inicial: z
           .string()
-          .regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
           .describe("Data inicial YYYY-MM-DD. As metricas do Mercado Ads aceitam janela recente de ate 90 dias."),
         data_final: z
           .string()
-          .regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
           .describe("Data final YYYY-MM-DD."),
         status: z
           .enum(["active", "paused"])
@@ -2234,11 +2234,11 @@ function createServer(env: Env) {
       inputSchema: {
         data_inicial: z
           .string()
-          .regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
           .describe("Data inicial YYYY-MM-DD."),
         data_final: z
           .string()
-          .regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
           .describe("Data final YYYY-MM-DD."),
         campaign_id: z
           .union([z.string().min(1), z.number().int().positive()])
@@ -2306,11 +2306,11 @@ function createServer(env: Env) {
         item_id: z.string().min(3).describe("Codigo MLB do anuncio, por exemplo MLB1234567890"),
         data_inicial: z
           .string()
-          .regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
           .describe("Data inicial YYYY-MM-DD."),
         data_final: z
           .string()
-          .regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
           .describe("Data final YYYY-MM-DD.")
       }
     },
