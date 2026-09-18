@@ -23,7 +23,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.6.0";
+const SERVER_VERSION = "0.6.1";
 
 function textResult(value: unknown) {
   return {
@@ -483,6 +483,38 @@ async function getShipmentSummary(env: Env, shipmentRef: any) {
     }
   }
 
+  let shippingCosts: any = null;
+  let shippingCostsError: string | null = null;
+  if (!isCancelled) {
+    try {
+      const costs = await meliGet(
+        env,
+        `/shipments/${encodeURIComponent(String(shipmentId))}/costs`,
+        {},
+        { "x-format-new": "true" }
+      );
+
+      const senders = Array.isArray(costs?.senders) ? costs.senders : [];
+      const sellerCost = senders.reduce((sum: number, sender: any) => {
+        const value = Number(sender?.cost);
+        return sum + (Number.isFinite(value) ? value : 0);
+      }, 0);
+
+      shippingCosts = {
+        gross_amount: costs?.gross_amount ?? null,
+        receiver_cost: costs?.receiver?.cost ?? null,
+        seller_cost: Number(sellerCost.toFixed(2)),
+        senders: senders.map((sender: any) => ({
+          user_id: sender?.user_id ?? null,
+          cost: sender?.cost ?? null,
+          compensation: sender?.compensation ?? null
+        }))
+      };
+    } catch (error) {
+      shippingCostsError = error instanceof Error ? error.message : String(error);
+    }
+  }
+
   return {
     id: shipmentId,
     type: shipmentRef?.type ?? shipment?.logistic?.direction ?? null,
@@ -507,7 +539,9 @@ async function getShipmentSummary(env: Env, shipmentRef: any) {
           last_updated: sla.last_updated ?? null
         }
       : null,
-    sla_error: slaError
+    sla_error: slaError,
+    shipping_costs: shippingCosts,
+    shipping_costs_error: shippingCostsError
   };
 }
 
