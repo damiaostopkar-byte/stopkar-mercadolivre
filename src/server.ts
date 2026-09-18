@@ -23,7 +23,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.6.1";
+const SERVER_VERSION = "0.7.0";
 
 function textResult(value: unknown) {
   return {
@@ -985,6 +985,172 @@ function createServer(env: Env) {
     }
   );
 
+
+
+  server.registerTool(
+    "consultar_custo_frete_envio",
+    {
+      description:
+        "Consulta o custo real de frete cobrado do vendedor em um shipment Mercado Livre. Funciona para ME2, incluindo Full, Flex, Agencia/Places, Coleta/Cross Docking e Drop-off. Somente leitura.",
+      inputSchema: {
+        shipment_id: z
+          .union([z.string().min(3), z.number().int().positive()])
+          .describe("ID do shipment/envio Mercado Livre")
+      }
+    },
+    async ({ shipment_id }) => {
+      const shipment = await meliGet(
+        env,
+        `/shipments/${encodeURIComponent(String(shipment_id))}`,
+        {},
+        { "x-format-new": "true" }
+      );
+
+      const costs = await meliGet(
+        env,
+        `/shipments/${encodeURIComponent(String(shipment_id))}/costs`,
+        {},
+        { "x-format-new": "true" }
+      );
+
+      const senders = Array.isArray(costs?.senders) ? costs.senders : [];
+      const sellerCost = senders.reduce((sum: number, sender: any) => {
+        const value = Number(sender?.cost);
+        return sum + (Number.isFinite(value) ? value : 0);
+      }, 0);
+
+      const logisticType = shipment?.logistic?.type ?? shipment?.logistic_type ?? null;
+
+      return textResult({
+        shipment_id: shipment?.id ?? shipment_id,
+        status: shipment?.status ?? null,
+        logistic_type: logisticType,
+        logistic_label: logisticLabel(logisticType),
+        shipping_mode: shipment?.logistic?.mode ?? shipment?.mode ?? null,
+        gross_amount: costs?.gross_amount ?? null,
+        seller_cost: Number(sellerCost.toFixed(2)),
+        buyer_cost: costs?.receiver?.cost ?? null,
+        seller_compensation: Number(
+          senders
+            .reduce((sum: number, sender: any) => {
+              const value = Number(sender?.compensation);
+              return sum + (Number.isFinite(value) ? value : 0);
+            }, 0)
+            .toFixed(2)
+        ),
+        seller_details: senders.map((sender: any) => ({
+          user_id: sender?.user_id ?? null,
+          cost: sender?.cost ?? null,
+          compensation: sender?.compensation ?? null,
+          discounts: Array.isArray(sender?.discounts) ? sender.discounts : []
+        })),
+        buyer_details: costs?.receiver
+          ? {
+              user_id: costs.receiver.user_id ?? null,
+              cost: costs.receiver.cost ?? null,
+              compensation: costs.receiver.compensation ?? null,
+              discounts: Array.isArray(costs.receiver.discounts) ? costs.receiver.discounts : []
+            }
+          : null
+      });
+    }
+  );
+
+  server.registerTool(
+    "simular_custo_frete",
+    {
+      description:
+        "Simula o custo aproximado de frete para o vendedor antes de publicar ou editar um anuncio. Aceita Full, Flex e demais modalidades ME2. Informe item_id de um anuncio existente OU dimensoes para um produto novo. Somente leitura.",
+      inputSchema: {
+        item_id: z
+          .string()
+          .min(3)
+          .optional()
+          .describe("Codigo MLB de um anuncio existente. Se omitido, informe dimensoes."),
+        dimensoes: z
+          .string()
+          .min(3)
+          .optional()
+          .describe("Altura x largura x comprimento em cm, peso em gramas. Exemplo: 9x17x22,462"),
+        preco: z.number().positive().optional().describe("Preco final de venda simulado"),
+        listing_type_id: z
+          .enum(["gold_special", "gold_pro", "free"])
+          .optional()
+          .describe("gold_special=Classico, gold_pro=Premium"),
+        logistic_type: z
+          .enum(["drop_off", "cross_docking", "xd_drop_off", "self_service", "turbo", "fulfillment"])
+          .optional()
+          .describe("Normal/Agencia geralmente xd_drop_off; Flex=self_service; Full=fulfillment"),
+        mode: z.string().min(1).optional().default("me2"),
+        free_shipping: z
+          .boolean()
+          .optional()
+          .default(true)
+          .describe("True se o vendedor oferece frete gratis ao comprador"),
+        condition: z.string().min(1).optional().default("new"),
+        verbose: z.boolean().optional().default(true)
+      }
+    },
+    async ({
+      item_id,
+      dimensoes,
+      preco,
+      listing_type_id,
+      logistic_type,
+      mode,
+      free_shipping,
+      condition,
+      verbose
+    }) => {
+      if (!item_id && !dimensoes) {
+        throw new Error("Informe item_id de um anuncio existente ou dimensoes para simular um produto novo.");
+      }
+
+      const me = await meliGet(env, "/users/me");
+      const data = await meliGet(
+        env,
+        `/users/${encodeURIComponent(String(me.id))}/shipping_options/free`,
+        {
+          item_id,
+          dimensions: dimensoes,
+          item_price: typeof preco === "number" ? String(preco) : undefined,
+          listing_type_id,
+          mode: mode || "me2",
+          condition: condition || "new",
+          logistic_type,
+          free_shipping: String(free_shipping !== false),
+          verbose: String(verbose !== false)
+        }
+      );
+
+      const allCountry = data?.coverage?.all_country ?? null;
+
+      return textResult({
+        seller_id: me.id,
+        entrada: {
+          item_id: item_id ?? null,
+          dimensoes: dimensoes ?? null,
+          preco: preco ?? null,
+          listing_type_id: listing_type_id ?? null,
+          logistic_type: logistic_type ?? null,
+          logistic_label: logisticLabel(logistic_type),
+          mode: mode || "me2",
+          free_shipping: free_shipping !== false,
+          condition: condition || "new"
+        },
+        resultado: {
+          list_cost: allCountry?.list_cost ?? null,
+          currency_id: allCountry?.currency_id ?? "BRL",
+          billable_weight: allCountry?.billable_weight ?? null
+        },
+        raw_coverage: data?.coverage ?? null,
+        observacoes: [
+          "Este valor e uma estimativa pre-venda.",
+          "Para a venda concluida, use consultar_custo_frete_envio e considere seller_cost como o valor definitivo cobrado do vendedor."
+        ]
+      });
+    }
+  );
 
   server.registerTool(
     "listar_promocoes",
