@@ -7,7 +7,8 @@
   "keep_vars": true,
   "vars": {
     "ADS_WRITES_ENABLED": "true",
-    "LISTING_WRITES_ENABLED": "true"
+    "LISTING_WRITES_ENABLED": "true",
+    "PROMOTION_WRITES_ENABLED": "true"
   },
   "secrets": {
     "required": ["MELI_CLIENT_SECRET"]
