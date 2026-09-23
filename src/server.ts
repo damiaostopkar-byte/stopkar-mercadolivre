@@ -26,7 +26,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.13.4";
+const SERVER_VERSION = "0.13.5";
 
 function textResult(value: unknown) {
   return {
@@ -958,6 +958,13 @@ function compactPromotionItem(entry: any) {
     id: entry?.id ?? null,
     promotion_id: entry?.promotion_id ?? entry?.id ?? null,
     ref_id: entry?.ref_id ?? entry?.offer_id ?? null,
+    offer_id: entry?.offer_id ?? null,
+    candidate_id: entry?.candidate_id ?? null,
+    promotion_type: entry?.promotion_type ?? null,
+    deal_price: entry?.deal_price ?? null,
+    top_deal_price: entry?.top_deal_price ?? null,
+    currency_id: entry?.currency_id ?? null,
+    raw_keys: entry && typeof entry === "object" ? Object.keys(entry).sort() : [],
     type: entry?.type ?? null,
     sub_type: entry?.sub_type ?? null,
     status: entry?.status ?? null,
