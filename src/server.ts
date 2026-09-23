@@ -2109,7 +2109,7 @@ function createServer(env: Env) {
     "consultar_tendencias",
     {
       description:
-        "Consulta as tendencias semanais de busca do Mercado Livre para o Brasil, opcionalmente filtradas por categoria. Retorna ate 50 termos com a posicao e o grupo de tendencia documentado pelo Mercado Livre.",
+        "Consulta as tendencias semanais de busca do Mercado Livre para o Brasil. Se o endpoint oficial /trends estiver temporariamente indisponivel, retorna um fallback de sinais de demanda usando busca e/ou mais vendidos, claramente identificado como fallback.",
       inputSchema: {
         category_id: z
           .string()
@@ -2120,7 +2120,7 @@ function createServer(env: Env) {
           .string()
           .min(1)
           .optional()
-          .describe("Filtro local opcional para retornar apenas tendencias que contenham este termo.")
+          .describe("Filtro local opcional. Quando /trends estiver indisponivel, tambem e usado para gerar sinais de busca do mercado.")
       }
     },
     async ({ category_id, termo }) => {
@@ -2129,41 +2129,118 @@ function createServer(env: Env) {
       const path = category_id
         ? `/trends/${encodeURIComponent(siteId)}/${encodeURIComponent(category_id)}`
         : `/trends/${encodeURIComponent(siteId)}`;
-      const trends = await meliGet(env, path);
-      const entries = Array.isArray(trends) ? trends : [];
 
-      const normalized = entries.map((entry: any, index: number) => ({
-        position: index + 1,
-        grupo:
-          index < 10
-            ? "crescimento_mais_rapido"
-            : index < 30
-              ? "maior_volume_de_busca"
-              : "tendencia_popular",
-        keyword: entry?.keyword ?? null,
-        url: entry?.url ?? null
-      }));
+      try {
+        const trends = await meliGet(env, path);
+        const entries = Array.isArray(trends) ? trends : [];
 
-      const filterTerm = termo?.trim().toLocaleLowerCase("pt-BR");
-      const results = filterTerm
-        ? normalized.filter((entry: any) =>
-            String(entry.keyword || "").toLocaleLowerCase("pt-BR").includes(filterTerm)
-          )
-        : normalized;
+        const normalized = entries.map((entry: any, index: number) => ({
+          position: index + 1,
+          grupo:
+            index < 10
+              ? "crescimento_mais_rapido"
+              : index < 30
+                ? "maior_volume_de_busca"
+                : "tendencia_popular",
+          keyword: entry?.keyword ?? null,
+          url: entry?.url ?? null
+        }));
 
-      return textResult({
-        site_id: siteId,
-        category_id: category_id ?? null,
-        atualizacao: "semanal",
-        legenda_grupos: {
-          posicoes_1_a_10: "crescimento_mais_rapido",
-          posicoes_11_a_30: "maior_volume_de_busca",
-          posicoes_31_a_50: "tendencia_popular"
-        },
-        total_recebido: normalized.length,
-        total_retornado: results.length,
-        results
-      });
+        const filterTerm = termo?.trim().toLocaleLowerCase("pt-BR");
+        const results = filterTerm
+          ? normalized.filter((entry: any) =>
+              String(entry.keyword || "").toLocaleLowerCase("pt-BR").includes(filterTerm)
+            )
+          : normalized;
+
+        return textResult({
+          site_id: siteId,
+          category_id: category_id ?? null,
+          fonte: "trends_api_oficial",
+          fallback: false,
+          atualizacao: "semanal",
+          legenda_grupos: {
+            posicoes_1_a_10: "crescimento_mais_rapido",
+            posicoes_11_a_30: "maior_volume_de_busca",
+            posicoes_31_a_50: "tendencia_popular"
+          },
+          total_recebido: normalized.length,
+          total_retornado: results.length,
+          results
+        });
+      } catch (error) {
+        const trendsError = error instanceof Error ? error.message : String(error);
+        if (!trendsError.includes("404")) throw error;
+
+        const sinaisBusca: any[] = [];
+        let searchError: string | null = null;
+        const query = termo?.trim();
+
+        if (query) {
+          try {
+            const search = await meliGet(env, `/sites/${encodeURIComponent(siteId)}/search`, {
+              q: query,
+              category: category_id,
+              limit: "20"
+            });
+
+            const rows = Array.isArray(search?.results) ? search.results : [];
+            for (const [index, item] of rows.entries()) {
+              sinaisBusca.push({
+                position: index + 1,
+                id: item?.id ?? null,
+                title: item?.title ?? null,
+                price: item?.price ?? null,
+                sold_quantity: item?.sold_quantity ?? null,
+                category_id: item?.category_id ?? null,
+                permalink: item?.permalink ?? null
+              });
+            }
+          } catch (searchFailure) {
+            searchError =
+              searchFailure instanceof Error ? searchFailure.message : String(searchFailure);
+          }
+        }
+
+        const maisVendidos: any[] = [];
+        let highlightsError: string | null = null;
+        if (category_id) {
+          try {
+            const highlights = await meliGet(
+              env,
+              `/highlights/${encodeURIComponent(siteId)}/category/${encodeURIComponent(category_id)}`
+            );
+            const content = Array.isArray(highlights?.content) ? highlights.content : [];
+            for (const [index, entry] of content.entries()) {
+              maisVendidos.push({
+                position: entry?.position ?? index + 1,
+                id: entry?.id ?? null,
+                type: entry?.type ?? null
+              });
+            }
+          } catch (highlightsFailure) {
+            highlightsError =
+              highlightsFailure instanceof Error
+                ? highlightsFailure.message
+                : String(highlightsFailure);
+          }
+        }
+
+        return textResult({
+          site_id: siteId,
+          category_id: category_id ?? null,
+          fonte: "fallback_sinais_de_demanda",
+          fallback: true,
+          aviso:
+            "O endpoint oficial /trends retornou 404. Estes dados sao sinais alternativos de demanda e NAO devem ser apresentados como o ranking oficial de tendencias.",
+          erro_trends: trendsError,
+          termo_consultado: query ?? null,
+          sinais_busca: sinaisBusca,
+          sinais_busca_error: searchError,
+          mais_vendidos_categoria: maisVendidos,
+          mais_vendidos_error: highlightsError
+        });
+      }
     }
   );
 
