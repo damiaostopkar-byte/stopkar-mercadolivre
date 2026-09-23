@@ -2289,13 +2289,28 @@ function createServer(env: Env) {
     },
     async () => {
       const advertiser = await getProductAdsAdvertiser(env);
+      const storedToken = await loadToken(env);
+      const tokenScopes = String(storedToken?.scope || "")
+        .split(/\s+/)
+        .map((value) => value.trim().toLowerCase())
+        .filter(Boolean);
+
       return textResult({
         product_id: "PADS",
         advertiser_id: advertiser.advertiser_id,
         site_id: advertiser.site_id,
         advertiser_name: advertiser.advertiser_name,
         modo: adsWritesEnabled(env) ? "leitura_e_escrita_controlada" : "somente_leitura",
-        escrita_ads_habilitada: adsWritesEnabled(env)
+        escrita_ads_habilitada: adsWritesEnabled(env),
+        oauth_scope: storedToken?.scope ?? null,
+        oauth_tem_read: tokenScopes.includes("read"),
+        oauth_tem_write: tokenScopes.includes("write"),
+        oauth_tem_offline_access: tokenScopes.includes("offline_access"),
+        oauth_user_id: storedToken?.user_id ?? null,
+        diagnostico_write:
+          tokenScopes.includes("write")
+            ? "Token atual possui scope write."
+            : "Token atual NAO possui scope write; reautorize a conta apos salvar as permissoes do aplicativo."
       });
     }
   );
