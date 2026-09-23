@@ -26,7 +26,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.13.0";
+const SERVER_VERSION = "0.13.1";
 
 function textResult(value: unknown) {
   return {
@@ -162,6 +162,109 @@ async function parseApiResponse(response: Response): Promise<any> {
   } catch {
     return raw;
   }
+}
+
+
+async function meliSellerPromotionWrite(
+  env: Env,
+  method: MeliWriteMethod,
+  itemId: string,
+  sellerId: string,
+  body?: unknown,
+  query: Record<string, string | undefined> = {}
+): Promise<{ data: any; path_used: string; flow: string }> {
+  const oldUrl = new URL(
+    `/seller-promotions/items/${encodeURIComponent(itemId)}`,
+    MELI_API
+  );
+  oldUrl.searchParams.set("app_version", "v2");
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== "") oldUrl.searchParams.set(key, value);
+  }
+
+  const marketplaceUrl = new URL(
+    `/marketplace/seller-promotions/items/${encodeURIComponent(itemId)}`,
+    MELI_API
+  );
+  marketplaceUrl.searchParams.set("user_id", sellerId);
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== "") marketplaceUrl.searchParams.set(key, value);
+  }
+
+  const attempts: Array<{ flow: string; status: number; message: string }> = [];
+  const candidates = [
+    {
+      flow: "local_v2",
+      url: oldUrl,
+      headers: {} as Record<string, string>
+    },
+    {
+      flow: "marketplace_v2",
+      url: marketplaceUrl,
+      headers: { version: "v2" } as Record<string, string>
+    }
+  ];
+
+  for (const candidate of candidates) {
+    let accessToken = await getAccessToken(env);
+    const makeRequest = (token: string) =>
+      fetch(candidate.url.toString(), {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+          ...candidate.headers
+        },
+        body: body === undefined ? undefined : JSON.stringify(body)
+      });
+
+    let response = await makeRequest(accessToken);
+    if (response.status === 401) {
+      accessToken = (await refreshToken(env)).access_token;
+      response = await makeRequest(accessToken);
+    }
+
+    const data = await parseApiResponse(response);
+    if (response.ok || response.status === 204) {
+      return {
+        data,
+        path_used: candidate.url.pathname + candidate.url.search,
+        flow: candidate.flow
+      };
+    }
+
+    const message =
+      data && typeof data === "object"
+        ? data.message || data.error || JSON.stringify(data)
+        : String(data);
+    attempts.push({ flow: candidate.flow, status: response.status, message });
+
+    const normalized = String(message || "").toLowerCase();
+    const canFallback =
+      candidate.flow === "local_v2" &&
+      (
+        response.status === 404 ||
+        response.status === 403 ||
+        normalized.includes("no offers found for item") ||
+        normalized.includes("resource not found") ||
+        normalized.includes("invalid promotion type")
+      );
+
+    if (canFallback) continue;
+
+    throw new Error(
+      `Falha de escrita de promocao. Tentativas: ${attempts
+        .map((attempt) => `${attempt.flow} ${attempt.status} -> ${attempt.message}`)
+        .join(" | ")}`
+    );
+  }
+
+  throw new Error(
+    `Falha de escrita de promocao. Tentativas: ${attempts
+      .map((attempt) => `${attempt.flow} ${attempt.status} -> ${attempt.message}`)
+      .join(" | ")}`
+  );
 }
 
 async function meliGet(
@@ -2035,19 +2138,53 @@ function createServer(env: Env) {
       }
 
       requirePromotionWritesEnabled(env);
+      const seller = await meliGet(env, "/users/me");
+      const sellerId = String(seller?.id ?? "");
+      if (!sellerId) throw new Error("Nao foi possivel identificar o seller_id da conta.");
+
+      // Valida no escopo da campanha antes de gravar. Isso evita confundir um
+      // candidate global com um item que nao pertence de fato a esta campanha.
+      const campaignItems = await meliGet(
+        env,
+        `/seller-promotions/promotions/${encodeURIComponent(promotionId)}/items`,
+        {
+          promotion_type: "SELLER_CAMPAIGN",
+          item_id: String(item.id),
+          app_version: "v2"
+        }
+      );
+      const scopedResults = Array.isArray(campaignItems?.results) ? campaignItems.results : [];
+      const scopedItem = scopedResults.find((entry: any) => String(entry?.id) === String(item.id));
+      if (acao === "adicionar_ou_atualizar" && !scopedItem) {
+        return textResult({
+          ...preview,
+          acao: "bloqueado_sem_candidato",
+          mensagem:
+            "O item nao apareceu no escopo da campanha Damiao no momento da gravacao. Nenhuma alteracao foi feita."
+        });
+      }
+
       let write;
       if (acao === "remover") {
-        write = await meliWrite(
+        write = await meliSellerPromotionWrite(
           env,
           "DELETE",
-          `/seller-promotions/items/${encodeURIComponent(String(item.id))}?promotion_type=SELLER_CAMPAIGN&promotion_id=${encodeURIComponent(promotionId)}&app_version=v2`
+          String(item.id),
+          sellerId,
+          undefined,
+          {
+            promotion_type: "SELLER_CAMPAIGN",
+            promotion_id: promotionId,
+            offer_id: String(item.id)
+          }
         );
       } else {
-        const method = damiao ? "PUT" : "POST";
-        write = await meliWrite(
+        const method: MeliWriteMethod = damiao ? "PUT" : "POST";
+        write = await meliSellerPromotionWrite(
           env,
           method,
-          `/seller-promotions/items/${encodeURIComponent(String(item.id))}?app_version=v2`,
+          String(item.id),
+          sellerId,
           {
             promotion_id: promotionId,
             promotion_type: "SELLER_CAMPAIGN",
@@ -2073,6 +2210,7 @@ function createServer(env: Env) {
         acao: "gravado",
         audit_id,
         endpoint_utilizado: write.path_used,
+        fluxo_api: write.flow ?? "local_v2",
         promocoes_depois: afterPromos.map((entry: any) => compactPromotionItem(entry))
       });
     }
