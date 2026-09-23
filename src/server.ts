@@ -26,7 +26,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.13.1";
+const SERVER_VERSION = "0.13.2";
 
 function textResult(value: unknown) {
   return {
@@ -201,7 +201,15 @@ async function meliSellerPromotionWrite(
     {
       flow: "marketplace_v2",
       url: marketplaceUrl,
-      headers: { version: "v2" } as Record<string, string>
+      headers: {
+        version: "v2",
+        ...(env.MELI_CLIENT_ID
+          ? {
+              "X-Client-Id": String(env.MELI_CLIENT_ID),
+              "X-Caller-Id": String(env.MELI_CLIENT_ID)
+            }
+          : {})
+      } as Record<string, string>
     }
   ];
 
