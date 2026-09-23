@@ -24,7 +24,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.10.0";
+const SERVER_VERSION = "0.11.0";
 
 function textResult(value: unknown) {
   return {
@@ -1088,6 +1088,67 @@ async function recordAdsAudit(env: Env, entry: Record<string, unknown>) {
   return id;
 }
 
+const MLB_ID = /^MLB\d+$/;
+const MLBU_ID = /^MLBU\d+$/;
+
+async function resolveTitleItems(env: Env, itemId: string, sellerId: string): Promise<string[]> {
+  if (MLB_ID.test(itemId)) return [itemId];
+
+  // The official seller search returns the items for one User Product.
+  const results: string[] = [];
+  const limit = 100;
+  for (let offset = 0; offset < 1000; offset += limit) {
+    const page = await meliGet(
+      env,
+      `/users/${encodeURIComponent(sellerId)}/items/search`,
+      { user_product_id: itemId, limit: String(limit), offset: String(offset) }
+    );
+    if (String(page?.seller_id) !== sellerId || !Array.isArray(page?.results)) {
+      throw new Error("A busca do User Product nao confirmou a conta vendedora.");
+    }
+    const ids = page.results.map(String);
+    if (ids.some((id: string) => !MLB_ID.test(id))) {
+      throw new Error("A busca do User Product retornou um codigo de anuncio invalido.");
+    }
+    results.push(...ids);
+    const total = Number(page?.paging?.total);
+    if (!Number.isSafeInteger(total) || total < 0) {
+      throw new Error("A busca do User Product nao informou a quantidade total de anuncios.");
+    }
+    if (offset + ids.length >= total) return [...new Set(results)];
+    if (ids.length === 0) throw new Error("A busca do User Product parou antes de listar todos os anuncios.");
+  }
+  throw new Error("User Product com mais de 1000 anuncios; resolucao incompleta e bloqueada.");
+}
+
+async function putItemTitle(env: Env, mlbId: string, title: string): Promise<any> {
+  const url = `${MELI_API}/items/${encodeURIComponent(mlbId)}`;
+  const send = (token: string) => fetch(url, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ title })
+  });
+  let response = await send(await getAccessToken(env));
+  if (response.status === 401) response = await send((await refreshToken(env)).access_token);
+  const data = await parseApiResponse(response);
+  if (!response.ok) {
+    const message = data && typeof data === "object"
+      ? data.message || data.error || JSON.stringify(data)
+      : String(data);
+    throw new Error(`Mercado Livre API ${response.status}: ${message}`);
+  }
+  return data;
+}
+
+async function recordTitleAudit(env: Env, id: string, phase: "before" | "after", entry: Record<string, unknown>) {
+  if (!env.MELI_TOKENS) throw new Error("KV MELI_TOKENS necessaria para auditoria de titulos.");
+  await env.MELI_TOKENS.put(`items:title:audit:${id}:${phase}`, JSON.stringify(entry));
+}
+
 function createServer(env: Env) {
   const server = new McpServer({
     name: "Stop Kar Mercado Livre",
@@ -1129,6 +1190,118 @@ function createServer(env: Env) {
         include_attributes: "all"
       });
       return textResult(compactItem(item));
+    }
+  );
+
+  server.registerTool(
+    "editar_titulo_anuncio",
+    {
+      description:
+        "Mostra preview do titulo de anuncio da Stop Kar por MLB ou MLBU. Somente grava o titulo do item com confirmar=true e motivo; nao altera Product Ads.",
+      inputSchema: {
+        item_id: z.string().regex(/^(MLB|MLBU)\d+$/).describe("Codigo MLB ou MLBU."),
+        novo_titulo: z.string().optional().describe("Titulo proposto, com no maximo 60 caracteres."),
+        confirmar: z.boolean().optional().default(false).describe("True para gravar depois de conferir o preview."),
+        motivo: z.string().optional().describe("Justificativa obrigatoria para gravacao."),
+        mlb_id: z.string().regex(/^MLB\d+$/).optional()
+          .describe("MLB escolhido quando o MLBU corresponde a varios anuncios."),
+        confirmar_ambiguidade: z.boolean().optional().default(false)
+          .describe("Confirmacao explicita da escolha de mlb_id quando ha varios MLB.")
+      }
+    },
+    async ({ item_id, novo_titulo, confirmar, motivo, mlb_id, confirmar_ambiguidade }) => {
+      const title = novo_titulo?.trim();
+      if (novo_titulo !== undefined && (!title || [...title].length > 60)) {
+        throw new Error("O novo titulo deve ter de 1 a 60 caracteres.");
+      }
+      if (confirmar && (!title || !motivo?.trim())) {
+        throw new Error("Para gravar, informe novo_titulo e motivo e use confirmar=true.");
+      }
+
+      const me = await meliGet(env, "/users/me");
+      const sellerId = String(me?.id ?? "");
+      if (!sellerId) throw new Error("Nao foi possivel identificar a conta vendedora autorizada.");
+      const ids = await resolveTitleItems(env, item_id, sellerId);
+      if (ids.length === 0) {
+        return textResult({ item_id, mlbu: MLBU_ID.test(item_id) ? item_id : null,
+          anuncios: [], alteracao_permitida: false, motivo_bloqueio: "Nenhum MLB associado a este MLBU na conta Stop Kar." });
+      }
+      if (mlb_id && !ids.includes(mlb_id)) {
+        throw new Error("mlb_id nao pertence aos anuncios resolvidos para item_id.");
+      }
+
+      const items = await Promise.all(ids.map((id) => meliGet(env, `/items/${encodeURIComponent(id)}`)));
+      const anuncios = items.map((item: any, index: number) => {
+        const owner = String(item?.seller_id) === sellerId;
+        const associated = !MLBU_ID.test(item_id) || item?.user_product_id === item_id;
+        const noSales = Number(item?.sold_quantity) === 0;
+        const statusAllowed = ["active", "paused"].includes(String(item?.status));
+        const allowed = owner && associated && noSales && statusAllowed && typeof item?.title === "string";
+        return {
+          mlbu: MLBU_ID.test(item_id) ? item_id : item?.user_product_id ?? null,
+          mlb: ids[index],
+          titulo_atual: item?.title ?? null,
+          sold_quantity: item?.sold_quantity ?? null,
+          status: item?.status ?? null,
+          alteracao_permitida: allowed,
+          motivo_bloqueio: allowed ? null : !owner ? "Anuncio nao pertence a conta autorizada."
+            : !associated ? "MLB nao confirma associacao ao MLBU."
+            : !noSales ? "Anuncio ja possui vendas."
+            : !statusAllowed ? "Status do anuncio nao permite esta alteracao." : "Titulo atual indisponivel."
+        };
+      });
+      const ambiguous = anuncios.length > 1;
+      const selected = anuncios.find((entry) => entry.mlb === (mlb_id ?? (ambiguous ? "" : ids[0])));
+      const preview = {
+        item_id,
+        mlbu: MLBU_ID.test(item_id) ? item_id : selected?.mlbu ?? null,
+        mlb_resolvido: selected?.mlb ?? (ambiguous ? null : ids[0]),
+        titulo_atual: selected?.titulo_atual ?? null,
+        sold_quantity: selected?.sold_quantity ?? null,
+        status: selected?.status ?? null,
+        novo_titulo: title ?? null,
+        anuncios,
+        ambiguo: ambiguous,
+        alteracao_permitida: Boolean(selected?.alteracao_permitida && (!ambiguous || confirmar_ambiguidade)),
+        gravado: false
+      };
+      if (!confirmar) return textResult(preview);
+      if (ambiguous && (!mlb_id || !confirmar_ambiguidade)) {
+        throw new Error("MLBU possui varios MLB. Escolha mlb_id e informe confirmar_ambiguidade=true.");
+      }
+      if (!selected?.alteracao_permitida) {
+        throw new Error(selected?.motivo_bloqueio ?? "Alteracao de titulo nao permitida.");
+      }
+      if (selected.titulo_atual === title) throw new Error("O novo titulo e igual ao titulo atual.");
+
+      const auditId = crypto.randomUUID();
+      const timestamp = new Date().toISOString();
+      const audit = {
+        id: auditId, timestamp, item_id, mlbu: selected.mlbu, mlb: selected.mlb,
+        seller_id: sellerId, motivo: motivo!.trim(), antes: selected.titulo_atual,
+        depois_solicitado: title, estado: "iniciado"
+      };
+      await recordTitleAudit(env, auditId, "before", audit);
+      let after: string | null = null;
+      try {
+        const response = await putItemTitle(env, selected.mlb, title!);
+        after = typeof response?.title === "string" ? response.title : title!;
+        const updated = await meliGet(env, `/items/${encodeURIComponent(selected.mlb)}`);
+        after = updated?.title ?? after;
+        await recordTitleAudit(env, auditId, "after", {
+          ...audit, estado: "concluido", depois: after,
+          confirmado_na_api: updated?.title === title, concluido_em: new Date().toISOString()
+        });
+        return textResult({ ...preview, gravado: true, titulo_depois: after,
+          confirmado_na_api: updated?.title === title, auditoria_id: auditId });
+      } catch (error) {
+        await recordTitleAudit(env, auditId, "after", {
+          ...audit, estado: "erro_ou_resultado_incerto",
+          depois: after, erro: error instanceof Error ? error.message : String(error),
+          concluido_em: new Date().toISOString()
+        });
+        throw error;
+      }
     }
   );
 
@@ -3132,3 +3305,4 @@ export default {
     return new Response("Not found", { status: 404 });
   }
 } satisfies ExportedHandler<Env>;
+
