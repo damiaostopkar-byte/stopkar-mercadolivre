@@ -1495,10 +1495,12 @@ function createServer(env: Env) {
         mlb_id: z.string().regex(/^MLB\d+$/).optional()
           .describe("MLB escolhido quando o MLBU corresponde a varios anuncios."),
         confirmar_ambiguidade: z.boolean().optional().default(false)
-          .describe("Confirmacao explicita da escolha de mlb_id quando ha varios MLB.")
+          .describe("Confirmacao explicita da escolha de mlb_id quando ha varios MLB."),
+        permitir_com_vendas: z.boolean().optional().default(false)
+          .describe("Permite tentar alterar titulo mesmo se o anuncio ja tiver vendas; a API do Mercado Livre ainda pode recusar.")
       }
     },
-    async ({ item_id, novo_titulo, confirmar, motivo, mlb_id, confirmar_ambiguidade }) => {
+    async ({ item_id, novo_titulo, confirmar, motivo, mlb_id, confirmar_ambiguidade, permitir_com_vendas }) => {
       const title = novo_titulo?.trim();
       if (novo_titulo !== undefined && (!title || [...title].length > 60)) {
         throw new Error("O novo titulo deve ter de 1 a 60 caracteres.");
@@ -1525,7 +1527,13 @@ function createServer(env: Env) {
         const associated = !MLBU_ID.test(item_id) || item?.user_product_id === item_id;
         const noSales = Number(item?.sold_quantity) === 0;
         const statusAllowed = ["active", "paused"].includes(String(item?.status));
-        const allowed = owner && associated && noSales && statusAllowed && typeof item?.title === "string";
+        const salesOverride = permitir_com_vendas === true;
+        const allowed =
+          owner &&
+          associated &&
+          (noSales || salesOverride) &&
+          statusAllowed &&
+          typeof item?.title === "string";
         return {
           mlbu: MLBU_ID.test(item_id) ? item_id : item?.user_product_id ?? null,
           mlb: ids[index],
@@ -1533,9 +1541,10 @@ function createServer(env: Env) {
           sold_quantity: item?.sold_quantity ?? null,
           status: item?.status ?? null,
           alteracao_permitida: allowed,
+          tentativa_com_vendas: !noSales && salesOverride,
           motivo_bloqueio: allowed ? null : !owner ? "Anuncio nao pertence a conta autorizada."
             : !associated ? "MLB nao confirma associacao ao MLBU."
-            : !noSales ? "Anuncio ja possui vendas."
+            : !noSales ? "Anuncio ja possui vendas; use permitir_com_vendas=true somente se quiser tentar e deixar a API do Mercado Livre decidir."
             : !statusAllowed ? "Status do anuncio nao permite esta alteracao." : "Titulo atual indisponivel."
         };
       });
@@ -1552,6 +1561,11 @@ function createServer(env: Env) {
         anuncios,
         ambiguo: ambiguous,
         alteracao_permitida: Boolean(selected?.alteracao_permitida && (!ambiguous || confirmar_ambiguidade)),
+        permitir_com_vendas: permitir_com_vendas === true,
+        aviso_vendas:
+          Number(selected?.sold_quantity ?? 0) > 0 && permitir_com_vendas === true
+            ? "O anuncio ja possui vendas. A integracao tentara a alteracao, mas o Mercado Livre pode recusar conforme as regras da publicacao."
+            : null,
         gravado: false
       };
       if (!confirmar) return textResult(preview);
