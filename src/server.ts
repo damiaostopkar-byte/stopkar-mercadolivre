@@ -8,6 +8,7 @@ interface Env {
   MELI_REDIRECT_URI?: string;
   MCP_SHARED_SECRET?: string;
   MELI_TOKENS?: KVNamespace;
+  ADS_WRITES_ENABLED?: string;
 }
 
 type StoredToken = {
@@ -23,7 +24,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.9.1";
+const SERVER_VERSION = "0.10.0";
 
 function textResult(value: unknown) {
   return {
@@ -202,6 +203,67 @@ async function meliGet(
   }
 
   return data;
+}
+
+
+type MeliWriteMethod = "POST" | "PUT" | "DELETE";
+
+async function meliWrite(
+  env: Env,
+  method: MeliWriteMethod,
+  path: string,
+  body?: unknown,
+  extraHeaders: Record<string, string> = {}
+): Promise<{ data: any; path_used: string }> {
+  const candidatePaths = path.startsWith("/marketplace/advertising/")
+    ? [path, path.replace("/marketplace/advertising/", "/advertising/")]
+    : [path];
+
+  let lastError: Error | null = null;
+
+  for (let index = 0; index < candidatePaths.length; index += 1) {
+    const candidatePath = candidatePaths[index];
+    const url = new URL(candidatePath, MELI_API);
+    let accessToken = await getAccessToken(env);
+
+    const makeRequest = (token: string) =>
+      fetch(url.toString(), {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+          ...extraHeaders
+        },
+        body: body === undefined ? undefined : JSON.stringify(body)
+      });
+
+    let response = await makeRequest(accessToken);
+    if (response.status === 401) {
+      accessToken = (await refreshToken(env)).access_token;
+      response = await makeRequest(accessToken);
+    }
+
+    const data = await parseApiResponse(response);
+    if (response.ok || response.status === 204) {
+      return { data, path_used: candidatePath };
+    }
+
+    const message =
+      data && typeof data === "object"
+        ? data.message || data.error || JSON.stringify(data)
+        : String(data);
+    const error = new Error(`Mercado Livre API ${response.status}: ${message}`);
+
+    if (response.status === 404 && index < candidatePaths.length - 1) {
+      lastError = error;
+      continue;
+    }
+
+    throw error;
+  }
+
+  throw lastError ?? new Error("Falha desconhecida ao gravar no Mercado Livre.");
 }
 
 function formatSaoPaulo(value: unknown) {
@@ -936,6 +998,76 @@ async function getProductAdsAdvertiser(env: Env) {
     advertiser_name: advertiser?.advertiser_name ?? null,
     raw: advertiser
   };
+}
+
+
+function adsWritesEnabled(env: Env) {
+  return String(env.ADS_WRITES_ENABLED || "").toLowerCase() === "true";
+}
+
+function requireAdsWritesEnabled(env: Env) {
+  if (!adsWritesEnabled(env)) {
+    throw new Error(
+      "A escrita de Product Ads esta bloqueada pelo servidor. Defina ADS_WRITES_ENABLED=true somente depois de validar a integracao de teste."
+    );
+  }
+}
+
+function campaignAgeHours(campaign: any) {
+  if (!campaign?.date_created) return null;
+  const created = new Date(campaign.date_created).getTime();
+  if (!Number.isFinite(created)) return null;
+  return Math.max(0, (Date.now() - created) / 3_600_000);
+}
+
+async function getProductAdsCampaign(env: Env, advertiser: any, campaignId: string | number) {
+  const data = await meliGet(
+    env,
+    `/advertising/${encodeURIComponent(advertiser.site_id)}/advertisers/${encodeURIComponent(
+      String(advertiser.advertiser_id)
+    )}/product_ads/campaigns/search`,
+    {
+      "filters[campaign_ids]": String(campaignId),
+      limit: "20"
+    },
+    { "api-version": "2" }
+  );
+
+  const rows = Array.isArray(data?.results) ? data.results : [];
+  return rows.find((row: any) => String(row?.id) === String(campaignId)) ?? null;
+}
+
+async function getProductAdsAdGroupsForItem(env: Env, advertiser: any, itemId: string) {
+  const data = await meliGet(
+    env,
+    `/advertising/${encodeURIComponent(advertiser.site_id)}/advertisers/${encodeURIComponent(
+      String(advertiser.advertiser_id)
+    )}/product_ads/ad_groups/search`,
+    {
+      "filters[item_ids]": itemId,
+      limit: "50"
+    },
+    { "api-version": "2" }
+  );
+
+  return Array.isArray(data?.results) ? data.results : [];
+}
+
+async function recordAdsAudit(env: Env, entry: Record<string, unknown>) {
+  if (!env.MELI_TOKENS) return null;
+  const timestamp = new Date().toISOString();
+  const id = crypto.randomUUID();
+  const key = `ads:audit:${timestamp}:${id}`;
+  await env.MELI_TOKENS.put(
+    key,
+    JSON.stringify({
+      id,
+      timestamp,
+      ...entry
+    }),
+    { expirationTtl: 60 * 60 * 24 * 180 }
+  );
+  return id;
 }
 
 function createServer(env: Env) {
@@ -2162,7 +2294,8 @@ function createServer(env: Env) {
         advertiser_id: advertiser.advertiser_id,
         site_id: advertiser.site_id,
         advertiser_name: advertiser.advertiser_name,
-        modo: "somente_leitura"
+        modo: adsWritesEnabled(env) ? "leitura_e_escrita_controlada" : "somente_leitura",
+        escrita_ads_habilitada: adsWritesEnabled(env)
       });
     }
   );
@@ -2370,6 +2503,290 @@ function createServer(env: Env) {
           advertiser_name: advertiser.advertiser_name
         },
         ad_groups_encontrados: groups.length,
+        results
+      });
+    }
+  );
+
+
+  server.registerTool(
+    "atualizar_ads_campanha",
+    {
+      description:
+        "Pre-visualiza ou altera com protecoes uma campanha Product Ads. Por padrao apenas simula; para gravar, confirmar=true, motivo e ADS_WRITES_ENABLED=true sao obrigatorios.",
+      inputSchema: {
+        campaign_id: z.union([z.string().min(1), z.number().int().positive()]),
+        status: z.enum(["active", "paused"]).optional(),
+        budget: z.number().positive().optional(),
+        roas_target: z.number().positive().optional(),
+        name: z.string().min(1).max(100).optional(),
+        confirmar: z.boolean().optional().default(false),
+        permitir_campanha_nova: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ campaign_id, status, budget, roas_target, name, confirmar, permitir_campanha_nova, motivo }) => {
+      const advertiser = await getProductAdsAdvertiser(env);
+      const current = await getProductAdsCampaign(env, advertiser, campaign_id);
+      if (!current) {
+        throw new Error(`Campanha Product Ads ${String(campaign_id)} nao encontrada.`);
+      }
+
+      const requested: Record<string, unknown> = {};
+      if (status !== undefined && status !== current.status) requested.status = status;
+      if (budget !== undefined && Number(budget) !== Number(current.budget)) requested.budget = Number(budget);
+      if (roas_target !== undefined && Number(roas_target) !== Number(current.roas_target)) {
+        requested.roas_target = Number(roas_target);
+      }
+      if (name !== undefined && name !== current.name) requested.name = name;
+
+      if (Object.keys(requested).length === 0) {
+        return textResult({
+          acao: "nenhuma_alteracao",
+          campaign_id: current.id,
+          campanha: current
+        });
+      }
+
+      const ageHours = campaignAgeHours(current);
+      const currentBudget = Number(current.budget);
+      const nextBudget = requested.budget !== undefined ? Number(requested.budget) : null;
+      const currentRoas = Number(current.roas_target);
+      const nextRoas = requested.roas_target !== undefined ? Number(requested.roas_target) : null;
+
+      const alertas: string[] = [];
+      if (ageHours !== null && ageHours < 24) {
+        alertas.push("Campanha com menos de 24 horas; a atribuicao pode estar atrasada.");
+      }
+
+      if (
+        nextBudget !== null &&
+        Number.isFinite(currentBudget) &&
+        currentBudget > 0 &&
+        Math.abs(nextBudget - currentBudget) / currentBudget > 0.25
+      ) {
+        throw new Error("Protecao Stop Kar: altere o budget em etapas de no maximo 25% por operacao.");
+      }
+
+      if (
+        nextRoas !== null &&
+        Number.isFinite(currentRoas) &&
+        currentRoas > 0 &&
+        Math.abs(nextRoas - currentRoas) / currentRoas > 0.25
+      ) {
+        throw new Error("Protecao Stop Kar: altere o ROAS objetivo em etapas de no maximo 25% por operacao.");
+      }
+
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        campaign_id: current.id,
+        nome: current.name,
+        idade_horas: ageHours === null ? null : Number(ageHours.toFixed(2)),
+        antes: {
+          status: current.status,
+          budget: current.budget,
+          roas_target: current.roas_target,
+          strategy: current.strategy
+        },
+        solicitado: requested,
+        alertas
+      };
+
+      if (!confirmar) return textResult(preview);
+
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Para gravar uma alteracao de Ads, informe um motivo objetivo com pelo menos 5 caracteres.");
+      }
+      if (ageHours !== null && ageHours < 24 && !permitir_campanha_nova) {
+        throw new Error(
+          "Protecao Stop Kar: campanha com menos de 24 horas. Reenvie com permitir_campanha_nova=true somente se a mudanca for realmente intencional."
+        );
+      }
+
+      requireAdsWritesEnabled(env);
+
+      const path = `/marketplace/advertising/${encodeURIComponent(
+        advertiser.site_id
+      )}/product_ads/campaigns/${encodeURIComponent(String(current.id))}`;
+      const write = await meliWrite(env, "PUT", path, requested, { "api-version": "2" });
+      const after = await getProductAdsCampaign(env, advertiser, current.id);
+      const audit_id = await recordAdsAudit(env, {
+        tipo: "campaign_update",
+        campaign_id: current.id,
+        motivo: motivo.trim(),
+        antes: current,
+        solicitado: requested,
+        depois: after,
+        endpoint: write.path_used
+      });
+
+      return textResult({
+        ...preview,
+        acao: "gravado",
+        audit_id,
+        endpoint_utilizado: write.path_used,
+        resposta_api: write.data,
+        depois: after
+      });
+    }
+  );
+
+  server.registerTool(
+    "atualizar_ads_anuncio",
+    {
+      description:
+        "Pre-visualiza ou altera o Ad Group correspondente a um MLB: ativa/pausa ou move entre campanhas. Por padrao apenas simula e nunca grava sem confirmar=true.",
+      inputSchema: {
+        item_id: z.string().min(3).describe("Codigo MLB do anuncio."),
+        status: z.enum(["active", "paused"]).optional(),
+        campaign_id: z.union([z.string().min(1), z.number().int().positive()]).optional(),
+        confirmar: z.boolean().optional().default(false),
+        permitir_campanha_nova: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ item_id, status, campaign_id, confirmar, permitir_campanha_nova, motivo }) => {
+      const advertiser = await getProductAdsAdvertiser(env);
+      const groups = await getProductAdsAdGroupsForItem(env, advertiser, item_id);
+
+      if (groups.length === 0) {
+        throw new Error("Nenhum Ad Group Product Ads foi encontrado para esse MLB.");
+      }
+      if (groups.length !== 1) {
+        return textResult({
+          acao: "bloqueado_por_ambiguidade",
+          item_id,
+          mensagem:
+            "Mais de um Ad Group foi encontrado. Nenhuma alteracao foi feita para evitar atingir a familia/variante errada.",
+          ad_groups: groups.map((group: any) => ({
+            id: group?.id ?? null,
+            campaign_id: group?.campaign_id ?? null,
+            status: group?.status ?? null,
+            ad_group_type: group?.ad_group_type ?? null,
+            ad_group_external_id: group?.ad_group_external_id ?? null
+          }))
+        });
+      }
+
+      const current = groups[0];
+      const requested: Record<string, unknown> = {};
+      if (status !== undefined && String(status).toLowerCase() !== String(current?.status || "").toLowerCase()) {
+        requested.status = status;
+      }
+      if (campaign_id !== undefined && String(campaign_id) !== String(current?.campaign_id)) {
+        requested.campaign_id = Number(campaign_id);
+      }
+
+      if (Object.keys(requested).length === 0) {
+        return textResult({
+          acao: "nenhuma_alteracao",
+          item_id,
+          ad_group_id: current?.id ?? null,
+          ad_group: current
+        });
+      }
+
+      let targetCampaign: any = null;
+      let targetAgeHours: number | null = null;
+      if (requested.campaign_id !== undefined) {
+        targetCampaign = await getProductAdsCampaign(env, advertiser, Number(requested.campaign_id));
+        if (!targetCampaign) {
+          throw new Error("Campanha de destino nao encontrada.");
+        }
+        targetAgeHours = campaignAgeHours(targetCampaign);
+      }
+
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        item_id,
+        ad_group_id: current?.id ?? null,
+        antes: {
+          status: current?.status ?? null,
+          campaign_id: current?.campaign_id ?? null,
+          ad_group_type: current?.ad_group_type ?? null,
+          ad_group_external_id: current?.ad_group_external_id ?? null
+        },
+        solicitado: requested,
+        campanha_destino: targetCampaign
+          ? {
+              id: targetCampaign.id,
+              name: targetCampaign.name,
+              status: targetCampaign.status,
+              idade_horas:
+                targetAgeHours === null ? null : Number(targetAgeHours.toFixed(2))
+            }
+          : null
+      };
+
+      if (!confirmar) return textResult(preview);
+
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Para gravar uma alteracao de Ads, informe um motivo objetivo com pelo menos 5 caracteres.");
+      }
+      if (targetAgeHours !== null && targetAgeHours < 24 && !permitir_campanha_nova) {
+        throw new Error(
+          "Protecao Stop Kar: a campanha de destino tem menos de 24 horas. Reenvie com permitir_campanha_nova=true somente se a mudanca for realmente intencional."
+        );
+      }
+
+      requireAdsWritesEnabled(env);
+
+      const path = `/marketplace/advertising/${encodeURIComponent(
+        advertiser.site_id
+      )}/product_ads/ad_groups/${encodeURIComponent(String(current.id))}`;
+      const write = await meliWrite(env, "PUT", path, requested, { "api-version": "2" });
+      const afterGroups = await getProductAdsAdGroupsForItem(env, advertiser, item_id);
+      const after =
+        afterGroups.find((group: any) => String(group?.id) === String(current?.id)) ?? afterGroups[0] ?? null;
+      const audit_id = await recordAdsAudit(env, {
+        tipo: "ad_group_update",
+        item_id,
+        ad_group_id: current?.id ?? null,
+        motivo: motivo.trim(),
+        antes: current,
+        solicitado: requested,
+        depois: after,
+        endpoint: write.path_used
+      });
+
+      return textResult({
+        ...preview,
+        acao: "gravado",
+        audit_id,
+        endpoint_utilizado: write.path_used,
+        resposta_api: write.data,
+        depois: after
+      });
+    }
+  );
+
+  server.registerTool(
+    "consultar_ads_auditoria",
+    {
+      description:
+        "Lista as alteracoes de Product Ads gravadas pela integracao Stop Kar nos ultimos 180 dias.",
+      inputSchema: {
+        limite: z.number().int().min(1).max(50).optional().default(20)
+      }
+    },
+    async ({ limite }) => {
+      if (!env.MELI_TOKENS) {
+        throw new Error("KV MELI_TOKENS nao configurado.");
+      }
+      const listed = await env.MELI_TOKENS.list({ prefix: "ads:audit:", limit: Number(limite ?? 20) });
+      const ordered = [...listed.keys].sort((a, b) => b.name.localeCompare(a.name));
+      const results = (
+        await Promise.all(
+          ordered.map(async (entry) => {
+            const value = await env.MELI_TOKENS!.get(entry.name, "json");
+            return value;
+          })
+        )
+      ).filter(Boolean);
+
+      return textResult({
+        escrita_ads_habilitada: adsWritesEnabled(env),
+        total_retornado: results.length,
         results
       });
     }
