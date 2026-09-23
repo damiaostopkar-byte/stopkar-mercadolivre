@@ -2313,6 +2313,62 @@ function createServer(env: Env) {
         .map((value) => value.trim().toLowerCase())
         .filter(Boolean);
 
+      let application: any = null;
+      let applicationError: string | null = null;
+      if (env.MELI_CLIENT_ID) {
+        try {
+          const app = await meliGet(env, `/applications/${encodeURIComponent(env.MELI_CLIENT_ID)}`);
+          application = {
+            id: app?.id ?? env.MELI_CLIENT_ID,
+            site_id: app?.site_id ?? null,
+            active: app?.active ?? null,
+            sandbox_mode: app?.sandbox_mode ?? null,
+            project_id: app?.project_id ?? null,
+            certification_status: app?.certification_status ?? null,
+            max_requests_per_hour: app?.max_requests_per_hour ?? null
+          };
+        } catch (error) {
+          applicationError = error instanceof Error ? error.message : String(error);
+        }
+      }
+
+      let grant: any = null;
+      let grantError: string | null = null;
+      if (storedToken?.user_id && env.MELI_CLIENT_ID) {
+        try {
+          const apps = await meliGet(
+            env,
+            `/users/${encodeURIComponent(String(storedToken.user_id))}/applications`
+          );
+          const rows = Array.isArray(apps) ? apps : [];
+          const match = rows.find((entry: any) => String(entry?.app_id) === String(env.MELI_CLIENT_ID));
+          grant = match
+            ? {
+                user_id: match?.user_id ?? storedToken.user_id,
+                app_id: match?.app_id ?? env.MELI_CLIENT_ID,
+                date_created: match?.date_created ?? null,
+                scopes: Array.isArray(match?.scopes) ? match.scopes : []
+              }
+            : null;
+        } catch (error) {
+          grantError = error instanceof Error ? error.message : String(error);
+        }
+      }
+
+      let trendsHealth: any = null;
+      try {
+        const trends = await meliGet(env, `/trends/${encodeURIComponent(advertiser.site_id)}`);
+        trendsHealth = {
+          ok: true,
+          total: Array.isArray(trends) ? trends.length : null
+        };
+      } catch (error) {
+        trendsHealth = {
+          ok: false,
+          error: error instanceof Error ? error.message : String(error)
+        };
+      }
+
       return textResult({
         product_id: "PADS",
         advertiser_id: advertiser.advertiser_id,
@@ -2328,7 +2384,12 @@ function createServer(env: Env) {
         diagnostico_write:
           tokenScopes.includes("write")
             ? "Token atual possui scope write."
-            : "Token atual NAO possui scope write; reautorize a conta apos salvar as permissoes do aplicativo."
+            : "Token atual NAO possui scope write; reautorize a conta apos salvar as permissoes do aplicativo.",
+        application,
+        application_error: applicationError,
+        grant,
+        grant_error: grantError,
+        trends_health: trendsHealth
       });
     }
   );
