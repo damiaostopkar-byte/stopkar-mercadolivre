@@ -26,7 +26,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.13.3";
+const SERVER_VERSION = "0.13.4";
 
 function textResult(value: unknown) {
   return {
@@ -1459,6 +1459,7 @@ function createServer(env: Env) {
     async () => {
       const me = await meliGet(env, "/users/me");
       return textResult({
+        integration_version: SERVER_VERSION,
         id: me.id,
         nickname: me.nickname,
         country_id: me.country_id,
