@@ -26,7 +26,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.13.6";
+const SERVER_VERSION = "0.13.7";
 
 function textResult(value: unknown) {
   return {
@@ -1863,12 +1863,53 @@ function createServer(env: Env) {
 
       requireListingWritesEnabled(env);
       const first = items[0];
+      const familyId = first?.family_id;
+      if (!familyId) {
+        throw new Error("O anuncio nao informou family_id; nenhuma alteracao foi feita.");
+      }
+
+      // No modelo User Products atual, o endpoint dedicado de familia e o caminho
+      // preferencial para editar family_name. Antes da gravacao, validamos quantos
+      // User Products pertencem a familia para evitar alterar produtos nao revisados.
+      const familyMembers = await meliGet(
+        env,
+        `/user-products-families/${encodeURIComponent(String(familyId))}/user-products`
+      );
+      const userProductsIds = Array.isArray(familyMembers?.user_products_ids)
+        ? familyMembers.user_products_ids.map(String)
+        : [];
+
+      if (
+        userProductsIds.length > 1 &&
+        !(
+          userProductsIds.length === 1 &&
+          userProductsIds[0] === String(resolved.user_product_id)
+        )
+      ) {
+        return textResult({
+          ...preview,
+          acao: "bloqueado_familia_compartilhada",
+          family_id: familyId,
+          user_products_ids: userProductsIds,
+          mensagem:
+            "Este family_name e compartilhado por mais de um User Product. A ferramenta bloqueou a gravacao para nao alterar outros produtos sem revisao."
+        });
+      }
+
       const before = items.map((item: any) => compactItem(item));
       const write = await meliWrite(
         env,
         "PUT",
-        `/items/${encodeURIComponent(String(first.id))}`,
+        `/user-products-families/${encodeURIComponent(String(familyId))}`,
         { family_name: name }
+      );
+
+      // A propagacao do family_name/titulo para os itens pode ser assincrona.
+      // Consultamos imediatamente a familia e o item, mas informamos o estado real
+      // retornado pela API em vez de assumir que ja propagou.
+      const familyAfter = await meliGet(
+        env,
+        `/user-products-families/${encodeURIComponent(String(familyId))}`
       );
       const afterResolved = await resolveListingReference(env, resolved.user_product_id);
       const after = afterResolved.items.map((item: any) => compactItem(item));
@@ -1876,9 +1917,11 @@ function createServer(env: Env) {
         tipo: "family_name_update",
         referencia: item_id,
         user_product_id: resolved.user_product_id,
+        family_id: familyId,
         motivo: motivo.trim(),
         solicitado: { family_name: name },
         antes: before,
+        familia_depois: familyAfter,
         depois: after,
         endpoint: write.path_used
       });
@@ -1887,7 +1930,10 @@ function createServer(env: Env) {
         ...preview,
         acao: "gravado",
         audit_id,
+        family_id: familyId,
         endpoint_utilizado: write.path_used,
+        family_name_confirmado_na_familia: familyAfter?.family_name ?? null,
+        propagacao_para_itens_pode_ser_assincrona: true,
         depois: after.map((item: any) => ({
           mlb: item.id,
           family_name: item.family_name ?? null,
