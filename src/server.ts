@@ -9,6 +9,7 @@ interface Env {
   MCP_SHARED_SECRET?: string;
   MELI_TOKENS?: KVNamespace;
   ADS_WRITES_ENABLED?: string;
+  LISTING_WRITES_ENABLED?: string;
 }
 
 type StoredToken = {
@@ -24,7 +25,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.11.0";
+const SERVER_VERSION = "0.12.0";
 
 function textResult(value: unknown) {
   return {
@@ -218,6 +219,11 @@ async function meliWrite(
   const candidatePaths = path.startsWith("/marketplace/advertising/")
     ? [path.replace("/marketplace/advertising/", "/advertising/"), path]
     : [path];
+  const failureLabel = candidatePaths.some((candidatePath) =>
+    candidatePath.includes("/advertising/")
+  )
+    ? "Falha de escrita Product Ads"
+    : "Falha de escrita Mercado Livre";
 
   let lastError: Error | null = null;
   const attempts: Array<{ path: string; status: number; message: string }> = [];
@@ -267,7 +273,7 @@ async function meliWrite(
     }
 
     throw new Error(
-      `Falha de escrita Product Ads. Tentativas: ${attempts
+      `${failureLabel}. Tentativas: ${attempts
         .map((attempt) => `${attempt.status} ${attempt.path} -> ${attempt.message}`)
         .join(" | ")}`
     );
@@ -275,7 +281,7 @@ async function meliWrite(
 
   if (attempts.length > 0) {
     throw new Error(
-      `Falha de escrita Product Ads. Tentativas: ${attempts
+      `${failureLabel}. Tentativas: ${attempts
         .map((attempt) => `${attempt.status} ${attempt.path} -> ${attempt.message}`)
         .join(" | ")}`
     );
@@ -499,6 +505,115 @@ async function getItemsBulk(env: Env, ids: string[]) {
     source: usedBulk && usedLegacy ? "items_bulk+legacy" : usedBulk ? "items_bulk" : usedLegacy ? "items_legacy" : "none",
     errors
   };
+}
+
+
+function listingWritesEnabled(env: Env) {
+  return String(env.LISTING_WRITES_ENABLED || "").trim().toLowerCase() === "true";
+}
+
+function requireListingWritesEnabled(env: Env) {
+  if (!listingWritesEnabled(env)) {
+    throw new Error(
+      "Escrita de anuncios desabilitada no servidor. Ative LISTING_WRITES_ENABLED=true antes de gravar."
+    );
+  }
+}
+
+async function resolveListingReference(env: Env, reference: string) {
+  const normalized = String(reference || "").trim().toUpperCase();
+  const me = await meliGet(env, "/users/me");
+
+  if (/^MLB\d+$/.test(normalized)) {
+    const item = await meliGet(env, `/items/${encodeURIComponent(normalized)}`, {
+      include_attributes: "all"
+    });
+    if (String(item?.seller_id ?? "") !== String(me?.id ?? "")) {
+      throw new Error("O MLB informado nao pertence a conta autorizada da Stop Kar.");
+    }
+    return {
+      reference_type: "item",
+      reference: normalized,
+      user_product_id: item?.user_product_id ?? null,
+      item_ids: [normalized],
+      items: [item],
+      errors: [] as string[]
+    };
+  }
+
+  if (!/^MLBU\d+$/.test(normalized)) {
+    throw new Error("Informe um codigo valido no formato MLB123... ou MLBU123....");
+  }
+
+  const search = await meliGet(
+    env,
+    `/users/${encodeURIComponent(String(me.id))}/items/search`,
+    {
+      user_product_id: normalized,
+      limit: "50"
+    }
+  );
+
+  const ids = Array.isArray(search?.results)
+    ? search.results
+        .map((entry: any) => (typeof entry === "string" ? entry : entry?.id))
+        .filter((id: unknown): id is string => typeof id === "string" && /^MLB\d+$/.test(id))
+    : [];
+
+  if (ids.length === 0) {
+    throw new Error(`Nenhum item MLB da Stop Kar foi encontrado para o User Product ${normalized}.`);
+  }
+
+  const bulk = await getItemsBulk(env, ids);
+  const byId = new Map(
+    bulk.items.map((item: any) => [String(item?.id || ""), item] as const)
+  );
+  const errors = [...bulk.errors];
+
+  for (const id of ids) {
+    if (byId.has(id)) continue;
+    try {
+      const item = await meliGet(env, `/items/${encodeURIComponent(id)}`, {
+        include_attributes: "all"
+      });
+      byId.set(id, item);
+    } catch (error) {
+      errors.push(`${id}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  const items = ids.map((id) => byId.get(id)).filter(Boolean);
+  if (items.length === 0) {
+    throw new Error(
+      `O User Product ${normalized} foi localizado, mas os detalhes dos itens nao puderam ser consultados.`
+    );
+  }
+
+  return {
+    reference_type: "user_product",
+    reference: normalized,
+    user_product_id: normalized,
+    item_ids: ids,
+    items,
+    errors
+  };
+}
+
+async function recordListingAudit(env: Env, entry: Record<string, unknown>) {
+  if (!env.MELI_TOKENS) return null;
+  const timestamp = new Date().toISOString();
+  const id = crypto.randomUUID();
+  const key = `listing:audit:${timestamp}:${id}`;
+  await env.MELI_TOKENS.put(
+    key,
+    JSON.stringify({
+      id,
+      timestamp,
+      ...entry
+    }),
+    { expirationTtl: 60 * 60 * 24 * 180 }
+  );
+  return id;
 }
 
 async function getOrderShipments(env: Env, orderId: string | number) {
@@ -1180,16 +1295,190 @@ function createServer(env: Env) {
     "buscar_anuncio",
     {
       description:
-        "Busca um anuncio da Stop Kar pelo codigo MLB e retorna preco, estoque, vendas, SKU, codigo personalizado, status, logistica e variacoes.",
+        "Busca anuncio da Stop Kar por MLB ou User Product MLBU e retorna preco, estoque, vendas, SKU, status, logistica e variacoes.",
       inputSchema: {
-        item_id: z.string().min(3).describe("Codigo do anuncio, por exemplo MLB1234567890")
+        item_id: z.string().min(3).describe("Codigo MLB ou MLBU, por exemplo MLB1234567890 ou MLBU1234567890")
       }
     },
     async ({ item_id }) => {
-      const item = await meliGet(env, `/items/${encodeURIComponent(item_id)}`, {
-        include_attributes: "all"
+      const resolved = await resolveListingReference(env, item_id);
+      if (resolved.reference_type === "item") {
+        return textResult(compactItem(resolved.items[0]));
+      }
+
+      return textResult({
+        reference_type: resolved.reference_type,
+        user_product_id: resolved.user_product_id,
+        total_items: resolved.items.length,
+        erros_detalhes: resolved.errors.slice(0, 5),
+        items: resolved.items.map((item: any) => compactItem(item))
       });
-      return textResult(compactItem(item));
+    }
+  );
+
+  server.registerTool(
+    "atualizar_titulo_anuncio",
+    {
+      description:
+        "Pre-visualiza ou altera com seguranca o titulo de um anuncio da Stop Kar. Aceita MLB ou MLBU. Por padrao apenas simula; para gravar, confirmar=true, motivo e LISTING_WRITES_ENABLED=true sao obrigatorios.",
+      inputSchema: {
+        item_id: z.string().min(3).describe("Codigo MLB ou MLBU do anuncio."),
+        titulo: z.string().min(1).max(60).describe("Novo titulo, com no maximo 60 caracteres."),
+        aplicar_em_todos: z
+          .boolean()
+          .optional()
+          .default(false)
+          .describe("Se um MLBU estiver ligado a mais de um MLB, exige true para alterar todos os itens associados."),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ item_id, titulo, aplicar_em_todos, confirmar, motivo }) => {
+      const novoTitulo = titulo.trim();
+      if (!novoTitulo) {
+        throw new Error("Informe um titulo nao vazio.");
+      }
+      if (novoTitulo.length > 60) {
+        throw new Error("O titulo deve ter no maximo 60 caracteres.");
+      }
+
+      const resolved = await resolveListingReference(env, item_id);
+      const allItems = resolved.items;
+      if (allItems.length === 0) {
+        throw new Error("Nenhum item foi encontrado para a referencia informada.");
+      }
+
+      if (allItems.length > 1 && !aplicar_em_todos) {
+        return textResult({
+          acao: "bloqueado_por_ambiguidade",
+          referencia: resolved.reference,
+          user_product_id: resolved.user_product_id,
+          mensagem:
+            "Este MLBU esta ligado a mais de um MLB. Nenhuma alteracao foi feita. Revise os itens e reenvie com aplicar_em_todos=true somente se quiser alterar todos.",
+          items: allItems.map((item: any) => ({
+            id: item?.id ?? null,
+            title: item?.title ?? null,
+            status: item?.status ?? null,
+            sold_quantity: item?.sold_quantity ?? null,
+            listing_type_id: item?.listing_type_id ?? null,
+            catalog_listing: item?.catalog_listing ?? false
+          }))
+        });
+      }
+
+      const selectedItems = allItems.length > 1 ? allItems : [allItems[0]];
+      const blockedBySales = selectedItems.filter(
+        (item: any) => Number(item?.sold_quantity ?? 0) > 0
+      );
+
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        referencia: resolved.reference,
+        reference_type: resolved.reference_type,
+        user_product_id: resolved.user_product_id,
+        novo_titulo: novoTitulo,
+        quantidade_itens: selectedItems.length,
+        escrita_anuncios_habilitada: listingWritesEnabled(env),
+        items: selectedItems.map((item: any) => ({
+          id: item?.id ?? null,
+          title_atual: item?.title ?? null,
+          status: item?.status ?? null,
+          sold_quantity: item?.sold_quantity ?? null,
+          listing_type_id: item?.listing_type_id ?? null,
+          catalog_listing: item?.catalog_listing ?? false,
+          pode_tentar_alterar_titulo: Number(item?.sold_quantity ?? 0) === 0
+        })),
+        erros_detalhes: resolved.errors.slice(0, 5)
+      };
+
+      if (blockedBySales.length > 0) {
+        return textResult({
+          ...preview,
+          acao: "bloqueado_por_vendas",
+          mensagem:
+            "O Mercado Livre nao permite alterar o titulo de uma publicacao que ja possui vendas, salvo regras especificas de Loja Oficial. Nenhuma alteracao foi feita.",
+          itens_bloqueados: blockedBySales.map((item: any) => ({
+            id: item?.id ?? null,
+            sold_quantity: item?.sold_quantity ?? null
+          }))
+        });
+      }
+
+      const changedItems = selectedItems.filter(
+        (item: any) => String(item?.title || "") !== novoTitulo
+      );
+      if (changedItems.length === 0) {
+        return textResult({
+          ...preview,
+          acao: "nenhuma_alteracao",
+          mensagem: "O novo titulo e igual ao titulo atual."
+        });
+      }
+
+      if (!confirmar) {
+        return textResult(preview);
+      }
+
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error(
+          "Para gravar uma alteracao de titulo, informe um motivo objetivo com pelo menos 5 caracteres."
+        );
+      }
+
+      requireListingWritesEnabled(env);
+
+      const token = await loadToken(env);
+      const scopes = String(token?.scope || "")
+        .split(/\s+/)
+        .map((value) => value.trim().toLowerCase())
+        .filter(Boolean);
+      if (!scopes.includes("write")) {
+        throw new Error(
+          "O token OAuth atual nao possui scope write. Reautorize a conta apos habilitar escrita da publicacao."
+        );
+      }
+
+      const resultados: any[] = [];
+      for (const item of changedItems) {
+        const before = compactItem(item);
+        const write = await meliWrite(
+          env,
+          "PUT",
+          `/items/${encodeURIComponent(String(item.id))}`,
+          { title: novoTitulo }
+        );
+        const afterItem = await meliGet(
+          env,
+          `/items/${encodeURIComponent(String(item.id))}`,
+          { include_attributes: "all" }
+        );
+        const after = compactItem(afterItem);
+        const audit_id = await recordListingAudit(env, {
+          tipo: "listing_title_update",
+          referencia: resolved.reference,
+          user_product_id: resolved.user_product_id,
+          item_id: item.id,
+          motivo: motivo.trim(),
+          antes: before,
+          solicitado: { title: novoTitulo },
+          depois: after,
+          endpoint: write.path_used
+        });
+        resultados.push({
+          item_id: item.id,
+          audit_id,
+          endpoint_utilizado: write.path_used,
+          resposta_api: write.data,
+          antes: before,
+          depois: after
+        });
+      }
+
+      return textResult({
+        ...preview,
+        acao: "gravado",
+        resultados
+      });
     }
   );
 
