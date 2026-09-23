@@ -5,6 +5,9 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
   "keep_vars": true,
+  "vars": {
+    "ADS_WRITES_ENABLED": "true"
+  },
   "secrets": {
     "required": ["MELI_CLIENT_SECRET"]
   },
