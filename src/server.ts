@@ -1527,7 +1527,7 @@ function createServer(env: Env) {
         const associated = !MLBU_ID.test(item_id) || item?.user_product_id === item_id;
         const noSales = Number(item?.sold_quantity) === 0;
         const statusAllowed = ["active", "paused"].includes(String(item?.status));
-        const salesOverride = permitir_com_vendas === true;
+        const salesOverride = confirmar === true || permitir_com_vendas === true;
         const allowed =
           owner &&
           associated &&
