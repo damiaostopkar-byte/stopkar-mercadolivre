@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.13.7";
+const SERVER_VERSION = "0.14.0";
 
 function textResult(value: unknown) {
   return {
@@ -1457,6 +1457,95 @@ function createServer(env: Env) {
     name: "Stop Kar Mercado Livre",
     version: SERVER_VERSION
   });
+
+  server.registerTool(
+    "consultar_produto_tray",
+    {
+      description:
+        "Consulta produto da loja Tray autorizada da Stop Kar por ID, SKU/referencia ou nome. Retorna preco de custo (cost_price), preco de venda, estoque, peso e dimensoes quando disponiveis. Somente leitura.",
+      inputSchema: {
+        produto_id: z
+          .union([z.string().min(1), z.number().int().positive()])
+          .optional()
+          .describe("ID interno do produto na Tray."),
+        sku: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("SKU/referencia do produto na Tray."),
+        nome: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("Nome do produto para busca na Tray."),
+        limite: z.number().int().min(1).max(20).optional().default(10)
+      }
+    },
+    async ({ produto_id, sku, nome, limite }) => {
+      const filtrosInformados = [produto_id !== undefined, Boolean(sku), Boolean(nome)].filter(Boolean).length;
+      if (filtrosInformados !== 1) {
+        throw new Error("Informe exatamente um filtro: produto_id, sku ou nome.");
+      }
+
+      const data = await trayGet(env, "products", {
+        id: produto_id !== undefined ? String(produto_id) : undefined,
+        reference: sku?.trim(),
+        name: nome?.trim(),
+        limit: String(limite ?? 10)
+      });
+
+      const rows = trayProductRows(data);
+      const produtos = rows.map((row: any) => {
+        const p = trayProductObject(row);
+        const variants = Array.isArray(p?.Variants)
+          ? p.Variants
+          : Array.isArray(p?.variants)
+            ? p.variants
+            : Array.isArray(p?.Variant)
+              ? p.Variant
+              : [];
+
+        return {
+          id: p?.id ?? null,
+          nome: p?.name ?? p?.title ?? null,
+          sku_referencia: p?.reference ?? null,
+          ean: p?.ean ?? null,
+          preco_venda: p?.price ?? null,
+          preco_custo: p?.cost_price ?? null,
+          preco_promocional: p?.promotional_price ?? null,
+          estoque: p?.stock ?? null,
+          peso: p?.weight ?? null,
+          comprimento: p?.length ?? null,
+          largura: p?.width ?? null,
+          altura: p?.height ?? null,
+          marca: p?.brand ?? null,
+          modelo: p?.model ?? null,
+          variacoes: variants.map((variantRow: any) => {
+            const v = variantRow?.Variant ?? variantRow?.variant ?? variantRow ?? {};
+            return {
+              id: v?.id ?? null,
+              referencia: v?.reference ?? null,
+              preco_venda: v?.price ?? null,
+              preco_custo: v?.cost_price ?? null,
+              estoque: v?.stock ?? null,
+              peso: v?.weight ?? null,
+              comprimento: v?.length ?? null,
+              largura: v?.width ?? null,
+              altura: v?.height ?? null
+            };
+          })
+        };
+      });
+
+      return textResult({
+        fonte: "Tray",
+        somente_leitura: true,
+        total_retornado: produtos.length,
+        paging: data?.paging ?? null,
+        produtos
+      });
+    }
+  );
 
   server.registerTool(
     "consultar_conta",
@@ -4636,6 +4725,141 @@ async function handleTrayAuthCallback(request: Request, env: Env): Promise<Respo
     200,
     "Stop Kar - Tray"
   );
+}
+
+
+async function loadLatestTrayToken(env: Env): Promise<TrayStoredToken> {
+  const { tokens } = requireTrayConfig(env);
+  const storeId = await tokens.get("tray:oauth:latest_store");
+  if (!storeId) {
+    throw new Error("Tray ainda nao conectada. Instale e autorize o aplicativo na loja Tray.");
+  }
+
+  const stored = (await tokens.get(
+    `${TRAY_TOKEN_PREFIX}${storeId}`,
+    "json"
+  )) as TrayStoredToken | null;
+
+  if (!stored?.access_token || !stored?.refresh_token || !stored?.api_host) {
+    throw new Error("Tokens da Tray nao encontrados ou incompletos. Reautorize o aplicativo.");
+  }
+
+  return stored;
+}
+
+async function saveTrayTokenResponse(
+  env: Env,
+  current: TrayStoredToken,
+  data: any
+): Promise<TrayStoredToken> {
+  const { tokens } = requireTrayConfig(env);
+
+  if (!data?.access_token || !data?.refresh_token) {
+    throw new Error("Resposta de renovacao da Tray nao trouxe access_token/refresh_token.");
+  }
+
+  const stored: TrayStoredToken = {
+    access_token: String(data.access_token),
+    refresh_token: String(data.refresh_token),
+    date_expiration_access_token: data.date_expiration_access_token,
+    date_expiration_refresh_token: data.date_expiration_refresh_token,
+    date_activated: data.date_activated,
+    api_host: String(data.api_host || current.api_host),
+    store_id: String(data.store_id || current.store_id)
+  };
+
+  await tokens.put(`${TRAY_TOKEN_PREFIX}${stored.store_id}`, JSON.stringify(stored));
+  await tokens.put("tray:oauth:latest_store", stored.store_id);
+  return stored;
+}
+
+async function refreshTrayToken(env: Env, current: TrayStoredToken): Promise<TrayStoredToken> {
+  const apiHost = normalizeHttpsUrl(current.api_host, "api_host da Tray");
+  const authUrl = new URL("auth", apiHost.toString().endsWith("/") ? apiHost.toString() : `${apiHost.toString()}/`);
+  authUrl.searchParams.set("refresh_token", current.refresh_token);
+
+  const response = await fetch(authUrl.toString(), {
+    method: "GET",
+    headers: { Accept: "application/json" }
+  });
+
+  const raw = await response.text();
+  let data: any;
+  try {
+    data = raw ? JSON.parse(raw) : null;
+  } catch {
+    data = raw;
+  }
+
+  if (!response.ok) {
+    const message =
+      data && typeof data === "object"
+        ? data.message || data.error || JSON.stringify(data)
+        : String(data || "resposta vazia");
+    throw new Error(`Falha ao renovar token da Tray (HTTP ${response.status}): ${message}`);
+  }
+
+  return saveTrayTokenResponse(env, current, data);
+}
+
+async function trayGet(
+  env: Env,
+  path: string,
+  query: Record<string, string | undefined> = {}
+): Promise<any> {
+  let token = await loadLatestTrayToken(env);
+
+  const requestOnce = async (current: TrayStoredToken) => {
+    const base = normalizeHttpsUrl(current.api_host, "api_host da Tray");
+    const url = new URL(
+      path.replace(/^\//, ""),
+      base.toString().endsWith("/") ? base.toString() : `${base.toString()}/`
+    );
+    url.searchParams.set("access_token", current.access_token);
+    for (const [key, value] of Object.entries(query)) {
+      if (value !== undefined && value !== "") url.searchParams.set(key, value);
+    }
+
+    return fetch(url.toString(), {
+      method: "GET",
+      headers: { Accept: "application/json" }
+    });
+  };
+
+  let response = await requestOnce(token);
+  if (response.status === 401) {
+    token = await refreshTrayToken(env, token);
+    response = await requestOnce(token);
+  }
+
+  const raw = await response.text();
+  let data: any;
+  try {
+    data = raw ? JSON.parse(raw) : null;
+  } catch {
+    data = raw;
+  }
+
+  if (!response.ok) {
+    const message =
+      data && typeof data === "object"
+        ? data.message || data.name || data.error || JSON.stringify(data)
+        : String(data || "resposta vazia");
+    throw new Error(`Tray API ${response.status}: ${message}`);
+  }
+
+  return data;
+}
+
+function trayProductRows(data: any): any[] {
+  if (Array.isArray(data?.Products)) return data.Products;
+  if (Array.isArray(data?.products)) return data.products;
+  if (Array.isArray(data)) return data;
+  return [];
+}
+
+function trayProductObject(row: any): any {
+  return row?.Product ?? row?.product ?? row ?? {};
 }
 
 function html(message: string, status = 200, title = "Stop Kar Mercado Livre") {
