@@ -10,6 +10,7 @@ interface Env {
   MELI_TOKENS?: KVNamespace;
   ADS_WRITES_ENABLED?: string;
   LISTING_WRITES_ENABLED?: string;
+  PROMOTION_WRITES_ENABLED?: string;
 }
 
 type StoredToken = {
@@ -25,7 +26,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.12.0";
+const SERVER_VERSION = "0.13.0";
 
 function textResult(value: unknown) {
   return {
@@ -417,6 +418,7 @@ const ITEM_FIELDS = [
   "status",
   "sub_status",
   "category_id",
+  "condition",
   "price",
   "base_price",
   "original_price",
@@ -518,6 +520,71 @@ function requireListingWritesEnabled(env: Env) {
       "Escrita de anuncios desabilitada no servidor. Ative LISTING_WRITES_ENABLED=true antes de gravar."
     );
   }
+}
+
+
+function promotionWritesEnabled(env: Env) {
+  return String(env.PROMOTION_WRITES_ENABLED || "").trim().toLowerCase() === "true";
+}
+
+function requirePromotionWritesEnabled(env: Env) {
+  if (!promotionWritesEnabled(env)) {
+    throw new Error(
+      "Escrita de promocoes desabilitada no servidor. Ative PROMOTION_WRITES_ENABLED=true antes de gravar."
+    );
+  }
+}
+
+async function recordOperationAudit(env: Env, prefix: string, entry: Record<string, unknown>) {
+  if (!env.MELI_TOKENS) return null;
+  const timestamp = new Date().toISOString();
+  const id = crypto.randomUUID();
+  await env.MELI_TOKENS.put(
+    `${prefix}:${timestamp}:${id}`,
+    JSON.stringify({ id, timestamp, ...entry }),
+    { expirationTtl: 60 * 60 * 24 * 180 }
+  );
+  return id;
+}
+
+async function getItemPromotions(env: Env, itemId: string) {
+  const data = await meliGet(
+    env,
+    `/seller-promotions/items/${encodeURIComponent(itemId)}`,
+    { app_version: "v2" }
+  );
+  return Array.isArray(data)
+    ? data
+    : Array.isArray(data?.results)
+      ? data.results
+      : [];
+}
+
+function promotionIdOf(entry: any) {
+  return String(entry?.promotion_id ?? entry?.id ?? "");
+}
+
+async function chooseListingForWrite(
+  env: Env,
+  reference: string,
+  mlbId?: string
+) {
+  const resolved = await resolveListingReference(env, reference);
+  const items = resolved.items;
+  if (items.length === 0) {
+    throw new Error("Nenhum item foi encontrado para a referencia informada.");
+  }
+  if (mlbId) {
+    const selected = items.find((item: any) => String(item?.id) === String(mlbId));
+    if (!selected) {
+      throw new Error("O mlb_id informado nao pertence ao MLB/MLBU consultado.");
+    }
+    return { resolved, selected, ambiguous: items.length > 1 };
+  }
+  if (items.length > 1) {
+    return { resolved, selected: null, ambiguous: true };
+  }
+  return { resolved, selected: items[0], ambiguous: false };
 }
 
 async function resolveListingReference(env: Env, reference: string) {
@@ -1605,6 +1672,710 @@ function createServer(env: Env) {
         });
         throw error;
       }
+    }
+  );
+
+
+  server.registerTool(
+    "editar_family_name_anuncio",
+    {
+      description:
+        "Pre-visualiza ou altera o family_name de um User Product da Stop Kar. E o caminho correto para otimizar o nome/titulo no modelo MLBU. So grava com confirmar=true.",
+      inputSchema: {
+        item_id: z.string().regex(/^(MLB|MLBU)\d+$/).describe("Codigo MLB ou MLBU."),
+        novo_family_name: z.string().min(1).max(60).describe("Novo family_name, ate 60 caracteres."),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ item_id, novo_family_name, confirmar, motivo }) => {
+      const name = novo_family_name.trim();
+      const resolved = await resolveListingReference(env, item_id);
+      if (!resolved.user_product_id) {
+        return textResult({
+          acao: "bloqueado",
+          item_id,
+          mensagem:
+            "Este anuncio nao esta no modelo User Product. Para ele, use a ferramenta de titulo tradicional."
+        });
+      }
+
+      const items = resolved.items;
+      const sold = items.filter((item: any) => Number(item?.sold_quantity ?? 0) > 0);
+      const currentNames = [...new Set(items.map((item: any) => String(item?.family_name ?? "")).filter(Boolean))];
+
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        item_id,
+        user_product_id: resolved.user_product_id,
+        novo_family_name: name,
+        family_names_atuais: currentNames,
+        condicoes_venda: items.map((item: any) => ({
+          mlb: item?.id ?? null,
+          sold_quantity: item?.sold_quantity ?? null,
+          status: item?.status ?? null,
+          family_name: item?.family_name ?? null
+        })),
+        alteracao_permitida: sold.length === 0,
+        escrita_anuncios_habilitada: listingWritesEnabled(env)
+      };
+
+      if (sold.length > 0) {
+        return textResult({
+          ...preview,
+          acao: "bloqueado_por_vendas",
+          mensagem:
+            "O Mercado Livre so permite atualizar family_name quando nenhuma condicao de venda do User Product possui vendas.",
+          itens_com_vendas: sold.map((item: any) => ({
+            mlb: item?.id ?? null,
+            sold_quantity: item?.sold_quantity ?? null
+          }))
+        });
+      }
+
+      if (currentNames.length === 1 && currentNames[0] === name) {
+        return textResult({ ...preview, acao: "nenhuma_alteracao" });
+      }
+      if (!confirmar) return textResult(preview);
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Para gravar o family_name, informe um motivo com pelo menos 5 caracteres.");
+      }
+
+      requireListingWritesEnabled(env);
+      const first = items[0];
+      const before = items.map((item: any) => compactItem(item));
+      const write = await meliWrite(
+        env,
+        "PUT",
+        `/items/${encodeURIComponent(String(first.id))}`,
+        { family_name: name }
+      );
+      const afterResolved = await resolveListingReference(env, resolved.user_product_id);
+      const after = afterResolved.items.map((item: any) => compactItem(item));
+      const audit_id = await recordOperationAudit(env, "listing:family:audit", {
+        tipo: "family_name_update",
+        referencia: item_id,
+        user_product_id: resolved.user_product_id,
+        motivo: motivo.trim(),
+        solicitado: { family_name: name },
+        antes: before,
+        depois: after,
+        endpoint: write.path_used
+      });
+
+      return textResult({
+        ...preview,
+        acao: "gravado",
+        audit_id,
+        endpoint_utilizado: write.path_used,
+        depois: after.map((item: any) => ({
+          mlb: item.id,
+          family_name: item.family_name ?? null,
+          title: item.title ?? null
+        }))
+      });
+    }
+  );
+
+  server.registerTool(
+    "atualizar_preco_anuncio",
+    {
+      description:
+        "Pre-visualiza ou altera o preco base de um anuncio da Stop Kar. Aceita MLB ou MLBU; quando um MLBU possui varios MLB, exige mlb_id. Nao mexe em promocoes.",
+      inputSchema: {
+        item_id: z.string().regex(/^(MLB|MLBU)\d+$/),
+        novo_preco: z.number().positive(),
+        mlb_id: z.string().regex(/^MLB\d+$/).optional(),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ item_id, novo_preco, mlb_id, confirmar, motivo }) => {
+      const chosen = await chooseListingForWrite(env, item_id, mlb_id);
+      if (!chosen.selected) {
+        return textResult({
+          acao: "bloqueado_por_ambiguidade",
+          item_id,
+          mensagem: "Este MLBU possui varios MLB. Escolha o mlb_id da condicao de venda que tera o preco alterado.",
+          items: chosen.resolved.items.map((item: any) => ({
+            mlb: item?.id ?? null,
+            title: item?.title ?? null,
+            price: item?.price ?? null,
+            listing_type_id: item?.listing_type_id ?? null,
+            status: item?.status ?? null
+          }))
+        });
+      }
+
+      const item = chosen.selected;
+      const promos = await getItemPromotions(env, String(item.id));
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        item_id,
+        mlb: item.id,
+        titulo: item.title ?? null,
+        preco_atual: item.price ?? null,
+        novo_preco: Number(novo_preco),
+        promocoes_atuais: promos.map((entry: any) => compactPromotionItem(entry)),
+        aviso:
+          promos.length > 0
+            ? "O anuncio possui promocao/oferta. Revise o efeito da mudanca no preco base antes de confirmar."
+            : null,
+        escrita_anuncios_habilitada: listingWritesEnabled(env)
+      };
+
+      if (Number(item.price) === Number(novo_preco)) {
+        return textResult({ ...preview, acao: "nenhuma_alteracao" });
+      }
+      if (!confirmar) return textResult(preview);
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Para alterar o preco, informe um motivo com pelo menos 5 caracteres.");
+      }
+
+      requireListingWritesEnabled(env);
+      const before = compactItem(item);
+      const write = await meliWrite(
+        env,
+        "PUT",
+        `/items/${encodeURIComponent(String(item.id))}`,
+        { price: Number(novo_preco) }
+      );
+      const afterRaw = await meliGet(env, `/items/${encodeURIComponent(String(item.id))}`, {
+        include_attributes: "all"
+      });
+      const after = compactItem(afterRaw);
+      const confirmado = Number(after.price) === Number(novo_preco);
+      const audit_id = await recordOperationAudit(env, "listing:price:audit", {
+        tipo: "price_update",
+        item_id: item.id,
+        motivo: motivo.trim(),
+        solicitado: { price: Number(novo_preco) },
+        antes: before,
+        depois: after,
+        confirmado_na_api: confirmado,
+        endpoint: write.path_used
+      });
+
+      return textResult({
+        ...preview,
+        acao: confirmado ? "gravado" : "nao_confirmado",
+        audit_id,
+        endpoint_utilizado: write.path_used,
+        preco_depois: after.price ?? null,
+        confirmado_na_api: confirmado,
+        observacao:
+          confirmado
+            ? null
+            : "O Mercado Livre respondeu a requisicao, mas o preco consultado depois nao corresponde ao valor solicitado. Verifique automacao de precos ou regras da oferta."
+      });
+    }
+  );
+
+  server.registerTool(
+    "editar_descricao_anuncio",
+    {
+      description:
+        "Pre-visualiza ou substitui a descricao plain_text de um anuncio da Stop Kar. Aceita MLB ou MLBU; MLBU com varios MLB exige mlb_id.",
+      inputSchema: {
+        item_id: z.string().regex(/^(MLB|MLBU)\d+$/),
+        nova_descricao: z.string().min(1).max(50000),
+        mlb_id: z.string().regex(/^MLB\d+$/).optional(),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ item_id, nova_descricao, mlb_id, confirmar, motivo }) => {
+      const chosen = await chooseListingForWrite(env, item_id, mlb_id);
+      if (!chosen.selected) {
+        return textResult({
+          acao: "bloqueado_por_ambiguidade",
+          item_id,
+          mensagem: "Este MLBU possui varios MLB. Escolha o mlb_id cuja descricao sera substituida.",
+          items: chosen.resolved.items.map((item: any) => ({
+            mlb: item?.id ?? null,
+            title: item?.title ?? null,
+            status: item?.status ?? null
+          }))
+        });
+      }
+      const item = chosen.selected;
+      let currentDescription: any = null;
+      try {
+        currentDescription = await meliGet(
+          env,
+          `/items/${encodeURIComponent(String(item.id))}/description`
+        );
+      } catch {}
+
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        item_id,
+        mlb: item.id,
+        titulo: item.title ?? null,
+        descricao_atual: currentDescription?.plain_text ?? null,
+        nova_descricao,
+        escrita_anuncios_habilitada: listingWritesEnabled(env)
+      };
+      if ((currentDescription?.plain_text ?? "") === nova_descricao) {
+        return textResult({ ...preview, acao: "nenhuma_alteracao" });
+      }
+      if (!confirmar) return textResult(preview);
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Para alterar a descricao, informe um motivo com pelo menos 5 caracteres.");
+      }
+
+      requireListingWritesEnabled(env);
+      const write = await meliWrite(
+        env,
+        "PUT",
+        `/items/${encodeURIComponent(String(item.id))}/description?api_version=2`,
+        { plain_text: nova_descricao }
+      );
+      const after = await meliGet(
+        env,
+        `/items/${encodeURIComponent(String(item.id))}/description`
+      );
+      const audit_id = await recordOperationAudit(env, "listing:description:audit", {
+        tipo: "description_update",
+        item_id: item.id,
+        motivo: motivo.trim(),
+        antes: currentDescription?.plain_text ?? null,
+        solicitado: nova_descricao,
+        depois: after?.plain_text ?? null,
+        endpoint: write.path_used
+      });
+
+      return textResult({
+        ...preview,
+        acao: "gravado",
+        audit_id,
+        endpoint_utilizado: write.path_used,
+        descricao_depois: after?.plain_text ?? null
+      });
+    }
+  );
+
+  server.registerTool(
+    "gerenciar_promocao_damiao",
+    {
+      description:
+        "Adiciona, atualiza ou remove um anuncio da campanha Damiao (SELLER_CAMPAIGN C-MLB5661788) com preview e confirmacao obrigatoria.",
+      inputSchema: {
+        item_id: z.string().regex(/^(MLB|MLBU)\d+$/),
+        acao: z.enum(["adicionar_ou_atualizar", "remover"]),
+        deal_price: z.number().positive().optional(),
+        mlb_id: z.string().regex(/^MLB\d+$/).optional(),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ item_id, acao, deal_price, mlb_id, confirmar, motivo }) => {
+      const promotionId = "C-MLB5661788";
+      const chosen = await chooseListingForWrite(env, item_id, mlb_id);
+      if (!chosen.selected) {
+        return textResult({
+          acao: "bloqueado_por_ambiguidade",
+          item_id,
+          mensagem: "Este MLBU possui varios MLB. Escolha mlb_id para a promocao.",
+          items: chosen.resolved.items.map((item: any) => ({
+            mlb: item?.id ?? null,
+            title: item?.title ?? null,
+            price: item?.price ?? null
+          }))
+        });
+      }
+      const item = chosen.selected;
+      if (acao === "adicionar_ou_atualizar" && !(Number(deal_price) > 0)) {
+        throw new Error("Informe deal_price para adicionar ou atualizar a campanha Damiao.");
+      }
+
+      const promos = await getItemPromotions(env, String(item.id));
+      const damiao = promos.find(
+        (entry: any) =>
+          promotionIdOf(entry) === promotionId &&
+          String(entry?.type ?? entry?.promotion_type ?? "").toUpperCase() === "SELLER_CAMPAIGN"
+      );
+      const otherSellerCampaigns = promos.filter(
+        (entry: any) =>
+          String(entry?.type ?? entry?.promotion_type ?? "").toUpperCase() === "SELLER_CAMPAIGN" &&
+          promotionIdOf(entry) !== promotionId &&
+          ["started", "pending", "candidate"].includes(String(entry?.status ?? ""))
+      );
+
+      const preview = {
+        acao_solicitada: acao,
+        gravar: confirmar === true,
+        promotion_id: promotionId,
+        promotion_name: "Damiao",
+        mlb: item.id,
+        titulo: item.title ?? null,
+        preco_base: item.price ?? null,
+        deal_price: deal_price ?? null,
+        ja_esta_na_damiao: Boolean(damiao),
+        oferta_damiao_atual: damiao ? compactPromotionItem(damiao) : null,
+        outras_campanhas_vendedor: otherSellerCampaigns.map((entry: any) => compactPromotionItem(entry)),
+        escrita_promocoes_habilitada: promotionWritesEnabled(env)
+      };
+
+      if (acao === "adicionar_ou_atualizar" && otherSellerCampaigns.length > 0 && !damiao) {
+        return textResult({
+          ...preview,
+          acao: "bloqueado_por_conflito",
+          mensagem:
+            "O item participa de outra SELLER_CAMPAIGN. Remova primeiro a campanha antiga para evitar conflito antes de entrar na Damiao."
+        });
+      }
+
+      if (acao === "remover" && !damiao) {
+        return textResult({ ...preview, acao: "nenhuma_alteracao" });
+      }
+      if (!confirmar) return textResult({ ...preview, acao: "simulacao" });
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Para alterar a promocao Damiao, informe um motivo com pelo menos 5 caracteres.");
+      }
+
+      requirePromotionWritesEnabled(env);
+      let write;
+      if (acao === "remover") {
+        write = await meliWrite(
+          env,
+          "DELETE",
+          `/seller-promotions/items/${encodeURIComponent(String(item.id))}?promotion_type=SELLER_CAMPAIGN&promotion_id=${encodeURIComponent(promotionId)}&app_version=v2`
+        );
+      } else {
+        const method = damiao ? "PUT" : "POST";
+        write = await meliWrite(
+          env,
+          method,
+          `/seller-promotions/items/${encodeURIComponent(String(item.id))}?app_version=v2`,
+          {
+            promotion_id: promotionId,
+            promotion_type: "SELLER_CAMPAIGN",
+            deal_price: Number(deal_price)
+          }
+        );
+      }
+
+      const afterPromos = await getItemPromotions(env, String(item.id));
+      const audit_id = await recordOperationAudit(env, "promotion:damiao:audit", {
+        tipo: "damiao_item_update",
+        item_id: item.id,
+        acao,
+        deal_price: deal_price ?? null,
+        motivo: motivo.trim(),
+        antes: promos.map((entry: any) => compactPromotionItem(entry)),
+        depois: afterPromos.map((entry: any) => compactPromotionItem(entry)),
+        endpoint: write.path_used
+      });
+
+      return textResult({
+        ...preview,
+        acao: "gravado",
+        audit_id,
+        endpoint_utilizado: write.path_used,
+        promocoes_depois: afterPromos.map((entry: any) => compactPromotionItem(entry))
+      });
+    }
+  );
+
+  server.registerTool(
+    "remover_item_promocao",
+    {
+      description:
+        "Remove explicitamente um item de uma promocao informada. Util para retirar anuncios de campanhas antigas como Elevate sem tocar na campanha Damiao por engano.",
+      inputSchema: {
+        item_id: z.string().regex(/^(MLB|MLBU)\d+$/),
+        promotion_id: z.string().min(2),
+        promotion_type: z.string().min(2).default("SELLER_CAMPAIGN"),
+        mlb_id: z.string().regex(/^MLB\d+$/).optional(),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ item_id, promotion_id, promotion_type, mlb_id, confirmar, motivo }) => {
+      if (promotion_id === "C-MLB5661788") {
+        throw new Error("Para remover da campanha Damiao, use gerenciar_promocao_damiao.");
+      }
+      const chosen = await chooseListingForWrite(env, item_id, mlb_id);
+      if (!chosen.selected) {
+        return textResult({
+          acao: "bloqueado_por_ambiguidade",
+          item_id,
+          mensagem: "Escolha o mlb_id cuja oferta sera removida.",
+          items: chosen.resolved.items.map((item: any) => ({
+            mlb: item?.id ?? null,
+            title: item?.title ?? null
+          }))
+        });
+      }
+      const item = chosen.selected;
+      const promos = await getItemPromotions(env, String(item.id));
+      const existing = promos.find(
+        (entry: any) =>
+          promotionIdOf(entry) === promotion_id &&
+          String(entry?.type ?? entry?.promotion_type ?? "").toUpperCase() === promotion_type.toUpperCase()
+      );
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        mlb: item.id,
+        promotion_id,
+        promotion_type: promotion_type.toUpperCase(),
+        oferta_atual: existing ? compactPromotionItem(existing) : null,
+        escrita_promocoes_habilitada: promotionWritesEnabled(env)
+      };
+      if (!existing) return textResult({ ...preview, acao: "nenhuma_alteracao" });
+      if (!confirmar) return textResult(preview);
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Para remover a promocao, informe um motivo com pelo menos 5 caracteres.");
+      }
+
+      requirePromotionWritesEnabled(env);
+      const write = await meliWrite(
+        env,
+        "DELETE",
+        `/seller-promotions/items/${encodeURIComponent(String(item.id))}?promotion_type=${encodeURIComponent(promotion_type.toUpperCase())}&promotion_id=${encodeURIComponent(promotion_id)}&app_version=v2`
+      );
+      const afterPromos = await getItemPromotions(env, String(item.id));
+      const audit_id = await recordOperationAudit(env, "promotion:remove:audit", {
+        tipo: "promotion_item_remove",
+        item_id: item.id,
+        promotion_id,
+        promotion_type: promotion_type.toUpperCase(),
+        motivo: motivo.trim(),
+        antes: compactPromotionItem(existing),
+        depois: afterPromos.map((entry: any) => compactPromotionItem(entry)),
+        endpoint: write.path_used
+      });
+      return textResult({
+        ...preview,
+        acao: "gravado",
+        audit_id,
+        endpoint_utilizado: write.path_used,
+        promocoes_depois: afterPromos.map((entry: any) => compactPromotionItem(entry))
+      });
+    }
+  );
+
+  server.registerTool(
+    "excluir_campanha_vendedor",
+    {
+      description:
+        "Exclui uma SELLER_CAMPAIGN inteira com protecoes fortes. Nunca permite excluir a campanha Damiao.",
+      inputSchema: {
+        promotion_id: z.string().min(2),
+        confirmar_nome: z.string().min(1),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ promotion_id, confirmar_nome, confirmar, motivo }) => {
+      if (promotion_id === "C-MLB5661788") {
+        throw new Error("Protecao Stop Kar: a campanha Damiao nao pode ser excluida por esta ferramenta.");
+      }
+      const campaign = await meliGet(
+        env,
+        `/seller-promotions/promotions/${encodeURIComponent(promotion_id)}`,
+        { promotion_type: "SELLER_CAMPAIGN", app_version: "v2" }
+      );
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        campaign: {
+          id: campaign?.id ?? promotion_id,
+          name: campaign?.name ?? null,
+          status: campaign?.status ?? null,
+          start_date: campaign?.start_date ?? null,
+          finish_date: campaign?.finish_date ?? null,
+          type: campaign?.type ?? null
+        },
+        escrita_promocoes_habilitada: promotionWritesEnabled(env)
+      };
+      if (String(campaign?.name ?? "") !== confirmar_nome) {
+        return textResult({
+          ...preview,
+          acao: "bloqueado_nome_nao_confere",
+          mensagem: "O nome informado nao corresponde exatamente ao nome atual da campanha."
+        });
+      }
+      if (!confirmar) return textResult(preview);
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Para excluir a campanha, informe um motivo com pelo menos 5 caracteres.");
+      }
+
+      requirePromotionWritesEnabled(env);
+      const write = await meliWrite(
+        env,
+        "DELETE",
+        `/seller-promotions/promotions/${encodeURIComponent(promotion_id)}?promotion_type=SELLER_CAMPAIGN&app_version=v2`
+      );
+      const audit_id = await recordOperationAudit(env, "promotion:campaign-delete:audit", {
+        tipo: "seller_campaign_delete",
+        promotion_id,
+        motivo: motivo.trim(),
+        antes: campaign,
+        endpoint: write.path_used
+      });
+      return textResult({
+        ...preview,
+        acao: "gravado",
+        audit_id,
+        endpoint_utilizado: write.path_used
+      });
+    }
+  );
+
+  server.registerTool(
+    "criar_campanha_vendedor",
+    {
+      description:
+        "Cria uma campanha propria SELLER_CAMPAIGN de curta duracao. Nao e a oferta oficial LIGHTNING do Mercado Livre.",
+      inputSchema: {
+        nome: z.string().min(3).max(100),
+        data_inicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        data_fim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ nome, data_inicio, data_fim, confirmar, motivo }) => {
+      const start = new Date(`${data_inicio}T12:00:00Z`);
+      const finish = new Date(`${data_fim}T12:00:00Z`);
+      const days = Math.round((finish.getTime() - start.getTime()) / 86_400_000);
+      if (!Number.isFinite(days) || days < 0) {
+        throw new Error("data_fim deve ser igual ou posterior a data_inicio.");
+      }
+      if (days > 14) {
+        throw new Error("Campanha do vendedor deve respeitar o prazo maximo documentado de 14 dias.");
+      }
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        nome,
+        promotion_type: "SELLER_CAMPAIGN",
+        sub_type: "FLEXIBLE_PERCENTAGE",
+        data_inicio,
+        data_fim,
+        escrita_promocoes_habilitada: promotionWritesEnabled(env)
+      };
+      if (!confirmar) return textResult(preview);
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Para criar a campanha, informe um motivo com pelo menos 5 caracteres.");
+      }
+      requirePromotionWritesEnabled(env);
+      const write = await meliWrite(
+        env,
+        "POST",
+        "/seller-promotions/promotions?app_version=v2",
+        {
+          promotion_type: "SELLER_CAMPAIGN",
+          name: nome,
+          sub_type: "FLEXIBLE_PERCENTAGE",
+          start_date: `${data_inicio}T00:00:00`,
+          finish_date: `${data_fim}T00:00:00`
+        }
+      );
+      const audit_id = await recordOperationAudit(env, "promotion:campaign-create:audit", {
+        tipo: "seller_campaign_create",
+        motivo: motivo.trim(),
+        solicitado: preview,
+        resposta: write.data,
+        endpoint: write.path_used
+      });
+      return textResult({
+        ...preview,
+        acao: "gravado",
+        audit_id,
+        endpoint_utilizado: write.path_used,
+        campanha_criada: write.data
+      });
+    }
+  );
+
+  server.registerTool(
+    "participar_oferta_relampago",
+    {
+      description:
+        "Inclui um item em uma oferta oficial LIGHTNING somente quando o Mercado Livre o disponibilizou como candidato. Exige preco e estoque reservado.",
+      inputSchema: {
+        item_id: z.string().regex(/^(MLB|MLBU)\d+$/),
+        deal_price: z.number().positive(),
+        stock: z.number().int().positive(),
+        mlb_id: z.string().regex(/^MLB\d+$/).optional(),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ item_id, deal_price, stock, mlb_id, confirmar, motivo }) => {
+      const chosen = await chooseListingForWrite(env, item_id, mlb_id);
+      if (!chosen.selected) {
+        return textResult({
+          acao: "bloqueado_por_ambiguidade",
+          item_id,
+          mensagem: "Escolha o mlb_id candidato a oferta relampago.",
+          items: chosen.resolved.items.map((item: any) => ({
+            mlb: item?.id ?? null,
+            title: item?.title ?? null
+          }))
+        });
+      }
+      const item = chosen.selected;
+      const promos = await getItemPromotions(env, String(item.id));
+      const lightning = promos.filter(
+        (entry: any) =>
+          String(entry?.type ?? entry?.promotion_type ?? "").toUpperCase() === "LIGHTNING"
+      );
+      const candidate = lightning.find(
+        (entry: any) => String(entry?.status ?? "").toLowerCase() === "candidate"
+      );
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        mlb: item.id,
+        deal_price: Number(deal_price),
+        stock,
+        lightning_disponiveis: lightning.map((entry: any) => compactPromotionItem(entry)),
+        candidato: Boolean(candidate),
+        escrita_promocoes_habilitada: promotionWritesEnabled(env)
+      };
+      if (!candidate) {
+        return textResult({
+          ...preview,
+          acao: "bloqueado_sem_convite",
+          mensagem:
+            "O Mercado Livre nao disponibilizou este item como candidato LIGHTNING. A integracao nao cria convites de oferta relampago."
+        });
+      }
+      if (!confirmar) return textResult(preview);
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Para participar da oferta relampago, informe um motivo com pelo menos 5 caracteres.");
+      }
+      requirePromotionWritesEnabled(env);
+      const write = await meliWrite(
+        env,
+        "POST",
+        `/seller-promotions/items/${encodeURIComponent(String(item.id))}?app_version=v2`,
+        {
+          deal_price: Number(deal_price),
+          stock: Number(stock),
+          promotion_type: "LIGHTNING"
+        }
+      );
+      const afterPromos = await getItemPromotions(env, String(item.id));
+      const audit_id = await recordOperationAudit(env, "promotion:lightning:audit", {
+        tipo: "lightning_join",
+        item_id: item.id,
+        deal_price: Number(deal_price),
+        stock: Number(stock),
+        motivo: motivo.trim(),
+        antes: lightning.map((entry: any) => compactPromotionItem(entry)),
+        depois: afterPromos.map((entry: any) => compactPromotionItem(entry)),
+        endpoint: write.path_used
+      });
+      return textResult({
+        ...preview,
+        acao: "gravado",
+        audit_id,
+        endpoint_utilizado: write.path_used,
+        resposta_api: write.data,
+        promocoes_depois: afterPromos.map((entry: any) => compactPromotionItem(entry))
+      });
     }
   );
 
