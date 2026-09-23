@@ -216,7 +216,7 @@ async function meliWrite(
   extraHeaders: Record<string, string> = {}
 ): Promise<{ data: any; path_used: string }> {
   const candidatePaths = path.startsWith("/marketplace/advertising/")
-    ? [path, path.replace("/marketplace/advertising/", "/advertising/")]
+    ? [path.replace("/marketplace/advertising/", "/advertising/"), path]
     : [path];
 
   let lastError: Error | null = null;
@@ -255,7 +255,7 @@ async function meliWrite(
         : String(data);
     const error = new Error(`Mercado Livre API ${response.status}: ${message}`);
 
-    if (response.status === 404 && index < candidatePaths.length - 1) {
+    if ([401, 403, 404].includes(response.status) && index < candidatePaths.length - 1) {
       lastError = error;
       continue;
     }
