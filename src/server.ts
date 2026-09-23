@@ -2172,43 +2172,69 @@ function createServer(env: Env) {
         const trendsError = error instanceof Error ? error.message : String(error);
         if (!trendsError.includes("404")) throw error;
 
-        const sinaisBusca: any[] = [];
-        let searchError: string | null = null;
+        const sinaisCatalogo: any[] = [];
+        let catalogSearchError: string | null = null;
         const query = termo?.trim();
+
+        let categoriaDetectada: any = null;
+        let categoryDiscoveryError: string | null = null;
+        let resolvedCategoryId = category_id ?? null;
+
+        if (query && !resolvedCategoryId) {
+          try {
+            const predictions = await meliGet(
+              env,
+              `/sites/${encodeURIComponent(siteId)}/domain_discovery/search`,
+              { q: query, limit: "1" }
+            );
+            const first = Array.isArray(predictions) ? predictions[0] : null;
+            if (first) {
+              categoriaDetectada = {
+                category_id: first?.category_id ?? null,
+                category_name: first?.category_name ?? null,
+                domain_id: first?.domain_id ?? null,
+                domain_name: first?.domain_name ?? null
+              };
+              resolvedCategoryId = first?.category_id ?? null;
+            }
+          } catch (discoveryFailure) {
+            categoryDiscoveryError =
+              discoveryFailure instanceof Error ? discoveryFailure.message : String(discoveryFailure);
+          }
+        }
 
         if (query) {
           try {
-            const search = await meliGet(env, `/sites/${encodeURIComponent(siteId)}/search`, {
-              q: query,
-              category: category_id,
-              limit: "20"
+            const search = await meliGet(env, "/products/search", {
+              status: "active",
+              site_id: siteId,
+              q: query
             });
 
             const rows = Array.isArray(search?.results) ? search.results : [];
-            for (const [index, item] of rows.entries()) {
-              sinaisBusca.push({
+            for (const [index, product] of rows.entries()) {
+              sinaisCatalogo.push({
                 position: index + 1,
-                id: item?.id ?? null,
-                title: item?.title ?? null,
-                price: item?.price ?? null,
-                sold_quantity: item?.sold_quantity ?? null,
-                category_id: item?.category_id ?? null,
-                permalink: item?.permalink ?? null
+                id: product?.id ?? null,
+                name: product?.name ?? product?.title ?? null,
+                domain_id: product?.domain_id ?? null,
+                status: product?.status ?? null,
+                listing_strategy: product?.settings?.listing_strategy ?? null
               });
             }
           } catch (searchFailure) {
-            searchError =
+            catalogSearchError =
               searchFailure instanceof Error ? searchFailure.message : String(searchFailure);
           }
         }
 
         const maisVendidos: any[] = [];
         let highlightsError: string | null = null;
-        if (category_id) {
+        if (resolvedCategoryId) {
           try {
             const highlights = await meliGet(
               env,
-              `/highlights/${encodeURIComponent(siteId)}/category/${encodeURIComponent(category_id)}`
+              `/highlights/${encodeURIComponent(siteId)}/category/${encodeURIComponent(resolvedCategoryId)}`
             );
             const content = Array.isArray(highlights?.content) ? highlights.content : [];
             for (const [index, entry] of content.entries()) {
@@ -2229,14 +2255,17 @@ function createServer(env: Env) {
         return textResult({
           site_id: siteId,
           category_id: category_id ?? null,
+          categoria_detectada: categoriaDetectada,
+          category_id_usada_no_fallback: resolvedCategoryId,
           fonte: "fallback_sinais_de_demanda",
           fallback: true,
           aviso:
-            "O endpoint oficial /trends retornou 404. Estes dados sao sinais alternativos de demanda e NAO devem ser apresentados como o ranking oficial de tendencias.",
+            "O endpoint oficial /trends retornou 404. Estes dados sao sinais alternativos (catalogo relevante e mais vendidos) e NAO devem ser apresentados como o ranking oficial de tendencias.",
           erro_trends: trendsError,
           termo_consultado: query ?? null,
-          sinais_busca: sinaisBusca,
-          sinais_busca_error: searchError,
+          sinais_catalogo: sinaisCatalogo,
+          sinais_catalogo_error: catalogSearchError,
+          category_discovery_error: categoryDiscoveryError,
           mais_vendidos_categoria: maisVendidos,
           mais_vendidos_error: highlightsError
         });
