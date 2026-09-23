@@ -27,7 +27,11 @@
       "/notifications",
       "/oauth/start",
       "/oauth/callback",
-      "/oauth/status"
+      "/oauth/status",
+      "/tray/callback",
+      "/tray/callback/",
+      "/tray/callback/auth",
+      "/tray/callback/auth/"
     ]
   }
 }

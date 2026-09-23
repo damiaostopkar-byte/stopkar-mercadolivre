@@ -8,6 +8,8 @@ interface Env {
   MELI_REDIRECT_URI?: string;
   MCP_SHARED_SECRET?: string;
   MELI_TOKENS?: KVNamespace;
+  TRAY_CONSUMER_KEY?: string;
+  TRAY_CONSUMER_SECRET?: string;
   ADS_WRITES_ENABLED?: string;
   LISTING_WRITES_ENABLED?: string;
   PROMOTION_WRITES_ENABLED?: string;
@@ -4445,9 +4447,200 @@ function createServer(env: Env) {
   return server;
 }
 
-function html(message: string, status = 200) {
+
+type TrayStoredToken = {
+  access_token: string;
+  refresh_token: string;
+  date_expiration_access_token?: string;
+  date_expiration_refresh_token?: string;
+  date_activated?: string;
+  api_host: string;
+  store_id: string;
+};
+
+const TRAY_INSTALL_PREFIX = "tray:install:";
+const TRAY_TOKEN_PREFIX = "tray:oauth:tokens:";
+
+function requireTrayConfig(env: Env) {
+  if (!env.TRAY_CONSUMER_KEY || !env.TRAY_CONSUMER_SECRET) {
+    throw new Error("Credenciais da Tray ainda nao configuradas na Cloudflare.");
+  }
+  if (!env.MELI_TOKENS) {
+    throw new Error("Binding MELI_TOKENS nao configurado para armazenar tokens da Tray.");
+  }
+
+  return {
+    consumerKey: env.TRAY_CONSUMER_KEY,
+    consumerSecret: env.TRAY_CONSUMER_SECRET,
+    tokens: env.MELI_TOKENS
+  };
+}
+
+function normalizeHttpsUrl(value: string, label: string): URL {
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error(`${label} invalida.`);
+  }
+  if (parsed.protocol !== "https:") {
+    throw new Error(`${label} deve usar HTTPS.`);
+  }
+  return parsed;
+}
+
+async function handleTrayInstall(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const { consumerKey, tokens } = requireTrayConfig(env);
+
+  const store = url.searchParams.get("store");
+  const storeHostRaw = url.searchParams.get("url");
+
+  if (!store || !storeHostRaw) {
+    return html(
+      "Instalacao Tray sem os parametros esperados. Volte para a loja de aplicativos e clique em Instalar aplicativo novamente.",
+      400,
+      "Stop Kar - Tray"
+    );
+  }
+
+  const storeHost = normalizeHttpsUrl(storeHostRaw, "URL da loja");
+  await tokens.put(
+    `${TRAY_INSTALL_PREFIX}${store}`,
+    JSON.stringify({
+      store,
+      store_host: storeHost.origin,
+      created_at: Date.now()
+    }),
+    { expirationTtl: 1800 }
+  );
+
+  const callbackUrl = new URL("/tray/callback/auth/", url.origin);
+  const authorizeUrl = new URL("/auth.php", storeHost.origin);
+  authorizeUrl.searchParams.set("response_type", "code");
+  authorizeUrl.searchParams.set("consumer_key", consumerKey);
+  authorizeUrl.searchParams.set("callback", callbackUrl.toString());
+
+  const safeAuthorizeUrl = authorizeUrl.toString().replace(/&/g, "&amp;");
+
   return new Response(
-    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Stop Kar Mercado Livre</title></head><body style="font-family:Arial,sans-serif;max-width:680px;margin:60px auto;padding:24px"><h1>Stop Kar Mercado Livre</h1><p>${message}</p></body></html>`,
+    `<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Stop Kar - Tray</title>
+</head>
+<body style="font-family:Arial,sans-serif;max-width:680px;margin:60px auto;padding:24px">
+  <h1>Stop Kar Integração API</h1>
+  <p>A instalação foi iniciada. Clique no botão abaixo para autorizar o acesso desta integração à loja Tray.</p>
+  <p><a href="${safeAuthorizeUrl}" style="display:inline-block;background:#0b6efd;color:white;text-decoration:none;padding:12px 18px;border-radius:6px">Autorizar integração</a></p>
+</body>
+</html>`,
+    { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
+  );
+}
+
+async function handleTrayAuthCallback(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const { consumerKey, consumerSecret, tokens } = requireTrayConfig(env);
+
+  const code = url.searchParams.get("code");
+  const store = url.searchParams.get("store");
+  const apiAddressRaw = url.searchParams.get("api_address");
+
+  if (!code || !store || !apiAddressRaw) {
+    return html(
+      "Callback da Tray sem code, store ou api_address. Reinicie a instalação pelo painel da Tray.",
+      400,
+      "Stop Kar - Tray"
+    );
+  }
+
+  const installation = (await tokens.get(
+    `${TRAY_INSTALL_PREFIX}${store}`,
+    "json"
+  )) as { store?: string; store_host?: string; created_at?: number } | null;
+
+  if (!installation?.store_host) {
+    return html(
+      "Sessao de instalacao da Tray ausente ou expirada. Volte ao painel da Tray e instale o aplicativo novamente.",
+      400,
+      "Stop Kar - Tray"
+    );
+  }
+
+  const apiAddress = normalizeHttpsUrl(apiAddressRaw, "api_address");
+  const expectedStoreHost = normalizeHttpsUrl(installation.store_host, "URL da loja armazenada");
+
+  if (apiAddress.origin !== expectedStoreHost.origin) {
+    return html(
+      "O endereco da API recebido nao corresponde a loja que iniciou a instalacao.",
+      400,
+      "Stop Kar - Tray"
+    );
+  }
+
+  const authUrl = new URL("/web_api/auth", apiAddress.origin);
+  const body = new URLSearchParams({
+    consumer_key: consumerKey,
+    consumer_secret: consumerSecret,
+    code
+  });
+
+  const response = await fetch(authUrl.toString(), {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body
+  });
+
+  const raw = await response.text();
+  let data: any;
+  try {
+    data = raw ? JSON.parse(raw) : null;
+  } catch {
+    data = raw;
+  }
+
+  if (!response.ok || !data?.access_token || !data?.refresh_token) {
+    const message =
+      data && typeof data === "object"
+        ? data.message || data.error || JSON.stringify(data)
+        : String(data || "resposta vazia");
+    return html(
+      `Falha ao gerar tokens da Tray (HTTP ${response.status}): ${message}`,
+      502,
+      "Stop Kar - Tray"
+    );
+  }
+
+  const stored: TrayStoredToken = {
+    access_token: String(data.access_token),
+    refresh_token: String(data.refresh_token),
+    date_expiration_access_token: data.date_expiration_access_token,
+    date_expiration_refresh_token: data.date_expiration_refresh_token,
+    date_activated: data.date_activated,
+    api_host: String(data.api_host || apiAddress.toString().replace(/\/$/, "")),
+    store_id: String(data.store_id || store)
+  };
+
+  await tokens.put(`${TRAY_TOKEN_PREFIX}${stored.store_id}`, JSON.stringify(stored));
+  await tokens.put("tray:oauth:latest_store", stored.store_id);
+  await tokens.delete(`${TRAY_INSTALL_PREFIX}${store}`);
+
+  return html(
+    `Tray conectada com sucesso para a loja ${stored.store_id}. Os tokens foram armazenados com seguranca na Cloudflare. Voce pode fechar esta aba.`,
+    200,
+    "Stop Kar - Tray"
+  );
+}
+
+function html(message: string, status = 200, title = "Stop Kar Mercado Livre") {
+  return new Response(
+    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="font-family:Arial,sans-serif;max-width:680px;margin:60px auto;padding:24px"><h1>${title}</h1><p>${message}</p></body></html>`,
     { status, headers: { "Content-Type": "text/html; charset=utf-8" } }
   );
 }
@@ -4455,6 +4648,30 @@ function html(message: string, status = 200) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+
+    if (url.pathname === "/tray/callback" || url.pathname === "/tray/callback/") {
+      try {
+        return await handleTrayInstall(request, env);
+      } catch (error) {
+        return html(
+          error instanceof Error ? error.message : "Falha ao iniciar a instalacao da Tray.",
+          500,
+          "Stop Kar - Tray"
+        );
+      }
+    }
+
+    if (url.pathname === "/tray/callback/auth" || url.pathname === "/tray/callback/auth/") {
+      try {
+        return await handleTrayAuthCallback(request, env);
+      } catch (error) {
+        return html(
+          error instanceof Error ? error.message : "Falha ao concluir a autorizacao da Tray.",
+          500,
+          "Stop Kar - Tray"
+        );
+      }
+    }
 
     if (url.pathname === "/health") {
       let connected = false;
