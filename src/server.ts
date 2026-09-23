@@ -220,6 +220,7 @@ async function meliWrite(
     : [path];
 
   let lastError: Error | null = null;
+  const attempts: Array<{ path: string; status: number; message: string }> = [];
 
   for (let index = 0; index < candidatePaths.length; index += 1) {
     const candidatePath = candidatePaths[index];
@@ -253,6 +254,11 @@ async function meliWrite(
       data && typeof data === "object"
         ? data.message || data.error || JSON.stringify(data)
         : String(data);
+    attempts.push({
+      path: candidatePath,
+      status: response.status,
+      message
+    });
     const error = new Error(`Mercado Livre API ${response.status}: ${message}`);
 
     if ([401, 403, 404].includes(response.status) && index < candidatePaths.length - 1) {
@@ -260,7 +266,19 @@ async function meliWrite(
       continue;
     }
 
-    throw error;
+    throw new Error(
+      `Falha de escrita Product Ads. Tentativas: ${attempts
+        .map((attempt) => `${attempt.status} ${attempt.path} -> ${attempt.message}`)
+        .join(" | ")}`
+    );
+  }
+
+  if (attempts.length > 0) {
+    throw new Error(
+      `Falha de escrita Product Ads. Tentativas: ${attempts
+        .map((attempt) => `${attempt.status} ${attempt.path} -> ${attempt.message}`)
+        .join(" | ")}`
+    );
   }
 
   throw lastError ?? new Error("Falha desconhecida ao gravar no Mercado Livre.");
