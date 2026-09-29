@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.14.0";
+const SERVER_VERSION = "0.15.0";
 
 function textResult(value: unknown) {
   return {
@@ -2579,6 +2579,266 @@ function createServer(env: Env) {
         audit_id,
         endpoint_utilizado: write.path_used,
         campanha_criada: write.data
+      });
+    }
+  );
+
+  server.registerTool(
+    "participar_promocao_1010_damiao",
+    {
+      description:
+        "Inclui em lotes seguros na campanha oficial 10.10 (DEAL P-MLB18061082) os anuncios ativos da campanha Damiao, preservando o preco promocional ja configurado. Faz preview por padrao, valida convite e faixa de preco e exige confirmacao para gravar.",
+      inputSchema: {
+        limite_lote: z.number().int().min(1).max(25).optional().default(20),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ limite_lote, confirmar, motivo }) => {
+      const sourcePromotionId = "C-MLB5661788";
+      const targetPromotionId = "P-MLB18061082";
+      const batchLimit = Number(limite_lote ?? 20);
+
+      const fetchPromotionItems = async (
+        promotionId: string,
+        promotionType: string,
+        status: "started" | "candidate"
+      ) => {
+        const results: any[] = [];
+        let searchAfter: string | undefined;
+
+        for (let page = 0; page < 30; page += 1) {
+          const data = await meliGet(
+            env,
+            `/seller-promotions/promotions/${encodeURIComponent(promotionId)}/items`,
+            {
+              promotion_type: promotionType,
+              status,
+              status_item: "active",
+              app_version: "v2",
+              limit: "50",
+              search_after: searchAfter
+            }
+          );
+          const entries = Array.isArray(data?.results)
+            ? data.results
+            : Array.isArray(data)
+              ? data
+              : [];
+          results.push(...entries);
+          searchAfter =
+            data?.searchAfter ?? data?.search_after ?? data?.paging?.searchAfter ?? undefined;
+          if (!searchAfter) return results;
+        }
+
+        throw new Error(`Paginacao excedeu o limite seguro para a promocao ${promotionId}.`);
+      };
+
+      const me = await meliGet(env, "/users/me");
+      const campaignsData = await meliGet(
+        env,
+        `/seller-promotions/users/${encodeURIComponent(String(me.id))}`,
+        { app_version: "v2" }
+      );
+      const campaigns = Array.isArray(campaignsData?.results)
+        ? campaignsData.results
+        : Array.isArray(campaignsData)
+          ? campaignsData
+          : [];
+      const sourceCampaign = campaigns.find(
+        (entry: any) =>
+          String(entry?.id) === sourcePromotionId &&
+          String(entry?.type ?? "").toUpperCase() === "SELLER_CAMPAIGN"
+      );
+      const targetCampaign = campaigns.find(
+        (entry: any) =>
+          String(entry?.id) === targetPromotionId &&
+          String(entry?.type ?? "").toUpperCase() === "DEAL"
+      );
+
+      if (!sourceCampaign || String(sourceCampaign?.name ?? "").toLowerCase() !== "damiao") {
+        throw new Error("Protecao Stop Kar: a campanha de origem Damiao nao foi confirmada.");
+      }
+      if (!targetCampaign || String(targetCampaign?.name ?? "") !== "10.10") {
+        throw new Error("Protecao Stop Kar: a campanha oficial 10.10 nao foi confirmada.");
+      }
+      if (String(targetCampaign?.status ?? "") !== "started") {
+        throw new Error("A campanha oficial 10.10 nao esta ativa.");
+      }
+
+      const [damiaoStarted, targetCandidates, targetStarted] = await Promise.all([
+        fetchPromotionItems(sourcePromotionId, "SELLER_CAMPAIGN", "started"),
+        fetchPromotionItems(targetPromotionId, "DEAL", "candidate"),
+        fetchPromotionItems(targetPromotionId, "DEAL", "started")
+      ]);
+
+      const candidateById = new Map(
+        targetCandidates.map((entry: any) => [String(entry?.id), entry])
+      );
+      const startedIds = new Set(targetStarted.map((entry: any) => String(entry?.id)));
+      const alreadyStarted = damiaoStarted.filter((entry: any) =>
+        startedIds.has(String(entry?.id))
+      );
+      const blocked: any[] = [];
+      const eligible: Array<{
+        item_id: string;
+        deal_price: number;
+        original_price: number | null;
+        min_discounted_price: number | null;
+        max_discounted_price: number | null;
+        suggested_discounted_price: number | null;
+      }> = [];
+
+      for (const source of damiaoStarted) {
+        const itemId = String(source?.id ?? "");
+        if (!itemId || startedIds.has(itemId)) continue;
+        const candidate = candidateById.get(itemId);
+        if (!candidate) {
+          blocked.push({ item_id: itemId, motivo: "sem_convite_1010" });
+          continue;
+        }
+
+        const price = Number(source?.price);
+        const minPrice = Number(candidate?.min_discounted_price);
+        const maxPrice = Number(candidate?.max_discounted_price);
+        const hasMin = Number.isFinite(minPrice) && minPrice > 0;
+        const hasMax = Number.isFinite(maxPrice) && maxPrice > 0;
+        const validPrice =
+          Number.isFinite(price) &&
+          price > 0 &&
+          (!hasMin || price >= minPrice) &&
+          (!hasMax || price <= maxPrice);
+
+        if (!validPrice) {
+          blocked.push({
+            item_id: itemId,
+            motivo: "preco_damiao_fora_da_faixa_1010",
+            deal_price: Number.isFinite(price) ? price : null,
+            min_discounted_price: hasMin ? minPrice : null,
+            max_discounted_price: hasMax ? maxPrice : null
+          });
+          continue;
+        }
+
+        eligible.push({
+          item_id: itemId,
+          deal_price: price,
+          original_price: Number.isFinite(Number(candidate?.original_price))
+            ? Number(candidate.original_price)
+            : null,
+          min_discounted_price: hasMin ? minPrice : null,
+          max_discounted_price: hasMax ? maxPrice : null,
+          suggested_discounted_price: Number.isFinite(
+            Number(candidate?.suggested_discounted_price)
+          )
+            ? Number(candidate.suggested_discounted_price)
+            : null
+        });
+      }
+
+      const batch = eligible.slice(0, batchLimit);
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        origem: {
+          id: sourcePromotionId,
+          nome: sourceCampaign?.name ?? "Damiao",
+          tipo: "SELLER_CAMPAIGN",
+          itens_ativos: damiaoStarted.length
+        },
+        destino: {
+          id: targetPromotionId,
+          nome: targetCampaign?.name ?? "10.10",
+          tipo: "DEAL",
+          status: targetCampaign?.status ?? null
+        },
+        ja_ativos_na_1010: alreadyStarted.length,
+        elegiveis_restantes: eligible.length,
+        bloqueados: blocked.length,
+        limite_lote: batchLimit,
+        lote_preparado: batch.length,
+        proximos_itens: batch,
+        bloqueios: blocked.slice(0, 25),
+        escrita_promocoes_habilitada: promotionWritesEnabled(env)
+      };
+
+      if (!confirmar) return textResult(preview);
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Para incluir os anuncios na 10.10, informe um motivo com pelo menos 5 caracteres.");
+      }
+      requirePromotionWritesEnabled(env);
+
+      const results: Array<{
+        item_id: string;
+        deal_price: number;
+        status: "enviado" | "falhou";
+        endpoint?: string;
+        resposta?: unknown;
+        erro?: string;
+      }> = [];
+
+      for (const entry of batch) {
+        try {
+          const write = await meliWrite(
+            env,
+            "POST",
+            `/seller-promotions/items/${encodeURIComponent(entry.item_id)}?app_version=v2`,
+            {
+              deal_price: entry.deal_price,
+              promotion_id: targetPromotionId,
+              promotion_type: "DEAL"
+            }
+          );
+          results.push({
+            item_id: entry.item_id,
+            deal_price: entry.deal_price,
+            status: "enviado",
+            endpoint: write.path_used,
+            resposta: write.data
+          });
+        } catch (error) {
+          results.push({
+            item_id: entry.item_id,
+            deal_price: entry.deal_price,
+            status: "falhou",
+            erro: error instanceof Error ? error.message : String(error)
+          });
+        }
+      }
+
+      const targetStartedAfter = await fetchPromotionItems(
+        targetPromotionId,
+        "DEAL",
+        "started"
+      );
+      const verifiedIds = new Set(
+        targetStartedAfter.map((entry: any) => String(entry?.id))
+      );
+      const confirmedResults = results.map((entry) => ({
+        ...entry,
+        confirmado_na_1010: verifiedIds.has(entry.item_id)
+      }));
+      const confirmedCount = confirmedResults.filter(
+        (entry) => entry.confirmado_na_1010
+      ).length;
+      const audit_id = await recordOperationAudit(env, "promotion:deal-1010:audit", {
+        tipo: "deal_1010_join_batch",
+        origem: sourcePromotionId,
+        destino: targetPromotionId,
+        motivo: motivo.trim(),
+        lote_solicitado: batch.length,
+        confirmados: confirmedCount,
+        resultados: confirmedResults
+      });
+
+      return textResult({
+        ...preview,
+        acao: "gravado",
+        audit_id,
+        enviados: results.filter((entry) => entry.status === "enviado").length,
+        falhas: results.filter((entry) => entry.status === "falhou").length,
+        confirmados_na_1010: confirmedCount,
+        restantes_estimados: Math.max(0, eligible.length - confirmedCount),
+        resultados: confirmedResults
       });
     }
   );
