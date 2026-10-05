@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.15.2";
+const SERVER_VERSION = "0.16.0";
 
 function textResult(value: unknown) {
   return {
@@ -427,6 +427,168 @@ function getSellerSku(item: any) {
   if (!Array.isArray(item?.attributes)) return null;
   const sellerSku = item.attributes.find((attribute: any) => attribute?.id === "SELLER_SKU");
   return sellerSku?.value_name ?? sellerSku?.values?.[0]?.name ?? null;
+}
+
+
+function compactTechnicalAttribute(attribute: any) {
+  return {
+    id: attribute?.id ?? null,
+    name: attribute?.name ?? null,
+    value_id: attribute?.value_id ?? null,
+    value_name: attribute?.value_name ?? null,
+    value_struct: attribute?.value_struct ?? null,
+    values: Array.isArray(attribute?.values)
+      ? attribute.values.map((value: any) => ({
+          id: value?.id ?? null,
+          name: value?.name ?? null,
+          struct: value?.struct ?? null
+        }))
+      : [],
+    attribute_group_id: attribute?.attribute_group_id ?? null,
+    attribute_group_name: attribute?.attribute_group_name ?? null,
+    value_type: attribute?.value_type ?? null
+  };
+}
+
+function technicalSpecAttributes(payload: any) {
+  const groups = Array.isArray(payload?.groups) ? payload.groups : [];
+  const result: any[] = [];
+
+  for (const group of groups) {
+    const components = Array.isArray(group?.components) ? group.components : [];
+    for (const component of components) {
+      const attributes = Array.isArray(component?.attributes) ? component.attributes : [];
+      for (const attribute of attributes) {
+        result.push({
+          ...attribute,
+          group_id: group?.id ?? null,
+          group_label: group?.label ?? null,
+          component: component?.component ?? null,
+          ui_config: component?.ui_config ?? {}
+        });
+      }
+    }
+  }
+
+  return result;
+}
+
+function attributeTagEnabled(tags: any, tag: string) {
+  if (Array.isArray(tags)) return tags.includes(tag);
+  return Boolean(tags && typeof tags === "object" && tags[tag] === true);
+}
+
+function attributeHasValue(attribute: any) {
+  if (!attribute) return false;
+  if (attribute?.value_id === "-1") return true;
+  if (attribute?.value_name !== null && attribute?.value_name !== undefined && String(attribute.value_name).trim() !== "") {
+    return true;
+  }
+  if (Array.isArray(attribute?.values)) {
+    return attribute.values.some(
+      (value: any) =>
+        value?.id === "-1" ||
+        (value?.name !== null && value?.name !== undefined && String(value.name).trim() !== "")
+    );
+  }
+  return false;
+}
+
+function mergeTechnicalDefinitions(categoryAttributes: any[], technicalInput: any) {
+  const byId = new Map<string, any>();
+
+  for (const attribute of Array.isArray(categoryAttributes) ? categoryAttributes : []) {
+    if (!attribute?.id) continue;
+    byId.set(String(attribute.id), {
+      id: String(attribute.id),
+      name: attribute?.name ?? null,
+      value_type: attribute?.value_type ?? null,
+      value_max_length: attribute?.value_max_length ?? null,
+      hierarchy: attribute?.hierarchy ?? null,
+      relevance: attribute?.relevance ?? null,
+      attribute_group_id: attribute?.attribute_group_id ?? null,
+      attribute_group_name: attribute?.attribute_group_name ?? null,
+      category_tags: attribute?.tags ?? {},
+      technical_tags: [],
+      ui_config: {},
+      values: Array.isArray(attribute?.values) ? attribute.values : [],
+      source_category_attributes: true,
+      source_technical_specs: false
+    });
+  }
+
+  for (const attribute of technicalSpecAttributes(technicalInput)) {
+    if (!attribute?.id) continue;
+    const id = String(attribute.id);
+    const current = byId.get(id) ?? {
+      id,
+      name: null,
+      value_type: null,
+      value_max_length: null,
+      hierarchy: null,
+      relevance: null,
+      attribute_group_id: null,
+      attribute_group_name: null,
+      category_tags: {},
+      technical_tags: [],
+      ui_config: {},
+      values: [],
+      source_category_attributes: false,
+      source_technical_specs: false
+    };
+
+    byId.set(id, {
+      ...current,
+      name: attribute?.name ?? current.name,
+      value_type: attribute?.value_type ?? current.value_type,
+      value_max_length: attribute?.value_max_length ?? current.value_max_length,
+      hierarchy: attribute?.hierarchy ?? current.hierarchy,
+      relevance: attribute?.relevance ?? current.relevance,
+      attribute_group_id: attribute?.group_id ?? current.attribute_group_id,
+      attribute_group_name: attribute?.group_label ?? current.attribute_group_name,
+      technical_tags: Array.isArray(attribute?.tags) ? attribute.tags : [],
+      ui_config: attribute?.ui_config ?? {},
+      values:
+        Array.isArray(attribute?.values) && attribute.values.length > 0
+          ? attribute.values
+          : current.values,
+      source_technical_specs: true
+    });
+  }
+
+  return byId;
+}
+
+function compactTechnicalDefinition(definition: any, currentAttribute: any, condition: unknown) {
+  const required =
+    attributeTagEnabled(definition?.technical_tags, "required") ||
+    attributeTagEnabled(definition?.category_tags, "required") ||
+    (String(condition || "").toLowerCase() === "new" &&
+      attributeTagEnabled(definition?.category_tags, "new_required"));
+
+  const values = Array.isArray(definition?.values) ? definition.values : [];
+  return {
+    id: definition?.id ?? null,
+    name: definition?.name ?? null,
+    required,
+    conditional_required: attributeTagEnabled(definition?.category_tags, "conditional_required"),
+    catalog_required:
+      attributeTagEnabled(definition?.technical_tags, "catalog_required") ||
+      attributeTagEnabled(definition?.category_tags, "catalog_listing_required"),
+    value_type: definition?.value_type ?? null,
+    value_max_length: definition?.value_max_length ?? null,
+    hierarchy: definition?.hierarchy ?? null,
+    relevance: definition?.relevance ?? null,
+    grupo: definition?.attribute_group_name ?? null,
+    permite_valor_personalizado: definition?.ui_config?.allow_custom_value === true,
+    valores_sugeridos_total: values.length,
+    valores_sugeridos: values.slice(0, 30).map((value: any) => ({
+      id: value?.id ?? null,
+      name: value?.name ?? null
+    })),
+    atual: currentAttribute ? compactTechnicalAttribute(currentAttribute) : null,
+    preenchido: attributeHasValue(currentAttribute)
+  };
 }
 
 function compactListing(item: any) {
@@ -1590,6 +1752,391 @@ function createServer(env: Env) {
         total_items: resolved.items.length,
         erros_detalhes: resolved.errors.slice(0, 5),
         items: resolved.items.map((item: any) => compactItem(item))
+      });
+    }
+  );
+
+  server.registerTool(
+    "consultar_ficha_tecnica_anuncio",
+    {
+      description:
+        "Consulta a ficha tecnica completa de um anuncio da Stop Kar, cruza os atributos atuais com os requisitos oficiais da categoria e identifica campos obrigatorios ausentes que podem reduzir exposicao. Somente leitura.",
+      inputSchema: {
+        item_id: z.string().min(3).describe("Codigo MLB ou MLBU."),
+        mlb_id: z
+          .string()
+          .regex(/^MLB\\d+$/)
+          .optional()
+          .describe("MLB especifico quando um MLBU estiver ligado a mais de um anuncio."),
+        incluir_opcionais: z.boolean().optional().default(false)
+      }
+    },
+    async ({ item_id, mlb_id, incluir_opcionais }) => {
+      const choice = await chooseListingForWrite(env, item_id, mlb_id);
+      if (!choice.selected) {
+        return textResult({
+          acao: "selecao_necessaria",
+          referencia: choice.resolved.reference,
+          user_product_id: choice.resolved.user_product_id,
+          mensagem:
+            "Este MLBU esta ligado a mais de um MLB. Informe mlb_id para consultar a ficha tecnica de um anuncio especifico.",
+          itens: choice.resolved.items.map((item: any) => ({
+            id: item?.id ?? null,
+            title: item?.title ?? null,
+            status: item?.status ?? null,
+            seller_sku: getSellerSku(item)
+          }))
+        });
+      }
+
+      const item = await meliGet(
+        env,
+        `/items/${encodeURIComponent(String(choice.selected.id))}`,
+        {
+          include_attributes: "all",
+          include_internal_attributes: "true"
+        }
+      );
+      const categoryId = String(item?.category_id || "");
+      if (!categoryId) throw new Error("O anuncio nao retornou category_id.");
+
+      let categoryAttributes: any[] = [];
+      let technicalInput: any = null;
+      let categoryAttributesError: string | null = null;
+      let technicalInputError: string | null = null;
+
+      try {
+        const data = await meliGet(env, `/categories/${encodeURIComponent(categoryId)}/attributes`);
+        categoryAttributes = Array.isArray(data) ? data : [];
+      } catch (error) {
+        categoryAttributesError = error instanceof Error ? error.message : String(error);
+      }
+
+      try {
+        technicalInput = await meliGet(
+          env,
+          `/categories/${encodeURIComponent(categoryId)}/technical_specs/input`
+        );
+      } catch (error) {
+        technicalInputError = error instanceof Error ? error.message : String(error);
+      }
+
+      if (categoryAttributes.length === 0 && !technicalInput) {
+        throw new Error(
+          `Nao foi possivel consultar os atributos da categoria ${categoryId}. ` +
+            `attributes: ${categoryAttributesError || "sem retorno"}; technical_specs: ${technicalInputError || "sem retorno"}`
+        );
+      }
+
+      const definitions = mergeTechnicalDefinitions(categoryAttributes, technicalInput);
+      const currentAttributes = Array.isArray(item?.attributes) ? item.attributes : [];
+      const currentById = new Map(
+        currentAttributes
+          .filter((attribute: any) => attribute?.id)
+          .map((attribute: any) => [String(attribute.id), attribute] as const)
+      );
+
+      const specs = [...definitions.values()]
+        .map((definition: any) =>
+          compactTechnicalDefinition(
+            definition,
+            currentById.get(String(definition.id)),
+            item?.condition
+          )
+        )
+        .sort((a: any, b: any) => {
+          if (a.required !== b.required) return a.required ? -1 : 1;
+          if (a.preenchido !== b.preenchido) return a.preenchido ? 1 : -1;
+          return Number(b.relevance || 0) - Number(a.relevance || 0);
+        });
+
+      const obrigatorios = specs.filter((spec: any) => spec.required);
+      const faltantes = obrigatorios.filter((spec: any) => !spec.preenchido);
+      const retornoSpecs = incluir_opcionais
+        ? specs
+        : specs.filter((spec: any) => spec.required || !spec.preenchido);
+
+      return textResult({
+        somente_leitura: true,
+        item: {
+          id: item?.id ?? null,
+          user_product_id: item?.user_product_id ?? null,
+          title: item?.title ?? null,
+          seller_sku: getSellerSku(item),
+          status: item?.status ?? null,
+          condition: item?.condition ?? null,
+          category_id: categoryId,
+          tags: Array.isArray(item?.tags) ? item.tags : [],
+          incomplete_technical_specs:
+            Array.isArray(item?.tags) && item.tags.includes("incomplete_technical_specs")
+        },
+        resumo: {
+          atributos_atuais: currentAttributes.length,
+          atributos_catalogados_na_categoria: definitions.size,
+          obrigatorios_total: obrigatorios.length,
+          obrigatorios_faltantes: faltantes.length,
+          faltantes_ids: faltantes.map((spec: any) => spec.id)
+        },
+        ficha_tecnica: retornoSpecs,
+        erros_fontes: {
+          category_attributes: categoryAttributesError,
+          technical_specs_input: technicalInputError
+        }
+      });
+    }
+  );
+
+  server.registerTool(
+    "editar_ficha_tecnica_anuncio",
+    {
+      description:
+        "Pre-visualiza ou altera com seguranca atributos da ficha tecnica de um anuncio da Stop Kar. Valida os IDs contra a categoria, bloqueia remocao por padrao e so grava com confirmar=true e motivo.",
+      inputSchema: {
+        item_id: z.string().min(3).describe("Codigo MLB ou MLBU."),
+        mlb_id: z
+          .string()
+          .regex(/^MLB\\d+$/)
+          .optional()
+          .describe("MLB especifico quando um MLBU estiver ligado a mais de um anuncio."),
+        atributos: z
+          .array(
+            z.object({
+              id: z.string().min(1).max(100),
+              value_id: z.string().nullable().optional(),
+              value_name: z.string().max(1000).nullable().optional()
+            })
+          )
+          .min(1)
+          .max(30),
+        permitir_remocao: z.boolean().optional().default(false),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ item_id, mlb_id, atributos, permitir_remocao, confirmar, motivo }) => {
+      const choice = await chooseListingForWrite(env, item_id, mlb_id);
+      if (!choice.selected) {
+        return textResult({
+          acao: "bloqueado_por_ambiguidade",
+          referencia: choice.resolved.reference,
+          user_product_id: choice.resolved.user_product_id,
+          mensagem:
+            "Este MLBU esta ligado a mais de um MLB. Nenhuma alteracao foi feita. Informe mlb_id.",
+          itens: choice.resolved.items.map((item: any) => ({
+            id: item?.id ?? null,
+            title: item?.title ?? null,
+            seller_sku: getSellerSku(item)
+          }))
+        });
+      }
+
+      const item = await meliGet(
+        env,
+        `/items/${encodeURIComponent(String(choice.selected.id))}`,
+        {
+          include_attributes: "all",
+          include_internal_attributes: "true"
+        }
+      );
+      const categoryId = String(item?.category_id || "");
+      if (!categoryId) throw new Error("O anuncio nao retornou category_id.");
+
+      const [categoryAttributes, technicalInput] = await Promise.all([
+        meliGet(env, `/categories/${encodeURIComponent(categoryId)}/attributes`).catch(() => []),
+        meliGet(env, `/categories/${encodeURIComponent(categoryId)}/technical_specs/input`).catch(
+          () => null
+        )
+      ]);
+      const definitions = mergeTechnicalDefinitions(
+        Array.isArray(categoryAttributes) ? categoryAttributes : [],
+        technicalInput
+      );
+      if (definitions.size === 0) {
+        throw new Error(
+          `Nao foi possivel validar os atributos da categoria ${categoryId}; nenhuma alteracao foi feita.`
+        );
+      }
+
+      const currentAttributes = Array.isArray(item?.attributes) ? item.attributes : [];
+      const currentById = new Map(
+        currentAttributes
+          .filter((attribute: any) => attribute?.id)
+          .map((attribute: any) => [String(attribute.id), attribute] as const)
+      );
+
+      const seen = new Set<string>();
+      const normalized = atributos.map((entry: any) => {
+        const id = String(entry.id || "").trim().toUpperCase();
+        if (!id) throw new Error("Existe atributo sem id.");
+        if (seen.has(id)) throw new Error(`Atributo duplicado no pedido: ${id}.`);
+        seen.add(id);
+
+        const definition = definitions.get(id);
+        if (!definition) {
+          throw new Error(
+            `O atributo ${id} nao pertence a ficha tecnica conhecida da categoria ${categoryId}. Nenhuma alteracao foi feita.`
+          );
+        }
+
+        const hasValueId = entry.value_id !== undefined && entry.value_id !== null;
+        const hasValueName =
+          entry.value_name !== undefined &&
+          entry.value_name !== null &&
+          String(entry.value_name).trim() !== "";
+        const isRemoval =
+          (entry.value_id === null || entry.value_id === undefined) &&
+          (entry.value_name === null || entry.value_name === undefined || String(entry.value_name).trim() === "");
+
+        if (isRemoval && !permitir_remocao) {
+          throw new Error(
+            `Remocao do atributo ${id} bloqueada. Use permitir_remocao=true somente se a exclusao for intencional.`
+          );
+        }
+
+        const values = Array.isArray(definition.values) ? definition.values : [];
+        let valueId = hasValueId ? String(entry.value_id) : undefined;
+        let valueName = hasValueName ? String(entry.value_name).trim() : entry.value_name;
+
+        if (!valueId && valueName && values.length > 0) {
+          const exact = values.find(
+            (value: any) =>
+              String(value?.name || "").trim().toLocaleLowerCase("pt-BR") ===
+              String(valueName).trim().toLocaleLowerCase("pt-BR")
+          );
+          if (exact?.id) valueId = String(exact.id);
+        }
+
+        if (
+          definition.value_type === "list" &&
+          values.length > 0 &&
+          valueId &&
+          valueId !== "-1" &&
+          !values.some((value: any) => String(value?.id) === valueId)
+        ) {
+          throw new Error(
+            `value_id ${valueId} nao esta entre os valores permitidos para ${id}.`
+          );
+        }
+
+        if (
+          definition.value_type === "list" &&
+          values.length > 0 &&
+          !valueId &&
+          valueName &&
+          definition?.ui_config?.allow_custom_value !== true
+        ) {
+          throw new Error(
+            `O atributo ${id} aceita uma lista controlada. Informe um value_id/valor sugerido valido.`
+          );
+        }
+
+        if (
+          definition.value_max_length &&
+          valueName &&
+          String(valueName).length > Number(definition.value_max_length)
+        ) {
+          throw new Error(
+            `O valor de ${id} excede o limite de ${definition.value_max_length} caracteres.`
+          );
+        }
+
+        const payload: any = { id };
+        if (entry.value_id === null) payload.value_id = null;
+        else if (valueId !== undefined) payload.value_id = valueId;
+        if (entry.value_name === null) payload.value_name = null;
+        else if (valueName !== undefined) payload.value_name = valueName;
+        return payload;
+      });
+
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        item: {
+          id: item?.id ?? null,
+          user_product_id: item?.user_product_id ?? null,
+          title: item?.title ?? null,
+          seller_sku: getSellerSku(item),
+          category_id: categoryId,
+          tags: Array.isArray(item?.tags) ? item.tags : []
+        },
+        alteracoes: normalized.map((requested: any) => ({
+          id: requested.id,
+          nome: definitions.get(requested.id)?.name ?? null,
+          antes: currentById.get(requested.id)
+            ? compactTechnicalAttribute(currentById.get(requested.id))
+            : null,
+          solicitado: requested
+        }))
+      };
+
+      if (!confirmar) return textResult(preview);
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error(
+          "Para alterar a ficha tecnica, informe um motivo com pelo menos 5 caracteres."
+        );
+      }
+
+      requireListingWritesEnabled(env);
+      const write = await meliWrite(
+        env,
+        "PUT",
+        `/items/${encodeURIComponent(String(item.id))}`,
+        { attributes: normalized }
+      );
+
+      const after = await meliGet(
+        env,
+        `/items/${encodeURIComponent(String(item.id))}`,
+        {
+          include_attributes: "all",
+          include_internal_attributes: "true"
+        }
+      );
+      const afterAttributes = Array.isArray(after?.attributes) ? after.attributes : [];
+      const afterById = new Map(
+        afterAttributes
+          .filter((attribute: any) => attribute?.id)
+          .map((attribute: any) => [String(attribute.id), attribute] as const)
+      );
+
+      const resultados = normalized.map((requested: any) => {
+        const saved = afterById.get(requested.id);
+        const idMatches =
+          requested.value_id === undefined ||
+          String(saved?.value_id ?? "") === String(requested.value_id ?? "");
+        const nameMatches =
+          requested.value_name === undefined ||
+          String(saved?.value_name ?? "") === String(requested.value_name ?? "");
+        return {
+          id: requested.id,
+          solicitado: requested,
+          depois: saved ? compactTechnicalAttribute(saved) : null,
+          confirmado_na_api: idMatches && nameMatches
+        };
+      });
+
+      const audit_id = await recordOperationAudit(env, "listing:technical_specs:audit", {
+        tipo: "technical_specs_update",
+        item_id: item.id,
+        user_product_id: item?.user_product_id ?? null,
+        category_id: categoryId,
+        motivo: motivo.trim(),
+        antes: preview.alteracoes,
+        solicitado: normalized,
+        depois: resultados,
+        endpoint: write.path_used
+      });
+
+      return textResult({
+        ...preview,
+        acao: resultados.every((result: any) => result.confirmado_na_api)
+          ? "gravado"
+          : "gravado_com_verificacao_pendente",
+        audit_id,
+        endpoint_utilizado: write.path_used,
+        resultados,
+        tags_depois: Array.isArray(after?.tags) ? after.tags : [],
+        incomplete_technical_specs_depois:
+          Array.isArray(after?.tags) && after.tags.includes("incomplete_technical_specs")
       });
     }
   );
