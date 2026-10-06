@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Stop Kar Full Scheduler",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Monitora datas de agendamento do Mercado Envios Full na sessao aberta do navegador.",
   "permissions": ["storage", "tabs", "notifications"],
   "host_permissions": [
@@ -10,9 +10,21 @@
     "https://*.mercadolivre.com/*",
     "https://mercadolivre.com/*"
   ],
+  "icons": {
+    "16": "assets/icon16.png",
+    "32": "assets/icon32.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
   "action": {
     "default_title": "Stop Kar Full",
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "32": "assets/icon32.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
@@ -27,6 +39,19 @@
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/stopkar-logo-compact.png"
+      ],
+      "matches": [
+        "https://*.mercadolivre.com.br/*",
+        "https://mercadolivre.com.br/*",
+        "https://*.mercadolivre.com/*",
+        "https://mercadolivre.com/*"
+      ]
     }
   ]
 }
