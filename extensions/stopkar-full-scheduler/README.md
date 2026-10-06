@@ -2,7 +2,7 @@
 
 Extensao Chrome (Manifest V3) para monitorar datas visiveis na pagina de agendamento do Mercado Envios Full usando a sessao que ja esta aberta no navegador.
 
-## Escopo da versao 0.3.4
+## Escopo da versao 0.3.5
 
 - permite cadastrar uma ou mais datas desejadas;
 - verifica a pagina a cada 30, 45, 60 ou 90 segundos;
@@ -75,3 +75,8 @@ Na versao 0.3.3 o monitor de mudancas do DOM foi removido. Ele estava disparando
 ## Deteccao real da disponibilidade
 
 Na versao 0.3.4 a extensao passou a identificar diretamente o calendario aberto do Mercado Livre, localizar o numero do dia dentro do mes/ano correto e diferenciar um dia visivel porem indisponivel de um dia realmente clicavel. O monitor mostra esse estado no painel e so considera a data encontrada quando o dia estiver disponivel para selecao.
+
+
+## Validacao da selecao real
+
+Na versao 0.3.5 a extensao nao considera mais uma data como encontrada apenas porque o numero do dia esta visivel e parece clicavel. No modo `Selecionar a data`, ela tenta selecionar o dia e depois valida se o Mercado Livre realmente aceitou a selecao, observando estado selecionado, mudanca do campo de data, habilitacao do botao de confirmacao ou mudanca visual persistente. Se o clique nao surtir efeito, o dia e tratado como indisponivel e o monitoramento continua sem disparar notificacao de sucesso.
