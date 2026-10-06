@@ -2,7 +2,7 @@
 
 Extensao Chrome (Manifest V3) para monitorar datas visiveis na pagina de agendamento do Mercado Envios Full usando a sessao que ja esta aberta no navegador.
 
-## Escopo da versao 0.1
+## Escopo da versao 0.3
 
 - permite cadastrar uma ou mais datas desejadas;
 - verifica a pagina a cada 30, 45, 60 ou 90 segundos;
@@ -55,3 +55,8 @@ Quando encontra, destaca o elemento. No modo de selecao, clica apenas nesse elem
 ## Proxima etapa
 
 Apos validar a tela real da conta Stop Kar, podemos endurecer os seletores para os componentes exatos do Mercado Livre e, se desejado, adicionar uma segunda etapa de confirmacao automatica com protecoes extras.
+
+
+## Identidade visual Stop Kar
+
+A versao 0.3 usa a logo oficial fornecida pela Stop Kar no popup, no aviso flutuante da pagina, nas notificacoes e no icone da extensao.
