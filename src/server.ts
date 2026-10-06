@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.2";
+const SERVER_VERSION = "0.17.3";
 
 function textResult(value: unknown) {
   return {
@@ -2084,6 +2084,267 @@ function createServer(env: Env) {
           full_confirmado: createdIsFull
         },
         anuncio_criado: created
+      });
+    }
+  );
+
+  server.registerTool(
+    "diagnosticar_publicacao_nova",
+    {
+      description:
+        "Diagnostica uma nova condicao de venda da Stop Kar: status, Full, moderacao e situacao dos dados fiscais/capacidade de faturamento. Somente leitura.",
+      inputSchema: {
+        item_id: z.string().regex(/^MLB\d+$/)
+      }
+    },
+    async ({ item_id }) => {
+      const raw = await meliGet(
+        env,
+        `/items/${encodeURIComponent(item_id)}`,
+        { include_attributes: "all" }
+      );
+
+      let fiscal: any = null;
+      let fiscal_error: string | null = null;
+      try {
+        fiscal = await meliGet(
+          env,
+          `/items/${encodeURIComponent(item_id)}/fiscal_information/detail`
+        );
+      } catch (error) {
+        fiscal_error = error instanceof Error ? error.message : String(error);
+      }
+
+      let can_invoice: any = null;
+      let can_invoice_error: string | null = null;
+      try {
+        can_invoice = await meliGet(
+          env,
+          `/can_invoice/items/${encodeURIComponent(item_id)}`
+        );
+      } catch (error) {
+        can_invoice_error = error instanceof Error ? error.message : String(error);
+      }
+
+      let moderacao: any = null;
+      let moderacao_error: string | null = null;
+      try {
+        moderacao = await meliGet(
+          env,
+          `/items/${encodeURIComponent(item_id)}/last_moderations`
+        );
+      } catch (error) {
+        moderacao_error = error instanceof Error ? error.message : String(error);
+      }
+
+      return textResult({
+        item: compactItem(raw),
+        fiscal,
+        fiscal_error,
+        can_invoice,
+        can_invoice_error,
+        moderacao,
+        moderacao_error
+      });
+    }
+  );
+
+  server.registerTool(
+    "vincular_fiscal_e_ativar_anuncio",
+    {
+      description:
+        "Vincula ao anuncio novo o cadastro fiscal ja existente do mesmo SKU de um anuncio de origem, valida faturamento e tenta ativar. Nao cria dados fiscais novos e bloqueia se SKU/User Product nao coincidirem.",
+      inputSchema: {
+        item_id: z.string().regex(/^MLB\d+$/),
+        item_origem_id: z.string().regex(/^MLB\d+$/),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ item_id, item_origem_id, confirmar, motivo }) => {
+      const [targetRaw, sourceRaw] = await Promise.all([
+        meliGet(env, `/items/${encodeURIComponent(item_id)}`, { include_attributes: "all" }),
+        meliGet(env, `/items/${encodeURIComponent(item_origem_id)}`, { include_attributes: "all" })
+      ]);
+
+      const targetSku = String(getSellerSku(targetRaw) ?? "").trim();
+      const sourceSku = String(getSellerSku(sourceRaw) ?? "").trim();
+      const targetUserProduct = String(targetRaw?.user_product_id ?? "").trim();
+      const sourceUserProduct = String(sourceRaw?.user_product_id ?? "").trim();
+
+      const previewBase = {
+        acao: confirmar ? "gravar" : "simulacao",
+        item_novo: compactItem(targetRaw),
+        item_origem: compactItem(sourceRaw),
+        validacoes: {
+          mesmo_sku: Boolean(targetSku && sourceSku && targetSku === sourceSku),
+          mesmo_user_product: Boolean(
+            targetUserProduct && sourceUserProduct && targetUserProduct === sourceUserProduct
+          ),
+          sku: targetSku || null
+        }
+      };
+
+      if (!targetSku || !sourceSku || targetSku !== sourceSku) {
+        return textResult({
+          ...previewBase,
+          acao: "bloqueado_sku",
+          mensagem: "O SKU do anuncio novo nao coincide com o anuncio de origem; nenhum dado fiscal sera vinculado."
+        });
+      }
+      if (
+        !targetUserProduct ||
+        !sourceUserProduct ||
+        targetUserProduct !== sourceUserProduct
+      ) {
+        return textResult({
+          ...previewBase,
+          acao: "bloqueado_user_product",
+          mensagem: "Os anuncios nao pertencem ao mesmo User Product; nenhuma alteracao sera feita."
+        });
+      }
+
+      let sourceFiscal: any = null;
+      let sourceFiscalError: string | null = null;
+      try {
+        sourceFiscal = await meliGet(
+          env,
+          `/items/${encodeURIComponent(item_origem_id)}/fiscal_information/detail`
+        );
+      } catch (error) {
+        sourceFiscalError = error instanceof Error ? error.message : String(error);
+      }
+
+      let sourceCanInvoice: any = null;
+      let sourceCanInvoiceError: string | null = null;
+      try {
+        sourceCanInvoice = await meliGet(
+          env,
+          `/can_invoice/items/${encodeURIComponent(item_origem_id)}`
+        );
+      } catch (error) {
+        sourceCanInvoiceError = error instanceof Error ? error.message : String(error);
+      }
+
+      const preview = {
+        ...previewBase,
+        fiscal_origem: sourceFiscal,
+        fiscal_origem_error: sourceFiscalError,
+        can_invoice_origem: sourceCanInvoice,
+        can_invoice_origem_error: sourceCanInvoiceError,
+        operacao_planejada: {
+          vincular_sku_fiscal: targetSku,
+          item_id,
+          variation_id: ""
+        }
+      };
+
+      if (!sourceFiscal || sourceCanInvoice?.status === false) {
+        return textResult({
+          ...preview,
+          acao: "bloqueado_origem_fiscal_invalida",
+          mensagem:
+            "O anuncio de origem nao possui dados fiscais validos/aptos para faturamento; nao e seguro replicar o vinculo."
+        });
+      }
+
+      if (!confirmar) return textResult(preview);
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Informe um motivo com pelo menos 5 caracteres.");
+      }
+
+      requireListingWritesEnabled(env);
+
+      let fiscalLink: any = null;
+      let fiscalLinkError: string | null = null;
+      try {
+        fiscalLink = await meliWrite(
+          env,
+          "POST",
+          "/items/fiscal_information/items",
+          {
+            sku: targetSku,
+            item_id,
+            variation_id: ""
+          }
+        );
+      } catch (error) {
+        fiscalLinkError = error instanceof Error ? error.message : String(error);
+      }
+
+      let targetFiscal: any = null;
+      let targetFiscalError: string | null = null;
+      try {
+        targetFiscal = await meliGet(
+          env,
+          `/items/${encodeURIComponent(item_id)}/fiscal_information/detail`
+        );
+      } catch (error) {
+        targetFiscalError = error instanceof Error ? error.message : String(error);
+      }
+
+      let targetCanInvoice: any = null;
+      let targetCanInvoiceError: string | null = null;
+      try {
+        targetCanInvoice = await meliGet(
+          env,
+          `/can_invoice/items/${encodeURIComponent(item_id)}`
+        );
+      } catch (error) {
+        targetCanInvoiceError = error instanceof Error ? error.message : String(error);
+      }
+
+      if (targetCanInvoice?.status !== true) {
+        return textResult({
+          ...preview,
+          acao: "fiscal_vinculado_mas_nao_apto",
+          fiscal_link: fiscalLink?.data ?? null,
+          fiscal_link_error: fiscalLinkError,
+          fiscal_novo: targetFiscal,
+          fiscal_novo_error: targetFiscalError,
+          can_invoice_novo: targetCanInvoice,
+          can_invoice_novo_error: targetCanInvoiceError,
+          mensagem:
+            "O vinculo fiscal foi tentado, mas o Mercado Livre ainda nao confirmou que o anuncio esta apto a faturar; o anuncio nao foi ativado."
+        });
+      }
+
+      let activation: any = null;
+      let activationError: string | null = null;
+      try {
+        activation = await meliWrite(
+          env,
+          "PUT",
+          `/items/${encodeURIComponent(item_id)}`,
+          { status: "active" }
+        );
+      } catch (error) {
+        activationError = error instanceof Error ? error.message : String(error);
+      }
+
+      const finalRaw = await meliGet(
+        env,
+        `/items/${encodeURIComponent(item_id)}`,
+        { include_attributes: "all" }
+      );
+      const finalItem = compactItem(finalRaw);
+      const fullConfirmado =
+        String(finalRaw?.shipping?.logistic_type ?? "") === "fulfillment" &&
+        Boolean(finalRaw?.inventory_id);
+
+      return textResult({
+        ...preview,
+        acao: activationError ? "fiscal_ok_ativacao_falhou" : "fiscal_ok_ativacao_tentada",
+        fiscal_link: fiscalLink?.data ?? null,
+        fiscal_link_error: fiscalLinkError,
+        fiscal_novo: targetFiscal,
+        fiscal_novo_error: targetFiscalError,
+        can_invoice_novo: targetCanInvoice,
+        can_invoice_novo_error: targetCanInvoiceError,
+        ativacao: activation?.data ?? null,
+        ativacao_error: activationError,
+        full_confirmado: fullConfirmado,
+        anuncio_final: finalItem
       });
     }
   );
