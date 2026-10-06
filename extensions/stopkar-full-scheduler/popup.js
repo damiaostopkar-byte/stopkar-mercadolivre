@@ -1,8 +1,8 @@
 const DEFAULT_SETTINGS = {
   targetDates: [],
   intervalSeconds: 30,
-  mode: "detect",
-  autoRefresh: false,
+  mode: "select",
+  autoRefresh: true,
   stopAfterFound: true
 };
 
