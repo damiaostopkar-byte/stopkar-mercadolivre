@@ -287,6 +287,129 @@
     return el;
   };
 
+  const parseRgb = (value) => {
+    const match = String(value || "").match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+    if (!match) return null;
+    return [Number(match[1]), Number(match[2]), Number(match[3])];
+  };
+
+  const nearestBackground = (el) => {
+    let node = el;
+    for (let depth = 0; depth < 6 && node; depth += 1) {
+      const color = parseRgb(window.getComputedStyle(node).backgroundColor);
+      if (color && !(color[0] === 0 && color[1] === 0 && color[2] === 0)) {
+        const raw = window.getComputedStyle(node).backgroundColor;
+        if (!raw.includes("rgba(0, 0, 0, 0)") && raw !== "transparent") return color;
+      }
+      node = node.parentElement;
+    }
+    return [255, 255, 255];
+  };
+
+  const visuallyUnavailable = (el) => {
+    if (!(el instanceof Element)) return true;
+    const style = window.getComputedStyle(el);
+    const fg = parseRgb(style.color);
+    const bg = nearestBackground(el);
+
+    if (Number(style.opacity) < 0.65) return true;
+    if (style.cursor === "not-allowed") return true;
+
+    if (fg && bg) {
+      const fgLight = (fg[0] + fg[1] + fg[2]) / 3;
+      const bgLight = (bg[0] + bg[1] + bg[2]) / 3;
+      if (fgLight > 135 && bgLight > 220) return true;
+    }
+
+    return false;
+  };
+
+  const selectedLike = (el) => {
+    let node = el;
+    for (let depth = 0; depth < 5 && node; depth += 1) {
+      const cls = normalize(node.className);
+      if (
+        node.getAttribute?.("aria-selected") === "true" ||
+        node.getAttribute?.("data-selected") === "true" ||
+        cls.includes("selected") ||
+        cls.includes("is-selected") ||
+        cls.includes("active")
+      ) return true;
+      node = node.parentElement;
+    }
+    return false;
+  };
+
+  const styleSignature = (el) => {
+    if (!(el instanceof Element)) return "";
+    const style = window.getComputedStyle(el);
+    return [
+      style.color,
+      style.backgroundColor,
+      style.borderColor,
+      style.fontWeight,
+      style.opacity
+    ].join("|");
+  };
+
+  const confirmState = (root) => {
+    if (!(root instanceof Element)) return null;
+    const button = Array.from(root.querySelectorAll("button,[role='button']"))
+      .find((el) => visible(el) && normalize(el.textContent) === "confirmar");
+    if (!button) return null;
+    return {
+      disabled: disabled(button),
+      cls: normalize(button.className),
+      style: styleSignature(button)
+    };
+  };
+
+  const selectionFieldText = () => {
+    const trigger = findDatePickerTrigger();
+    return trigger ? getText(trigger) : "";
+  };
+
+  const verifySelectionAfterClick = async (target) => {
+    if (!target?.clickTarget) return false;
+
+    const before = {
+      field: selectionFieldText(),
+      dayStyle: styleSignature(target.clickTarget),
+      confirm: confirmState(target.root)
+    };
+
+    try {
+      target.clickTarget.click();
+    } catch (_) {
+      return false;
+    }
+
+    await sleep(600);
+
+    if (selectedLike(target.dayNode) || selectedLike(target.clickTarget)) return true;
+
+    const afterField = selectionFieldText();
+    if (
+      afterField &&
+      afterField !== before.field &&
+      !afterField.includes("escolha um dia") &&
+      !afterField.includes("selecionar um dia")
+    ) return true;
+
+    const afterConfirm = confirmState(target.root);
+    if (
+      before.confirm &&
+      afterConfirm &&
+      before.confirm.disabled &&
+      !afterConfirm.disabled
+    ) return true;
+
+    const afterStyle = styleSignature(target.clickTarget);
+    if (afterStyle && before.dayStyle && afterStyle !== before.dayStyle) return true;
+
+    return false;
+  };
+
   const findTargetDay = () => {
     const dates = Array.isArray(settings?.targetDates) ? settings.targetDates : [];
     const calendars = calendarContainers();
@@ -316,10 +439,15 @@
 
         for (const dayNode of exact) {
           const clickTarget = clickableCalendarDay(dayNode, root);
-          const isUnavailable = unavailable(dayNode) || unavailable(clickTarget);
+          const isUnavailable =
+            unavailable(dayNode) ||
+            unavailable(clickTarget) ||
+            visuallyUnavailable(dayNode) ||
+            visuallyUnavailable(clickTarget);
 
           return {
             iso,
+            root,
             dayNode,
             clickTarget,
             available: !isUnavailable,
@@ -385,16 +513,27 @@
         return null;
       }
 
-      markFound(target.clickTarget || target.dayNode);
       const mode = settings.mode === "select" ? "select" : "detect";
 
-      if (mode === "select" && target.clickTarget) {
-        target.clickTarget.dataset.stopKarFullSelected = "true";
-        target.clickTarget.click();
+      if (mode === "select") {
+        const selected = await verifySelectionAfterClick(target);
+
+        if (!selected) {
+          setOverlay("running", `${dateLabel(target.iso)} esta visivel, mas o Mercado Livre nao aceitou a selecao. Continuando a busca.`);
+          await report({
+            status: "running",
+            statusDetail: `${dateLabel(target.iso)} esta visivel, mas ainda nao esta selecionavel.`,
+            lastCheckAt: now,
+            attempts
+          });
+          return null;
+        }
       }
 
+      markFound(target.clickTarget || target.dayNode);
+
       setOverlay("found", mode === "select"
-        ? `${dateLabel(target.iso)} ficou disponivel e foi selecionada. Revise e confirme manualmente.`
+        ? `${dateLabel(target.iso)} ficou disponivel e a selecao foi confirmada na tela. Revise e confirme manualmente.`
         : `${dateLabel(target.iso)} ficou disponivel. Revise antes de confirmar.`);
 
       const response = await chrome.runtime.sendMessage({
