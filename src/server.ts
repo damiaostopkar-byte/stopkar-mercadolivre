@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.0";
+const SERVER_VERSION = "0.17.1";
 
 function textResult(value: unknown) {
   return {
@@ -1880,9 +1880,7 @@ function createServer(env: Env) {
       if (typeof chosenFreeShipping === "boolean") {
         shipping.free_shipping = chosenFreeShipping;
       }
-      if (typeof sourceShipping?.local_pick_up === "boolean") {
-        shipping.local_pick_up = sourceShipping.local_pick_up;
-      }
+      // /user-products/{id}/items rejects local_pick_up; do not copy it from the source item.
       if (exigir_full && sourceIsFull) {
         shipping.logistic_type = "fulfillment";
       }
