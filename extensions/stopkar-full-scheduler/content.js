@@ -102,13 +102,13 @@
         width: "280px",
         padding: "12px 14px",
         borderRadius: "12px",
-        background: "#0f2f37",
+        background: "#151515",
         color: "#fff",
         fontFamily: "Arial, sans-serif",
         fontSize: "12px",
         lineHeight: "1.35",
         boxShadow: "0 10px 30px rgba(0,0,0,.25)",
-        border: "1px solid rgba(255,255,255,.12)"
+        border: "1px solid rgba(243,160,0,.38)"
       });
       document.documentElement.appendChild(overlay);
     }
@@ -116,8 +116,12 @@
     const title = state === "found" ? "DATA ENCONTRADA" : state === "error" ? "ATENCAO" : "MONITORANDO FULL";
     const accent = state === "found" ? "#5dd39e" : state === "error" ? "#ff6577" : "#ff9f1c";
     overlay.innerHTML = `
-      <div style="font-weight:800;letter-spacing:.04em;color:${accent};margin-bottom:4px">STOP KAR FULL · ${title}</div>
-      <div style="color:#dce8eb">${detail}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
+        <img src="${logoUrl}" alt="Stop Kar" style="width:108px;height:auto;display:block" />
+        <span style="font-weight:800;font-size:10px;letter-spacing:.06em;color:${accent};text-align:right">${title}</span>
+      </div>
+      <div style="height:1px;background:rgba(255,255,255,.12);margin-bottom:8px"></div>
+      <div style="color:#ececec">${detail}</div>
     `;
   };
 
