@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.5";
+const SERVER_VERSION = "0.17.6";
 
 function textResult(value: unknown) {
   return {
@@ -1783,6 +1783,203 @@ function createServer(env: Env) {
       confirmar,
       motivo
     }) => {
+      const independentPrefix = "TESTE_INDEPENDENTE|family_name=";
+      if (motivo?.startsWith(independentPrefix)) {
+        if (!item_origem_id) {
+          throw new Error("O teste independente exige item_origem_id.");
+        }
+
+        const familyName = motivo.slice(independentPrefix.length).trim();
+        if (familyName.length < 3 || familyName.length > 60) {
+          throw new Error("family_name do teste deve ter entre 3 e 60 caracteres.");
+        }
+
+        const sourceRaw = await meliGet(
+          env,
+          `/items/${encodeURIComponent(item_origem_id)}`,
+          { include_attributes: "all" }
+        );
+
+        const categoryId = String(sourceRaw?.category_id ?? "").trim();
+        if (!categoryId) throw new Error("O anuncio de origem nao informou category_id.");
+
+        let categoryAttributes: any[] = [];
+        try {
+          const defs = await meliGet(
+            env,
+            `/categories/${encodeURIComponent(categoryId)}/attributes`
+          );
+          categoryAttributes = Array.isArray(defs) ? defs : [];
+        } catch {
+          categoryAttributes = [];
+        }
+        const defsById = new Map(
+          categoryAttributes
+            .filter((attribute: any) => attribute?.id)
+            .map((attribute: any) => [String(attribute.id), attribute])
+        );
+
+        const sourceAttributes = Array.isArray(sourceRaw?.attributes)
+          ? sourceRaw.attributes
+          : [];
+        const attributes = sourceAttributes
+          .filter((attribute: any) => {
+            if (!attribute?.id) return false;
+            const def: any = defsById.get(String(attribute.id));
+            if (!def) return false;
+            if (def?.tags?.read_only === true) return false;
+            return true;
+          })
+          .map((attribute: any) => {
+            const valueId = attribute?.value_id ?? attribute?.values?.[0]?.id ?? null;
+            const valueName =
+              attribute?.value_name ?? attribute?.values?.[0]?.name ?? null;
+            const result: Record<string, unknown> = { id: String(attribute.id) };
+            if (valueId !== null && valueId !== undefined) {
+              result.value_id = String(valueId);
+            } else if (
+              valueName !== null &&
+              valueName !== undefined &&
+              String(valueName).trim() !== ""
+            ) {
+              result.value_name = String(valueName);
+            }
+            return result;
+          })
+          .filter((attribute: any) => attribute.value_id || attribute.value_name);
+
+        const pictures = Array.isArray(sourceRaw?.pictures)
+          ? sourceRaw.pictures
+              .filter((picture: any) => picture?.id)
+              .map((picture: any) => ({ id: String(picture.id) }))
+          : [];
+
+        const body: Record<string, unknown> = {
+          family_name: familyName,
+          category_id: categoryId,
+          price: Number(preco),
+          currency_id: String(sourceRaw?.currency_id ?? "BRL"),
+          available_quantity: 0,
+          buying_mode: String(sourceRaw?.buying_mode ?? "buy_it_now"),
+          listing_type_id,
+          condition: String(sourceRaw?.condition ?? "new"),
+          attributes,
+          pictures,
+          channels:
+            Array.isArray(sourceRaw?.channels) && sourceRaw.channels.length > 0
+              ? sourceRaw.channels
+              : ["marketplace"],
+          shipping: {
+            mode: String(sourceRaw?.shipping?.mode ?? "me2"),
+            free_shipping:
+              typeof free_shipping === "boolean"
+                ? free_shipping
+                : typeof sourceRaw?.shipping?.free_shipping === "boolean"
+                  ? sourceRaw.shipping.free_shipping
+                  : true,
+            logistic_type: "fulfillment"
+          }
+        };
+
+        let validationError: string | null = null;
+        try {
+          await meliWrite(env, "POST", "/items/validate", body);
+        } catch (error) {
+          validationError = error instanceof Error ? error.message : String(error);
+        }
+
+        const preview = {
+          acao: confirmar ? "criar_teste_pausado" : "validacao_teste_independente",
+          item_origem: compactItem(sourceRaw),
+          family_name_proposto: familyName,
+          body_publicacao: body,
+          validacao_ok: validationError === null,
+          validacao_error: validationError,
+          seguranca: {
+            available_quantity: 0,
+            esperado: "paused/out_of_stock",
+            fecha_se_agrupar: true
+          }
+        };
+
+        if (!confirmar || validationError) return textResult(preview);
+
+        requireListingWritesEnabled(env);
+        const createdWrite = await meliWrite(env, "POST", "/items", body);
+        const createdId = String(createdWrite?.data?.id ?? "");
+        if (!/^MLB\d+$/.test(createdId)) {
+          throw new Error("O Mercado Livre nao retornou um MLB valido no teste independente.");
+        }
+
+        const createdRaw = await meliGet(
+          env,
+          `/items/${encodeURIComponent(createdId)}`,
+          { include_attributes: "all" }
+        );
+
+        const sourceUserProduct = String(sourceRaw?.user_product_id ?? "");
+        const createdUserProduct = String(createdRaw?.user_product_id ?? "");
+        const sourceFamily = String(sourceRaw?.family_id ?? "");
+        const createdFamily = String(createdRaw?.family_id ?? "");
+
+        const novoUserProduct =
+          Boolean(createdUserProduct) && createdUserProduct !== sourceUserProduct;
+        const novaFamilia = Boolean(createdFamily) && createdFamily !== sourceFamily;
+        const independente = novoUserProduct && novaFamilia;
+
+        let cleanup: any = null;
+        if (!independente) {
+          try {
+            const closed = await meliWrite(
+              env,
+              "PUT",
+              `/items/${encodeURIComponent(createdId)}`,
+              { status: "closed" }
+            );
+            cleanup = {
+              executado: true,
+              status: closed?.data?.status ?? "closed"
+            };
+          } catch (error) {
+            cleanup = {
+              executado: false,
+              erro: error instanceof Error ? error.message : String(error)
+            };
+          }
+        }
+
+        const sourceAfter = await meliGet(
+          env,
+          `/items/${encodeURIComponent(item_origem_id)}`,
+          { include_attributes: "all" }
+        );
+
+        return textResult({
+          ...preview,
+          acao: independente
+            ? "teste_independente_criado_pausado"
+            : "teste_agrupou_e_foi_fechado",
+          mlb_teste: createdId,
+          item_teste: compactItem(createdRaw),
+          comparacao: {
+            origem_user_product_id: sourceUserProduct || null,
+            teste_user_product_id: createdUserProduct || null,
+            novo_user_product: novoUserProduct,
+            origem_family_id: sourceRaw?.family_id ?? null,
+            teste_family_id: createdRaw?.family_id ?? null,
+            nova_familia: novaFamilia,
+            independente
+          },
+          origem_pos_teste: {
+            user_product_id: sourceAfter?.user_product_id ?? null,
+            family_id: sourceAfter?.family_id ?? null,
+            family_name: sourceAfter?.family_name ?? null,
+            status: sourceAfter?.status ?? null
+          },
+          cleanup
+        });
+      }
+
       const resolved = await resolveListingReference(env, user_product_id);
       const items = resolved.items;
       if (items.length >= 30) {
