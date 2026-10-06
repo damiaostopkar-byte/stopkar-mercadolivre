@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.10";
+const SERVER_VERSION = "0.17.11";
 
 function textResult(value: unknown) {
   return {
@@ -1887,12 +1887,16 @@ function createServer(env: Env) {
           validationError = error instanceof Error ? error.message : String(error);
         }
 
+        const validationBlocking =
+          validationError !== null && validationError.includes('"type":"error"');
+
         const preview = {
           acao: confirmar ? "criar_teste_pausado" : "validacao_teste_independente",
           item_origem: compactItem(sourceRaw),
           family_name_proposto: familyName,
           body_publicacao: body,
-          validacao_ok: validationError === null,
+          validacao_ok: !validationBlocking,
+          validacao_com_avisos: validationError !== null && !validationBlocking,
           validacao_error: validationError,
           seguranca: {
             available_quantity: 0,
@@ -1901,7 +1905,7 @@ function createServer(env: Env) {
           }
         };
 
-        if (!confirmar || validationError) return textResult(preview);
+        if (!confirmar || validationBlocking) return textResult(preview);
 
         requireListingWritesEnabled(env);
         const createdWrite = await meliWrite(env, "POST", "/items", body);
