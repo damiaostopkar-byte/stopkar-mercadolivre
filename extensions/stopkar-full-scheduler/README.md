@@ -2,12 +2,12 @@
 
 Extensao Chrome (Manifest V3) para monitorar datas visiveis na pagina de agendamento do Mercado Envios Full usando a sessao que ja esta aberta no navegador.
 
-## Escopo da versao 0.3
+## Escopo da versao 0.3.2
 
 - permite cadastrar uma ou mais datas desejadas;
 - verifica a pagina a cada 30, 45, 60 ou 90 segundos;
 - observa alteracoes dinamicas da pagina entre os ciclos;
-- opcionalmente recarrega a aba quando nenhuma data foi encontrada;
+- opcionalmente recarrega a aba quando nenhuma data foi encontrada e reabre o calendario automaticamente apos o recarregamento;
 - destaca visualmente a data localizada;
 - envia notificacao do Chrome;
 - no modo **Selecionar a data**, clica no elemento correspondente;
@@ -60,3 +60,8 @@ Apos validar a tela real da conta Stop Kar, podemos endurecer os seletores para 
 ## Identidade visual Stop Kar
 
 A versao 0.3 usa a logo oficial fornecida pela Stop Kar no popup, no aviso flutuante da pagina, nas notificacoes e no icone da extensao.
+
+
+## Correcao do calendario apos atualizar
+
+Na versao 0.3.2, quando a atualizacao automatica esta ativada, a extensao salva o estado antes do reload e reabre o seletor `Escolha um dia` assim que a pagina termina de carregar. Tambem foi removida a corrida entre dois temporizadores de verificacao que podia atualizar a pagina antes de concluir a checagem.
