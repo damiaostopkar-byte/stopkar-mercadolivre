@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.1";
+const SERVER_VERSION = "0.17.2";
 
 function textResult(value: unknown) {
   return {
@@ -1873,32 +1873,21 @@ function createServer(env: Env) {
         String(sourceShipping?.logistic_type ?? "") === "fulfillment" ||
         Boolean(sourceItem?.inventory_id);
 
-      const shipping: Record<string, unknown> = {};
-      if (sourceShipping?.mode) shipping.mode = sourceShipping.mode;
       const chosenFreeShipping =
         typeof free_shipping === "boolean" ? free_shipping : sourceShipping?.free_shipping;
-      if (typeof chosenFreeShipping === "boolean") {
-        shipping.free_shipping = chosenFreeShipping;
-      }
-      // /user-products/{id}/items rejects local_pick_up; do not copy it from the source item.
-      if (exigir_full && sourceIsFull) {
-        shipping.logistic_type = "fulfillment";
-      }
 
-      const channels =
-        Array.isArray(sourceItem?.channels) && sourceItem.channels.length > 0
-          ? sourceItem.channels
-          : ["marketplace"];
-
+      // The User Product item endpoint accepts shipping as optional. For existing
+      // User Products, Mercado Livre derives the eligible logistics service from
+      // the UP/stock contract. Sending legacy shipping fields can trigger a
+      // validation_error, so creation uses the documented minimal payload and the
+      // tool verifies Full immediately after creation.
       const body: Record<string, unknown> = {
         price: Number(preco),
         category_id: categoryId,
         currency_id: currencyId,
         buying_mode: "buy_it_now",
-        listing_type_id,
-        channels
+        listing_type_id
       };
-      if (Object.keys(shipping).length > 0) body.shipping = shipping;
       if (sourceItem?.catalog_listing === true) {
         if (!sourceItem?.catalog_product_id) {
           throw new Error(
@@ -1907,8 +1896,6 @@ function createServer(env: Env) {
         }
         body.catalog_listing = true;
         body.catalog_product_id = sourceItem.catalog_product_id;
-      } else {
-        body.catalog_listing = false;
       }
 
       const preview = {
@@ -1942,8 +1929,9 @@ function createServer(env: Env) {
         body_publicacao: body,
         observacoes: [
           "O Mercado Livre herda titulo, atributos, fotos e estoque do User Product; esses campos nao sao enviados.",
+          "A criacao usa o payload minimo documentado; a configuracao de envio e derivada pelo Mercado Livre a partir do User Product e do contrato de estoque.",
           exigir_full
-            ? "A ferramenta exige Full: valida estoque/servico antes e confirma a logistica depois da criacao."
+            ? "A ferramenta exige Full: valida estoque/servico antes e confirma a logistica depois da criacao, pausando por seguranca se Full nao for confirmado."
             : "A ferramenta nao exigira Full nesta criacao."
         ],
         erros_consulta: {
