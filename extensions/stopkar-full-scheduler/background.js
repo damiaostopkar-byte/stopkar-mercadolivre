@@ -63,7 +63,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       await chrome.notifications.create(`stopkar-full-${Date.now()}`, {
         type: "basic",
-        iconUrl: chrome.runtime.getURL("icon.svg"),
+        iconUrl: chrome.runtime.getURL("assets/icon128.png"),
         title: "Stop Kar Full: data encontrada",
         message: message.mode === "select"
           ? `A data ${message.dateLabel || message.date || "desejada"} foi selecionada. Falta confirmar manualmente.`
