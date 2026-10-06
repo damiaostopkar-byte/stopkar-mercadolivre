@@ -16,6 +16,8 @@
   let overlay = null;
   let scanBusy = false;
 
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
   const normalize = (value) => String(value || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -66,13 +68,15 @@
   const getText = (el) => normalize([
     el.getAttribute?.("aria-label"),
     el.getAttribute?.("title"),
+    el.getAttribute?.("placeholder"),
     el.getAttribute?.("data-testid"),
-    el.textContent
+    el.textContent,
+    el.value
   ].filter(Boolean).join(" "));
 
   const getClickable = (el) => {
     if (!(el instanceof Element)) return null;
-    const direct = el.closest("button, a, [role='button'], [role='option'], [role='gridcell'], [tabindex]");
+    const direct = el.closest("button, a, input, [role='button'], [role='option'], [role='gridcell'], [tabindex]");
     if (direct && visible(direct) && !disabled(direct)) return direct;
     if (visible(el) && !disabled(el)) return el;
     return null;
@@ -80,8 +84,8 @@
 
   const candidates = () => {
     const selector = [
-      "button", "a", "[role='button']", "[role='option']", "[role='gridcell']",
-      "[aria-label]", "[title]", "[data-testid]"
+      "button", "a", "input", "[role='button']", "[role='option']", "[role='gridcell']",
+      "[aria-label]", "[title]", "[placeholder]", "[data-testid]"
     ].join(",");
     return Array.from(document.querySelectorAll(selector)).filter(visible);
   };
@@ -130,7 +134,83 @@
     el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
   };
 
-  const findDate = () => {
+  const calendarContainers = () => {
+    const selector = [
+      "[role='dialog']",
+      "[role='grid']",
+      "[class*='calendar']",
+      "[class*='Calendar']",
+      "[class*='datepicker']",
+      "[class*='DatePicker']",
+      "[data-testid*='calendar']",
+      "[data-testid*='date']"
+    ].join(",");
+    return Array.from(document.querySelectorAll(selector)).filter(visible);
+  };
+
+  const calendarLooksOpen = () => {
+    const containers = calendarContainers();
+    if (containers.length) return true;
+
+    const monthWords = MONTHS.map(normalize);
+    const headings = Array.from(document.querySelectorAll("h1,h2,h3,h4,[role='heading']")).filter(visible);
+    return headings.some((el) => {
+      const text = getText(el);
+      return monthWords.some((month) => text.includes(month));
+    });
+  };
+
+  const findDatePickerTrigger = () => {
+    const exactTerms = [
+      "escolha um dia",
+      "escolher um dia",
+      "selecione um dia",
+      "selecionar um dia"
+    ];
+
+    for (const el of candidates()) {
+      const text = getText(el);
+      if (!text) continue;
+      if (exactTerms.some((term) => text.includes(term))) {
+        return getClickable(el);
+      }
+    }
+
+    const sectionTexts = [
+      "escolha quando quer que a coleta passe",
+      "escolha quando quer que a coleta",
+      "quando quer que a coleta passe"
+    ];
+    const sections = Array.from(document.querySelectorAll("section,div,form")).filter(visible);
+    for (const section of sections) {
+      const sectionText = normalize(section.textContent);
+      if (!sectionTexts.some((term) => sectionText.includes(term))) continue;
+      const trigger = Array.from(section.querySelectorAll("button,input,[role='button']")).find((el) => {
+        if (!visible(el) || disabled(el)) return false;
+        const text = getText(el);
+        return text.includes("dia") || text.includes("data") || el.getAttribute("type") === "date";
+      });
+      if (trigger) return trigger;
+    }
+
+    return null;
+  };
+
+  const ensureCalendarOpen = async () => {
+    if (calendarLooksOpen()) return true;
+    const trigger = findDatePickerTrigger();
+    if (!trigger) return false;
+
+    try {
+      trigger.click();
+      await sleep(500);
+      return calendarLooksOpen();
+    } catch (_) {
+      return false;
+    }
+  };
+
+  const findDateByFullText = () => {
     const dates = Array.isArray(settings?.targetDates) ? settings.targetDates : [];
     const elems = candidates();
 
@@ -148,6 +228,36 @@
     return null;
   };
 
+  const findDateByCalendarContext = () => {
+    const dates = Array.isArray(settings?.targetDates) ? settings.targetDates : [];
+    const containers = calendarContainers();
+
+    for (const iso of dates) {
+      const [year, month, day] = iso.split("-").map(Number);
+      if (!year || !month || !day) continue;
+      const monthName = normalize(MONTHS[month - 1]);
+
+      for (const container of containers) {
+        const context = normalize(container.textContent);
+        const contextMatchesMonth = context.includes(monthName) || context.includes(String(year));
+        if (!contextMatchesMonth) continue;
+
+        const dayCandidates = Array.from(container.querySelectorAll("button,[role='button'],[role='gridcell'],[tabindex]"))
+          .filter((el) => visible(el) && !disabled(el));
+
+        for (const el of dayCandidates) {
+          const text = normalize(el.textContent);
+          if (text === String(day) || text === String(day).padStart(2, "0")) {
+            return { iso, el, text: normalize(container.textContent).slice(0, 220) };
+          }
+        }
+      }
+    }
+    return null;
+  };
+
+  const findDate = () => findDateByFullText() || findDateByCalendarContext();
+
   const scan = async (reason = "manual") => {
     if (!settings || scanBusy) return null;
     scanBusy = true;
@@ -163,7 +273,15 @@
         attempts
       });
 
-      const found = findDate();
+      let found = findDate();
+      if (!found) {
+        const opened = await ensureCalendarOpen();
+        if (opened) {
+          await sleep(250);
+          found = findDate();
+        }
+      }
+
       if (!found) return null;
 
       markFound(found.el);
@@ -219,7 +337,7 @@
 
     observer = new MutationObserver(() => {
       clearTimeout(watcher);
-      watcher = setTimeout(() => void scan("mudanca-na-pagina"), 350);
+      watcher = setTimeout(() => void scan("mudanca-na-pagina"), 500);
     });
     observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true });
 
