@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Stop Kar Full</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <div class="brand-mark">SK</div>
+        <div>
+          <h1>STOP KAR FULL</h1>
+          <p>Monitor de agendamento</p>
+        </div>
+      </header>
+
+      <section class="status-card">
+        <div class="status-row">
+          <span id="statusDot" class="dot idle"></span>
+          <div>
+            <strong id="statusLabel">Parado</strong>
+            <small id="statusDetail">Configure uma data para iniciar.</small>
+          </div>
+        </div>
+        <div class="metrics">
+          <div><span>Ultima verificacao</span><strong id="lastCheck">--</strong></div>
+          <div><span>Tentativas</span><strong id="attempts">0</strong></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <label class="label" for="targetDate">Data desejada</label>
+        <div class="date-row">
+          <input id="targetDate" type="date" />
+          <button id="addDate" class="secondary" type="button">Adicionar</button>
+        </div>
+        <div id="dateList" class="date-list"></div>
+      </section>
+
+      <section class="card grid-2">
+        <label>
+          <span class="label">Verificar a cada</span>
+          <select id="intervalSeconds">
+            <option value="30">30 segundos</option>
+            <option value="45">45 segundos</option>
+            <option value="60">60 segundos</option>
+            <option value="90">90 segundos</option>
+          </select>
+        </label>
+
+        <label>
+          <span class="label">Ao encontrar</span>
+          <select id="mode">
+            <option value="detect">Somente avisar</option>
+            <option value="select">Selecionar a data</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="card switches">
+        <label class="switch-line">
+          <input id="autoRefresh" type="checkbox" />
+          <span>
+            <strong>Atualizar a pagina automaticamente</strong>
+            <small>Recarrega a aba no intervalo escolhido quando a data nao aparece.</small>
+          </span>
+        </label>
+        <label class="switch-line">
+          <input id="stopAfterFound" type="checkbox" checked />
+          <span>
+            <strong>Parar quando encontrar</strong>
+            <small>Evita continuar verificando depois de localizar a data.</small>
+          </span>
+        </label>
+      </section>
+
+      <div id="message" class="message" hidden></div>
+
+      <div class="actions">
+        <button id="start" class="primary" type="button">Iniciar monitoramento</button>
+        <button id="stop" class="danger" type="button">Parar</button>
+        <button id="checkNow" class="secondary full" type="button">Testar agora nesta pagina</button>
+      </div>
+
+      <p class="footnote">Versao 0.1: nao confirma o agendamento final. No modo “Selecionar”, apenas clica na data encontrada e para antes da confirmacao.</p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
