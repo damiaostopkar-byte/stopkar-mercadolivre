@@ -145,18 +145,14 @@
     const roots = [];
     for (const heading of headings) {
       let node = heading;
-      for (let depth = 0; depth < 7 && node?.parentElement; depth += 1) {
+      for (let depth = 0; depth < 8 && node?.parentElement; depth += 1) {
         node = node.parentElement;
         if (!visible(node)) continue;
 
         const confirmButton = Array.from(node.querySelectorAll("button,[role='button']"))
           .find((el) => visible(el) && normalize(el.textContent) === "confirmar");
 
-        const dayCells = Array.from(node.querySelectorAll("button,[role='gridcell'],[role='button'],[tabindex],span,div"))
-          .filter(visible)
-          .filter((cell) => /^([1-9]|[12][0-9]|3[01])$/.test(normalize(cell.textContent))).length;
-
-        if (confirmButton && dayCells >= 14) {
+        if (confirmButton) {
           roots.push(node);
           break;
         }
@@ -184,40 +180,43 @@
       }
     }
 
-    const sectionTexts = [
-      "escolha quando quer que a coleta passe",
-      "escolha quando quer que a coleta",
-      "quando quer que a coleta passe"
-    ];
     const sections = Array.from(document.querySelectorAll("section,div,form")).filter(visible);
     for (const section of sections) {
       const sectionText = normalize(section.textContent);
-      if (!sectionTexts.some((term) => sectionText.includes(term))) continue;
-      const trigger = Array.from(section.querySelectorAll("button,input,[role='button']")).find((el) => {
-        if (!visible(el) || disabled(el)) return false;
-        const text = getText(el);
-        return text.includes("dia") || text.includes("data") || el.getAttribute("type") === "date";
-      });
+      if (!sectionText.includes("quando quer que a coleta")) continue;
+
+      const trigger = Array.from(section.querySelectorAll("button,input,[role='button']"))
+        .filter((el) => visible(el) && !disabled(el))
+        .find((el) => {
+          const text = getText(el);
+          return text.includes("dia") || text.includes("data") || el.getAttribute("type") === "date";
+        });
+
       if (trigger) return trigger;
     }
 
     return null;
   };
 
-  const ensureCalendarOpen = async (maxAttempts = 16) => {
+  const ensureCalendarOpen = async () => {
     if (calendarLooksOpen()) return true;
 
-    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
       const trigger = findDatePickerTrigger();
-      if (trigger) {
-        try {
-          trigger.scrollIntoView({ block: "center", inline: "nearest" });
-          trigger.click();
-          await sleep(650);
-          if (calendarLooksOpen()) return true;
-        } catch (_) {}
+      if (!trigger) {
+        await sleep(600);
+        continue;
       }
-      await sleep(350);
+
+      try {
+        trigger.scrollIntoView({ block: "center", inline: "nearest" });
+        trigger.click();
+      } catch (_) {}
+
+      for (let poll = 0; poll < 12; poll += 1) {
+        await sleep(250);
+        if (calendarLooksOpen()) return true;
+      }
     }
 
     return false;
@@ -231,68 +230,117 @@
     setOverlay("running", "Pagina atualizada. Reabrindo o calendario...");
     await report({ statusDetail: "Pagina atualizada. Reabrindo o calendario..." });
 
-    const opened = await ensureCalendarOpen(24);
+    await sleep(900);
+    const opened = await ensureCalendarOpen();
+
     if (!opened) {
-      await report({ statusDetail: "Nao consegui reabrir o calendario ainda. Vou tentar novamente no proximo ciclo." });
+      await report({
+        status: "error",
+        statusDetail: "A pagina carregou, mas nao consegui abrir o calendario automaticamente."
+      });
     }
     return opened;
   };
 
-  const findDateByFullText = () => {
-    const dates = Array.isArray(settings?.targetDates) ? settings.targetDates : [];
-    const elems = candidates();
+  const unavailable = (el) => {
+    if (!(el instanceof Element)) return true;
 
-    for (const iso of dates) {
-      const patterns = patternsForDate(iso);
-      for (const el of elems) {
-        const text = getText(el);
-        if (!text || text.length > 300) continue;
-        if (!patterns.some((pattern) => text.includes(pattern))) continue;
-        const clickable = getClickable(el);
-        if (!clickable) continue;
-        return { iso, el: clickable, text };
-      }
+    let node = el;
+    for (let depth = 0; depth < 4 && node; depth += 1) {
+      const cls = normalize(node.className);
+      const aria = normalize(node.getAttribute?.("aria-disabled"));
+      const dataDisabled = normalize(node.getAttribute?.("data-disabled"));
+      const dataUnavailable = normalize(node.getAttribute?.("data-unavailable"));
+      const style = window.getComputedStyle(node);
+
+      if (
+        node.matches?.(":disabled") ||
+        node.hasAttribute?.("disabled") ||
+        aria === "true" ||
+        dataDisabled === "true" ||
+        dataUnavailable === "true" ||
+        cls.includes("disabled") ||
+        cls.includes("unavailable") ||
+        cls.includes("blocked") ||
+        cls.includes("not-available") ||
+        style.pointerEvents === "none"
+      ) return true;
+
+      node = node.parentElement;
     }
-    return null;
+
+    return false;
   };
 
-  const findDateByCalendarContext = () => {
+  const clickableCalendarDay = (el, root) => {
+    if (!(el instanceof Element)) return null;
+
+    let node = el;
+    for (let depth = 0; depth < 4 && node && root.contains(node); depth += 1) {
+      if (
+        node.matches?.("button,[role='button'],[role='gridcell'],[tabindex]") ||
+        typeof node.onclick === "function"
+      ) return node;
+      node = node.parentElement;
+    }
+
+    return el;
+  };
+
+  const findTargetDay = () => {
     const dates = Array.isArray(settings?.targetDates) ? settings.targetDates : [];
-    const containers = calendarContainers();
+    const calendars = calendarContainers();
 
     for (const iso of dates) {
       const [year, month, day] = iso.split("-").map(Number);
       if (!year || !month || !day) continue;
+
       const monthName = normalize(MONTHS[month - 1]);
+      const expectedHeader = monthName + " " + year;
 
-      for (const container of containers) {
-        const context = normalize(container.textContent);
-        const contextMatchesMonth = context.includes(monthName) || context.includes(String(year));
-        if (!contextMatchesMonth) continue;
+      for (const root of calendars) {
+        const rootText = normalize(root.textContent);
+        if (!rootText.includes(expectedHeader)) continue;
 
-        const dayCandidates = Array.from(container.querySelectorAll("button,[role='button'],[role='gridcell'],[tabindex]"))
-          .filter((el) => visible(el) && !disabled(el));
+        const nodes = Array.from(root.querySelectorAll(
+          "button,[role='button'],[role='gridcell'],[tabindex],[aria-label],[title],span,div"
+        )).filter(visible);
 
-        for (const el of dayCandidates) {
+        const exact = nodes.filter((el) => {
           const text = normalize(el.textContent);
-          if (text === String(day) || text === String(day).padStart(2, "0")) {
-            return { iso, el, text: normalize(container.textContent).slice(0, 220) };
-          }
+          if (text !== String(day) && text !== String(day).padStart(2, "0")) return false;
+
+          const rect = el.getBoundingClientRect();
+          return rect.width <= 80 && rect.height <= 80;
+        });
+
+        for (const dayNode of exact) {
+          const clickTarget = clickableCalendarDay(dayNode, root);
+          const isUnavailable = unavailable(dayNode) || unavailable(clickTarget);
+
+          return {
+            iso,
+            dayNode,
+            clickTarget,
+            available: !isUnavailable,
+            text: normalize(dayNode.textContent)
+          };
         }
       }
     }
+
     return null;
   };
-
-  const findDate = () => findDateByFullText() || findDateByCalendarContext();
 
   const scan = async (reason = "manual") => {
     if (!settings || scanBusy) return null;
     scanBusy = true;
+
     try {
       attempts += 1;
       const now = Date.now();
       const labels = (settings.targetDates || []).map(dateLabel).join(", ");
+
       setOverlay("running", `Procurando ${labels || "a data configurada"}. Tentativa ${attempts}.`);
       await report({
         status: "running",
@@ -301,39 +349,65 @@
         attempts
       });
 
-      let found = findDate();
-      if (!found) {
-        const opened = await ensureCalendarOpen();
-        if (opened) {
-          await sleep(250);
-          found = findDate();
-        }
+      const opened = await ensureCalendarOpen();
+      if (!opened) {
+        setOverlay("error", "Nao consegui abrir o calendario do Mercado Livre.");
+        await report({
+          status: "error",
+          statusDetail: "Nao consegui abrir o calendario do Mercado Livre.",
+          lastCheckAt: now,
+          attempts
+        });
+        return null;
       }
 
-      if (!found) return null;
+      const target = findTargetDay();
 
-      markFound(found.el);
+      if (!target) {
+        setOverlay("running", `Calendario aberto. Procurando ${labels}. Tentativa ${attempts}.`);
+        await report({
+          status: "running",
+          statusDetail: "Calendario aberto, mas a data configurada nao apareceu no mes exibido.",
+          lastCheckAt: now,
+          attempts
+        });
+        return null;
+      }
+
+      if (!target.available) {
+        setOverlay("running", `${dateLabel(target.iso)} esta visivel, mas ainda indisponivel. Tentativa ${attempts}.`);
+        await report({
+          status: "running",
+          statusDetail: `${dateLabel(target.iso)} esta visivel, mas ainda indisponivel.`,
+          lastCheckAt: now,
+          attempts
+        });
+        return null;
+      }
+
+      markFound(target.clickTarget || target.dayNode);
       const mode = settings.mode === "select" ? "select" : "detect";
-      if (mode === "select") {
-        found.el.dataset.stopKarFullSelected = "true";
-        found.el.click();
+
+      if (mode === "select" && target.clickTarget) {
+        target.clickTarget.dataset.stopKarFullSelected = "true";
+        target.clickTarget.click();
       }
 
       setOverlay("found", mode === "select"
-        ? `${dateLabel(found.iso)} foi localizada e selecionada. Revise e confirme manualmente.`
-        : `${dateLabel(found.iso)} apareceu na pagina. Revise antes de confirmar.`);
+        ? `${dateLabel(target.iso)} ficou disponivel e foi selecionada. Revise e confirme manualmente.`
+        : `${dateLabel(target.iso)} ficou disponivel. Revise antes de confirmar.`);
 
       const response = await chrome.runtime.sendMessage({
         type: "FOUND_DATE",
-        date: found.iso,
-        dateLabel: dateLabel(found.iso),
-        text: found.text.slice(0, 220),
+        date: target.iso,
+        dateLabel: dateLabel(target.iso),
+        text: target.text,
         mode,
         reason
       });
 
       if (response?.stop) stopLocal(false);
-      return found;
+      return target;
     } finally {
       scanBusy = false;
     }
@@ -343,6 +417,7 @@
     if (intervalHandle) clearInterval(intervalHandle);
     intervalHandle = null;
     settings = null;
+
     if (removeOverlay && overlay) {
       overlay.remove();
       overlay = null;
@@ -356,6 +431,7 @@
 
     const intervalMs = Math.max(30000, Number(settings.intervalSeconds || 30) * 1000);
     const labels = (settings.targetDates || []).map(dateLabel).join(", ");
+
     setOverlay("running", `Procurando ${labels}. Deixe esta aba aberta.`);
 
     await restoreCalendarAfterReload();
@@ -369,12 +445,11 @@
 
       if (settings.autoRefresh) {
         sessionStorage.setItem("stopkar-full-reopen-calendar", "1");
-        await report({ statusDetail: "Data ainda nao apareceu. Atualizando e reabrindo o calendario..." });
+        await report({
+          statusDetail: "Data ainda nao esta disponivel. Atualizando a pagina..."
+        });
         window.location.reload();
-        return;
       }
-
-      await ensureCalendarOpen(3);
     }, intervalMs);
   };
 
