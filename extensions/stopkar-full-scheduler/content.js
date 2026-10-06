@@ -10,7 +10,6 @@
   let watcher = null;
   let observer = null;
   let intervalHandle = null;
-  let refreshHandle = null;
   let settings = null;
   let attempts = 0;
   let overlay = null;
@@ -91,6 +90,7 @@
   };
 
   const setOverlay = (state, detail) => {
+    const logoUrl = chrome.runtime.getURL("assets/stopkar-logo-compact.png");
     if (!overlay) {
       overlay = document.createElement("div");
       overlay.id = "stopkar-full-overlay";
@@ -146,23 +146,22 @@
       "[class*='Calendar']",
       "[class*='datepicker']",
       "[class*='DatePicker']",
-      "[data-testid*='calendar']",
-      "[data-testid*='date']"
+      "[data-testid*='calendar']"
     ].join(",");
-    return Array.from(document.querySelectorAll(selector)).filter(visible);
+
+    return Array.from(document.querySelectorAll(selector))
+      .filter(visible)
+      .filter((el) => {
+        const text = normalize(el.textContent);
+        const hasMonth = MONTHS.some((month) => text.includes(normalize(month)));
+        const dayCells = Array.from(el.querySelectorAll("button,[role='gridcell'],[role='button'],[tabindex]"))
+          .filter((cell) => visible(cell))
+          .filter((cell) => /^([1-9]|[12][0-9]|3[01])$/.test(normalize(cell.textContent))).length;
+        return hasMonth && dayCells >= 7;
+      });
   };
 
-  const calendarLooksOpen = () => {
-    const containers = calendarContainers();
-    if (containers.length) return true;
-
-    const monthWords = MONTHS.map(normalize);
-    const headings = Array.from(document.querySelectorAll("h1,h2,h3,h4,[role='heading']")).filter(visible);
-    return headings.some((el) => {
-      const text = getText(el);
-      return monthWords.some((month) => text.includes(month));
-    });
-  };
+  const calendarLooksOpen = () => calendarContainers().length > 0;
 
   const findDatePickerTrigger = () => {
     const exactTerms = [
@@ -200,18 +199,38 @@
     return null;
   };
 
-  const ensureCalendarOpen = async () => {
+  const ensureCalendarOpen = async (maxAttempts = 16) => {
     if (calendarLooksOpen()) return true;
-    const trigger = findDatePickerTrigger();
-    if (!trigger) return false;
 
-    try {
-      trigger.click();
-      await sleep(500);
-      return calendarLooksOpen();
-    } catch (_) {
-      return false;
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      const trigger = findDatePickerTrigger();
+      if (trigger) {
+        try {
+          trigger.scrollIntoView({ block: "center", inline: "nearest" });
+          trigger.click();
+          await sleep(650);
+          if (calendarLooksOpen()) return true;
+        } catch (_) {}
+      }
+      await sleep(350);
     }
+
+    return false;
+  };
+
+  const restoreCalendarAfterReload = async () => {
+    const shouldRestore = sessionStorage.getItem("stopkar-full-reopen-calendar") === "1";
+    if (!shouldRestore) return false;
+
+    sessionStorage.removeItem("stopkar-full-reopen-calendar");
+    setOverlay("running", "Pagina atualizada. Reabrindo o calendario...");
+    await report({ statusDetail: "Pagina atualizada. Reabrindo o calendario..." });
+
+    const opened = await ensureCalendarOpen(24);
+    if (!opened) {
+      await report({ statusDetail: "Nao consegui reabrir o calendario ainda. Vou tentar novamente no proximo ciclo." });
+    }
+    return opened;
   };
 
   const findDateByFullText = () => {
@@ -317,10 +336,8 @@
 
   const stopLocal = (removeOverlay = true) => {
     if (intervalHandle) clearInterval(intervalHandle);
-    if (refreshHandle) clearInterval(refreshHandle);
     if (observer) observer.disconnect();
     intervalHandle = null;
-    refreshHandle = null;
     observer = null;
     watcher = null;
     settings = null;
@@ -330,34 +347,45 @@
     }
   };
 
-  const startLocal = async (newSettings) => {
+  const startLocal = async (newSettings, initialAttempts = 0) => {
     stopLocal(true);
     settings = newSettings;
-    attempts = 0;
+    attempts = Number(initialAttempts || 0);
 
     const intervalMs = Math.max(30000, Number(settings.intervalSeconds || 30) * 1000);
     const labels = (settings.targetDates || []).map(dateLabel).join(", ");
     setOverlay("running", `Procurando ${labels}. Deixe esta aba aberta.`);
 
-    observer = new MutationObserver(() => {
+    observer = new MutationObserver((mutations) => {
+      const relevant = mutations.some((mutation) => {
+        if (!overlay) return true;
+        const target = mutation.target instanceof Node ? mutation.target : null;
+        return target && target !== overlay && !overlay.contains(target);
+      });
+      if (!relevant) return;
       clearTimeout(watcher);
-      watcher = setTimeout(() => void scan("mudanca-na-pagina"), 500);
+      watcher = setTimeout(() => void scan("mudanca-na-pagina"), 700);
     });
     observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true });
 
-    intervalHandle = setInterval(() => void scan("intervalo"), intervalMs);
-
-    if (settings.autoRefresh) {
-      refreshHandle = setInterval(async () => {
-        const result = await scan("antes-de-atualizar");
-        if (!result && settings) {
-          await report({ statusDetail: "Data ainda nao apareceu. Atualizando a pagina..." });
-          window.location.reload();
-        }
-      }, intervalMs);
-    }
-
+    await restoreCalendarAfterReload();
     await scan("inicio");
+
+    intervalHandle = setInterval(async () => {
+      if (!settings || scanBusy) return;
+
+      const result = await scan("intervalo");
+      if (result || !settings) return;
+
+      if (settings.autoRefresh) {
+        sessionStorage.setItem("stopkar-full-reopen-calendar", "1");
+        await report({ statusDetail: "Data ainda nao apareceu. Atualizando e reabrindo o calendario..." });
+        window.location.reload();
+        return;
+      }
+
+      await ensureCalendarOpen(3);
+    }, intervalMs);
   };
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -387,7 +415,7 @@
     try {
       const response = await chrome.runtime.sendMessage({ type: "GET_CONFIG_FOR_TAB" });
       if (response?.active && response.settings) {
-        await startLocal(response.settings);
+        await startLocal(response.settings, Number(response.runtime?.attempts || 0));
       }
     } catch (_) {}
   })();
