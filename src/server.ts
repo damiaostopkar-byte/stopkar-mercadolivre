@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.3";
+const SERVER_VERSION = "0.17.4";
 
 function textResult(value: unknown) {
   return {
@@ -1824,6 +1824,162 @@ function createServer(env: Env) {
       const currencyId = String(sourceItem?.currency_id ?? "BRL").trim() || "BRL";
       if (!categoryId) {
         throw new Error("O anuncio de referencia nao informou category_id.");
+      }
+
+      const existingCondition = items.find(
+        (item: any) =>
+          String(item?.id ?? "") !== String(sourceItem?.id ?? "") &&
+          String(item?.listing_type_id ?? "") === String(listing_type_id)
+      );
+
+      if (existingCondition) {
+        const existingId = String(existingCondition?.id ?? "");
+        const existingRaw = await meliGet(
+          env,
+          `/items/${encodeURIComponent(existingId)}`,
+          { include_attributes: "all" }
+        );
+
+        const sourceSku = String(getSellerSku(sourceItem) ?? "").trim();
+        const targetSku = String(getSellerSku(existingRaw) ?? "").trim();
+
+        let sourceFiscal: any = null;
+        let sourceFiscalError: string | null = null;
+        try {
+          sourceFiscal = await meliGet(
+            env,
+            `/items/${encodeURIComponent(String(sourceItem?.id))}/fiscal_information/detail`
+          );
+        } catch (error) {
+          sourceFiscalError = error instanceof Error ? error.message : String(error);
+        }
+
+        let targetFiscal: any = null;
+        let targetFiscalError: string | null = null;
+        try {
+          targetFiscal = await meliGet(
+            env,
+            `/items/${encodeURIComponent(existingId)}/fiscal_information/detail`
+          );
+        } catch (error) {
+          targetFiscalError = error instanceof Error ? error.message : String(error);
+        }
+
+        let targetCanInvoice: any = null;
+        let targetCanInvoiceError: string | null = null;
+        try {
+          targetCanInvoice = await meliGet(
+            env,
+            `/can_invoice/items/${encodeURIComponent(existingId)}`
+          );
+        } catch (error) {
+          targetCanInvoiceError = error instanceof Error ? error.message : String(error);
+        }
+
+        let moderation: any = null;
+        let moderationError: string | null = null;
+        try {
+          moderation = await meliGet(
+            env,
+            `/items/${encodeURIComponent(existingId)}/last_moderations`
+          );
+        } catch (error) {
+          moderationError = error instanceof Error ? error.message : String(error);
+        }
+
+        const existingPreview = {
+          acao: confirmar ? "recuperar_condicao_existente" : "condicao_existente",
+          user_product_id,
+          item_origem: compactItem(sourceItem),
+          condicao_existente: compactItem(existingRaw),
+          fiscal: {
+            mesmo_sku: Boolean(sourceSku && targetSku && sourceSku === targetSku),
+            sku: targetSku || sourceSku || null,
+            origem: sourceFiscal,
+            origem_error: sourceFiscalError,
+            destino: targetFiscal,
+            destino_error: targetFiscalError,
+            can_invoice: targetCanInvoice,
+            can_invoice_error: targetCanInvoiceError
+          },
+          moderacao: moderation,
+          moderacao_error: moderationError
+        };
+
+        if (!confirmar) return textResult(existingPreview);
+        if (!motivo || motivo.trim().length < 5) {
+          throw new Error(
+            "Para recuperar/ativar a condicao existente, informe um motivo com pelo menos 5 caracteres."
+          );
+        }
+        requireListingWritesEnabled(env);
+
+        let fiscalLink: any = null;
+        let fiscalLinkError: string | null = null;
+        if (sourceSku && targetSku && sourceSku === targetSku && sourceFiscal) {
+          try {
+            fiscalLink = await meliWrite(
+              env,
+              "POST",
+              "/items/fiscal_information/items",
+              { sku: targetSku, item_id: existingId, variation_id: "" }
+            );
+          } catch (error) {
+            fiscalLinkError = error instanceof Error ? error.message : String(error);
+          }
+        }
+
+        let canInvoiceAfter: any = null;
+        let canInvoiceAfterError: string | null = null;
+        try {
+          canInvoiceAfter = await meliGet(
+            env,
+            `/can_invoice/items/${encodeURIComponent(existingId)}`
+          );
+        } catch (error) {
+          canInvoiceAfterError = error instanceof Error ? error.message : String(error);
+        }
+
+        let activation: any = null;
+        let activationError: string | null = null;
+        if (canInvoiceAfter?.status === true) {
+          try {
+            activation = await meliWrite(
+              env,
+              "PUT",
+              `/items/${encodeURIComponent(existingId)}`,
+              { status: "active" }
+            );
+          } catch (error) {
+            activationError = error instanceof Error ? error.message : String(error);
+          }
+        }
+
+        const finalRaw = await meliGet(
+          env,
+          `/items/${encodeURIComponent(existingId)}`,
+          { include_attributes: "all" }
+        );
+
+        return textResult({
+          ...existingPreview,
+          acao:
+            canInvoiceAfter?.status !== true
+              ? "fiscal_nao_apto"
+              : activationError
+                ? "ativacao_falhou"
+                : "ativacao_tentada",
+          fiscal_link: fiscalLink?.data ?? null,
+          fiscal_link_error: fiscalLinkError,
+          can_invoice_final: canInvoiceAfter,
+          can_invoice_final_error: canInvoiceAfterError,
+          ativacao: activation?.data ?? null,
+          ativacao_error: activationError,
+          anuncio_final: compactItem(finalRaw),
+          full_confirmado:
+            String(finalRaw?.shipping?.logistic_type ?? "") === "fulfillment" &&
+            Boolean(finalRaw?.inventory_id)
+        });
       }
 
       let stock: any = null;
