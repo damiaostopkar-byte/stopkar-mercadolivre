@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.16.0";
+const SERVER_VERSION = "0.17.0";
 
 function textResult(value: unknown) {
   return {
@@ -1752,6 +1752,352 @@ function createServer(env: Env) {
         total_items: resolved.items.length,
         erros_detalhes: resolved.errors.slice(0, 5),
         items: resolved.items.map((item: any) => compactItem(item))
+      });
+    }
+  );
+
+
+  server.registerTool(
+    "criar_anuncio_user_product",
+    {
+      description:
+        "Pre-visualiza ou cria uma nova condicao de venda (MLB) vinculada a um User Product existente. Herda titulo, atributos, fotos e estoque do User Product. Pode exigir que o novo anuncio use Mercado Envios Full e pausa automaticamente a nova condicao se a verificacao pos-criacao nao confirmar Full.",
+      inputSchema: {
+        user_product_id: z.string().regex(/^MLBU\d+$/),
+        preco: z.number().positive(),
+        listing_type_id: z.enum(["gold_special", "gold_pro"]).optional().default("gold_special"),
+        item_origem_id: z.string().regex(/^MLB\d+$/).optional(),
+        free_shipping: z.boolean().optional(),
+        exigir_full: z.boolean().optional().default(true),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({
+      user_product_id,
+      preco,
+      listing_type_id,
+      item_origem_id,
+      free_shipping,
+      exigir_full,
+      confirmar,
+      motivo
+    }) => {
+      const resolved = await resolveListingReference(env, user_product_id);
+      const items = resolved.items;
+      if (items.length >= 30) {
+        return textResult({
+          acao: "bloqueado_limite_condicoes",
+          user_product_id,
+          total_condicoes: items.length,
+          mensagem:
+            "Este User Product ja atingiu o limite de 30 condicoes de venda informado pelo Mercado Livre."
+        });
+      }
+
+      let sourceItem: any = null;
+      if (item_origem_id) {
+        sourceItem = items.find((item: any) => String(item?.id) === String(item_origem_id));
+        if (!sourceItem) {
+          throw new Error("O item_origem_id informado nao pertence ao User Product.");
+        }
+      } else if (items.length === 1) {
+        sourceItem = items[0];
+      } else {
+        return textResult({
+          acao: "bloqueado_por_ambiguidade",
+          user_product_id,
+          mensagem:
+            "Este User Product possui mais de uma condicao de venda. Informe item_origem_id para definir categoria, canal e configuracao de envio que servirao de referencia.",
+          items: items.map((item: any) => ({
+            mlb: item?.id ?? null,
+            title: item?.title ?? null,
+            price: item?.price ?? null,
+            listing_type_id: item?.listing_type_id ?? null,
+            logistic_type: item?.shipping?.logistic_type ?? null,
+            inventory_id: item?.inventory_id ?? null
+          }))
+        });
+      }
+
+      const categoryId = String(sourceItem?.category_id ?? "").trim();
+      const currencyId = String(sourceItem?.currency_id ?? "BRL").trim() || "BRL";
+      if (!categoryId) {
+        throw new Error("O anuncio de referencia nao informou category_id.");
+      }
+
+      let stock: any = null;
+      let stockError: string | null = null;
+      try {
+        stock = await meliGet(
+          env,
+          `/user-products/${encodeURIComponent(user_product_id)}/stock`
+        );
+      } catch (error) {
+        stockError = error instanceof Error ? error.message : String(error);
+      }
+      const stockLocations = Array.isArray(stock?.locations) ? stock.locations : [];
+      const fullStock = stockLocations
+        .filter((location: any) => String(location?.type) === "meli_facility")
+        .reduce((sum: number, location: any) => {
+          const quantity = Number(location?.quantity);
+          return sum + (Number.isFinite(quantity) ? quantity : 0);
+        }, 0);
+
+      let shippability: any = null;
+      let shippabilityError: string | null = null;
+      try {
+        shippability = await meliGet(
+          env,
+          `/customers/marketplace/sites/MLB/user-products/${encodeURIComponent(
+            user_product_id
+          )}/contracts/shippability/services`,
+          { legacy_attributes: "true" }
+        );
+      } catch (error) {
+        shippabilityError = error instanceof Error ? error.message : String(error);
+      }
+      const services = Array.isArray(shippability?.services) ? shippability.services : [];
+      const fullServiceAvailable = services.some((service: any) => {
+        if (String(service?.legacy_attributes?.logistic_type ?? "") === "fulfillment") {
+          return true;
+        }
+        const attrs = Array.isArray(service?.distribution_attributes)
+          ? service.distribution_attributes
+          : [];
+        return attrs.some((entry: any) => String(entry?.stock_origin ?? "") === "meli");
+      });
+
+      const sourceShipping = sourceItem?.shipping ?? {};
+      const sourceIsFull =
+        String(sourceShipping?.logistic_type ?? "") === "fulfillment" ||
+        Boolean(sourceItem?.inventory_id);
+
+      const shipping: Record<string, unknown> = {};
+      if (sourceShipping?.mode) shipping.mode = sourceShipping.mode;
+      const chosenFreeShipping =
+        typeof free_shipping === "boolean" ? free_shipping : sourceShipping?.free_shipping;
+      if (typeof chosenFreeShipping === "boolean") {
+        shipping.free_shipping = chosenFreeShipping;
+      }
+      if (typeof sourceShipping?.local_pick_up === "boolean") {
+        shipping.local_pick_up = sourceShipping.local_pick_up;
+      }
+      if (exigir_full && sourceIsFull) {
+        shipping.logistic_type = "fulfillment";
+      }
+
+      const channels =
+        Array.isArray(sourceItem?.channels) && sourceItem.channels.length > 0
+          ? sourceItem.channels
+          : ["marketplace"];
+
+      const body: Record<string, unknown> = {
+        price: Number(preco),
+        category_id: categoryId,
+        currency_id: currencyId,
+        buying_mode: "buy_it_now",
+        listing_type_id,
+        channels
+      };
+      if (Object.keys(shipping).length > 0) body.shipping = shipping;
+      if (sourceItem?.catalog_listing === true) {
+        if (!sourceItem?.catalog_product_id) {
+          throw new Error(
+            "O anuncio de referencia e de catalogo, mas nao informou catalog_product_id."
+          );
+        }
+        body.catalog_listing = true;
+        body.catalog_product_id = sourceItem.catalog_product_id;
+      } else {
+        body.catalog_listing = false;
+      }
+
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        user_product_id,
+        item_origem: {
+          mlb: sourceItem?.id ?? null,
+          title: sourceItem?.title ?? null,
+          category_id: sourceItem?.category_id ?? null,
+          price: sourceItem?.price ?? null,
+          listing_type_id: sourceItem?.listing_type_id ?? null,
+          logistic_type: sourceShipping?.logistic_type ?? null,
+          inventory_id: sourceItem?.inventory_id ?? null
+        },
+        nova_condicao: {
+          preco: Number(preco),
+          listing_type_id,
+          free_shipping:
+            typeof chosenFreeShipping === "boolean" ? chosenFreeShipping : null,
+          exigir_full
+        },
+        estoque_user_product: {
+          total_reportado: stock?.total ?? stock?.available_quantity ?? null,
+          full_meli_facility: fullStock,
+          locations: stockLocations
+        },
+        elegibilidade_envio: {
+          full_disponivel: fullServiceAvailable,
+          erro_consulta: shippabilityError
+        },
+        body_publicacao: body,
+        observacoes: [
+          "O Mercado Livre herda titulo, atributos, fotos e estoque do User Product; esses campos nao sao enviados.",
+          exigir_full
+            ? "A ferramenta exige Full: valida estoque/servico antes e confirma a logistica depois da criacao."
+            : "A ferramenta nao exigira Full nesta criacao."
+        ],
+        erros_consulta: {
+          estoque: stockError,
+          shippability: shippabilityError
+        },
+        escrita_anuncios_habilitada: listingWritesEnabled(env)
+      };
+
+      if (exigir_full && !sourceIsFull) {
+        return textResult({
+          ...preview,
+          acao: "bloqueado_origem_nao_full",
+          mensagem:
+            "O item de referencia nao esta identificado como Full. Escolha um MLB de origem com logistic_type=fulfillment/inventory_id."
+        });
+      }
+      if (exigir_full && stock && fullStock <= 0) {
+        return textResult({
+          ...preview,
+          acao: "bloqueado_sem_estoque_full",
+          mensagem:
+            "O User Product nao possui estoque em meli_facility (Full) no momento. Nenhum anuncio sera criado."
+        });
+      }
+      if (exigir_full && shippability && !fullServiceAvailable) {
+        return textResult({
+          ...preview,
+          acao: "bloqueado_sem_servico_full",
+          mensagem:
+            "O Mercado Livre nao informou o servico Full como disponivel para este User Product. Nenhum anuncio sera criado."
+        });
+      }
+      if (!confirmar) return textResult(preview);
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error(
+          "Para criar a nova condicao de venda, informe um motivo com pelo menos 5 caracteres."
+        );
+      }
+
+      requireListingWritesEnabled(env);
+      const write = await meliWrite(
+        env,
+        "POST",
+        `/user-products/${encodeURIComponent(user_product_id)}/items`,
+        body
+      );
+      const createdId = String(write?.data?.id ?? "");
+      if (!/^MLB\d+$/.test(createdId)) {
+        throw new Error(
+          "O Mercado Livre respondeu a criacao, mas nao retornou um item_id MLB valido."
+        );
+      }
+
+      const createdRaw = await meliGet(
+        env,
+        `/items/${encodeURIComponent(createdId)}`,
+        { include_attributes: "all" }
+      );
+      const created = compactItem(createdRaw);
+      const sameUserProduct =
+        String(createdRaw?.user_product_id ?? "") === String(user_product_id);
+      const createdIsFull =
+        String(createdRaw?.shipping?.logistic_type ?? "") === "fulfillment" ||
+        Boolean(createdRaw?.inventory_id);
+
+      let rollback: any = null;
+      if (!sameUserProduct || (exigir_full && !createdIsFull)) {
+        try {
+          const paused = await meliWrite(
+            env,
+            "PUT",
+            `/items/${encodeURIComponent(createdId)}`,
+            { status: "paused" }
+          );
+          rollback = {
+            executado: true,
+            status: "paused",
+            endpoint: paused.path_used
+          };
+        } catch (error) {
+          rollback = {
+            executado: false,
+            erro: error instanceof Error ? error.message : String(error)
+          };
+        }
+
+        const audit_id = await recordOperationAudit(
+          env,
+          "listing:create:user_product:audit",
+          {
+            tipo: "create_user_product_item_verification_failed",
+            user_product_id,
+            motivo: motivo.trim(),
+            item_origem_id: sourceItem?.id ?? null,
+            solicitado: body,
+            criado: created,
+            verificacoes: {
+              same_user_product: sameUserProduct,
+              full_confirmado: createdIsFull
+            },
+            rollback,
+            endpoint: write.path_used
+          }
+        );
+
+        return textResult({
+          ...preview,
+          acao: "criado_mas_pausado_por_seguranca",
+          audit_id,
+          mlb_criado: createdId,
+          endpoint_utilizado: write.path_used,
+          verificacoes: {
+            mesmo_user_product: sameUserProduct,
+            full_confirmado: createdIsFull
+          },
+          rollback,
+          anuncio_criado: created,
+          mensagem:
+            "A nova condicao foi criada, mas a verificacao de seguranca nao confirmou todos os requisitos. A ferramenta tentou pausa-la imediatamente."
+        });
+      }
+
+      const audit_id = await recordOperationAudit(
+        env,
+        "listing:create:user_product:audit",
+        {
+          tipo: "create_user_product_item",
+          user_product_id,
+          motivo: motivo.trim(),
+          item_origem_id: sourceItem?.id ?? null,
+          solicitado: body,
+          criado: created,
+          verificacoes: {
+            same_user_product: sameUserProduct,
+            full_confirmado: createdIsFull
+          },
+          endpoint: write.path_used
+        }
+      );
+
+      return textResult({
+        ...preview,
+        acao: "gravado",
+        audit_id,
+        mlb_criado: createdId,
+        endpoint_utilizado: write.path_used,
+        verificacoes: {
+          mesmo_user_product: sameUserProduct,
+          full_confirmado: createdIsFull
+        },
+        anuncio_criado: created
       });
     }
   );
