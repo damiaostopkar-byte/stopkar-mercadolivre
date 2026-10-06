@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.9";
+const SERVER_VERSION = "0.17.10";
 
 function textResult(value: unknown) {
   return {
@@ -1877,16 +1877,7 @@ function createServer(env: Env) {
           channels:
             Array.isArray(sourceRaw?.channels) && sourceRaw.channels.length > 0
               ? sourceRaw.channels
-              : ["marketplace"],
-          shipping: {
-            mode: String(sourceRaw?.shipping?.mode ?? "me2"),
-            free_shipping:
-              typeof free_shipping === "boolean"
-                ? free_shipping
-                : typeof sourceRaw?.shipping?.free_shipping === "boolean"
-                  ? sourceRaw.shipping.free_shipping
-                  : true
-          }
+              : ["marketplace"]
         };
 
         let validationError: string | null = null;
