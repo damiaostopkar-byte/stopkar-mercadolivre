@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Stop Kar Full Scheduler",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Monitora datas de agendamento do Mercado Envios Full na sessao aberta do navegador.",
   "permissions": ["storage", "tabs", "notifications"],
   "host_permissions": [
