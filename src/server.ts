@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.8";
+const SERVER_VERSION = "0.17.9";
 
 function textResult(value: unknown) {
   return {
@@ -1832,6 +1832,7 @@ function createServer(env: Env) {
         const attributes = sourceAttributes
           .filter((attribute: any) => {
             if (!attribute?.id) return false;
+            if (String(attribute.id) === "WEIGHT") return false;
             const def: any = defsById.get(String(attribute.id));
             if (!def) return false;
             if (def?.tags?.read_only === true) return false;
@@ -1844,7 +1845,8 @@ function createServer(env: Env) {
             const result: Record<string, unknown> = { id: String(attribute.id) };
             if (valueId !== null && valueId !== undefined) {
               result.value_id = String(valueId);
-            } else if (
+            }
+            if (
               valueName !== null &&
               valueName !== undefined &&
               String(valueName).trim() !== ""
