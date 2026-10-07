@@ -1,3 +1,13 @@
+const VERSION = "0.4.1";
+
+const DEFAULT_SETTINGS = {
+  targetDates: [],
+  intervalSeconds: 30,
+  mode: "select",
+  autoRefresh: true,
+  stopAfterFound: true
+};
+
 const DEFAULT_RUNTIME = {
   enabled: false,
   boundTabId: null,
@@ -11,10 +21,20 @@ const DEFAULT_RUNTIME = {
 };
 
 chrome.runtime.onInstalled.addListener(async () => {
-  const current = await chrome.storage.local.get(["runtime"]);
-  if (!current.runtime) {
-    await chrome.storage.local.set({ runtime: DEFAULT_RUNTIME });
+  const current = await chrome.storage.local.get(["settings", "runtime", "configVersion"]);
+  const settings = { ...DEFAULT_SETTINGS, ...(current.settings || {}) };
+
+  if (current.configVersion !== VERSION) {
+    settings.mode = "select";
+    settings.autoRefresh = true;
+    settings.stopAfterFound = true;
   }
+
+  await chrome.storage.local.set({
+    settings,
+    runtime: DEFAULT_RUNTIME,
+    configVersion: VERSION
+  });
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -53,8 +73,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       runtime.status = "found";
       runtime.statusDetail = message.mode === "select"
-        ? "Data localizada e selecionada. Confirme manualmente no Mercado Livre."
-        : "Data localizada. Abra a aba do Mercado Livre para revisar.";
+        ? "Data confirmada no campo de coleta. Falta apenas a confirmacao final da pagina."
+        : "Data selecionavel localizada. Abra a aba do Mercado Livre para revisar.";
       runtime.foundDate = message.date || null;
       runtime.foundText = message.text || null;
       runtime.lastCheckAt = Date.now();
@@ -64,10 +84,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       await chrome.notifications.create(`stopkar-full-${Date.now()}`, {
         type: "basic",
         iconUrl: chrome.runtime.getURL("assets/icon128.png"),
-        title: "Stop Kar Full: data encontrada",
+        title: message.mode === "select"
+          ? "Stop Kar Full: data confirmada"
+          : "Stop Kar Full: data disponivel",
         message: message.mode === "select"
-          ? `A data ${message.dateLabel || message.date || "desejada"} foi selecionada. Falta confirmar manualmente.`
-          : `A data ${message.dateLabel || message.date || "desejada"} apareceu no agendamento.`
+          ? `A data ${message.dateLabel || message.date || "desejada"} foi aplicada no campo de coleta. Falta confirmar a pagina.`
+          : `A data ${message.dateLabel || message.date || "desejada"} esta selecionavel.`
       });
 
       sendResponse({ ok: true, stop: settings.stopAfterFound !== false });
