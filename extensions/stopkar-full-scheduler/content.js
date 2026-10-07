@@ -128,89 +128,181 @@
     } catch (_) {}
   };
 
+  const textElements = (needle, exact = false) => {
+    const wanted = normalize(needle);
+    return Array.from(document.querySelectorAll("h1,h2,h3,h4,h5,h6,label,p,span,div,button"))
+      .filter(visible)
+      .filter((el) => {
+        const text = normalize(el.textContent);
+        return exact ? text === wanted : text.includes(wanted);
+      });
+  };
+
+  const smartClick = async (el) => {
+    if (!(el instanceof Element) || explicitlyDisabled(el)) return false;
+    try {
+      el.scrollIntoView({ block: "center", inline: "nearest" });
+      el.focus?.({ preventScroll: true });
+      el.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true, view: window }));
+      el.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, cancelable: true, view: window }));
+      el.click();
+      await sleep(250);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  const closestPanel = (heading, predicate) => {
+    if (!(heading instanceof Element)) return null;
+    let node = heading;
+    for (let depth = 0; depth < 10 && node; depth += 1) {
+      if (visible(node)) {
+        const rect = node.getBoundingClientRect();
+        if (rect.width > 250 && rect.height > 80 && rect.height < 650 && (!predicate || predicate(node))) return node;
+      }
+      node = node.parentElement;
+    }
+    return null;
+  };
+
   const appointmentSection = () => {
-    const nodes = Array.from(document.querySelectorAll("section,form,div")).filter(visible);
-    const hits = nodes.filter((el) => normalize(el.textContent).includes("quando quer que a coleta"));
-    if (!hits.length) return null;
-    return hits.sort((a, b) => a.getBoundingClientRect().height - b.getBoundingClientRect().height)[0];
+    const headings = textElements("quando quer que a coleta");
+    for (const heading of headings) {
+      const panel = closestPanel(heading, (node) => normalize(node.textContent).includes("escolha um dia"));
+      if (panel) return panel;
+    }
+    return null;
+  };
+
+  const boxAroundText = (textEl, maxDepth = 6) => {
+    let node = textEl;
+    for (let depth = 0; depth < maxDepth && node; depth += 1) {
+      if (visible(node)) {
+        const rect = node.getBoundingClientRect();
+        const style = window.getComputedStyle(node);
+        const hasBorder = style.borderStyle !== "none" && Number.parseFloat(style.borderWidth || "0") > 0;
+        const interactive = node.matches?.("button,input,[role='button'],[role='combobox'],[tabindex]");
+        if (rect.width >= 180 && rect.width <= 900 && rect.height >= 34 && rect.height <= 100 && (hasBorder || interactive)) return node;
+      }
+      node = node.parentElement;
+    }
+    return textEl;
   };
 
   const appointmentField = () => {
+    const directText = textElements("escolha um dia", true)[0] ||
+      textElements("selecione um dia", true)[0] ||
+      textElements("selecionar um dia", true)[0];
+    if (directText) return boxAroundText(directText);
+
     const section = appointmentSection();
     if (!section) return null;
 
-    const controls = Array.from(section.querySelectorAll("input,button,[role='button'],[tabindex]")).filter(visible);
-    const byText = controls.find((el) => {
-      const text = getText(el);
-      return text.includes("escolha um dia") || text.includes("selecione um dia") || text.includes("selecionar um dia");
-    });
-    if (byText) return byText;
-
+    const controls = Array.from(section.querySelectorAll("input,button,[role='button'],[role='combobox'],[tabindex]")).filter(visible);
     const dateInput = controls.find((el) => el.getAttribute?.("type") === "date");
     if (dateInput) return dateInput;
 
     const formattedDate = controls.find((el) => /\b\d{1,2}\/\d{1,2}(?:\/\d{4})?\b/.test(getText(el)));
     if (formattedDate) return formattedDate;
 
-    return controls.find((el) => {
-      const text = getText(el);
-      return text.includes("dia") || text.includes("data");
-    }) || controls[0] || null;
+    const boxes = Array.from(section.querySelectorAll("div,span")).filter(visible).filter((el) => {
+      const rect = el.getBoundingClientRect();
+      const style = window.getComputedStyle(el);
+      const hasBorder = style.borderStyle !== "none" && Number.parseFloat(style.borderWidth || "0") > 0;
+      return hasBorder && rect.width >= 180 && rect.height >= 34 && rect.height <= 100;
+    });
+    return boxes.sort((a, b) => a.getBoundingClientRect().width - b.getBoundingClientRect().width)[0] || controls[0] || null;
   };
 
   const shippingSection = () => {
-    const nodes = Array.from(document.querySelectorAll("section,form,div")).filter(visible);
-    const hits = nodes.filter((el) => normalize(el.textContent).includes("escolha como voce deseja envia-los"));
-    if (!hits.length) return null;
-    return hits.sort((a, b) => a.getBoundingClientRect().height - b.getBoundingClientRect().height)[0];
+    const headings = textElements("escolha como voce deseja envia-los");
+    for (const heading of headings) {
+      const panel = closestPanel(heading);
+      if (panel) return panel;
+    }
+    return null;
+  };
+
+  const shippingControl = () => {
+    const section = shippingSection();
+    if (!section) return null;
+
+    const heading = textElements("escolha como voce deseja envia-los").find((el) => section.contains(el));
+    const headingBottom = heading ? heading.getBoundingClientRect().bottom : section.getBoundingClientRect().top;
+
+    const interactive = Array.from(section.querySelectorAll("button,[role='button'],[role='combobox'],input,[tabindex]"))
+      .filter(visible)
+      .filter((el) => !explicitlyDisabled(el))
+      .filter((el) => el.getBoundingClientRect().top >= headingBottom - 4);
+    if (interactive.length) {
+      return interactive.sort((a, b) => {
+        const ar = a.getBoundingClientRect();
+        const br = b.getBoundingClientRect();
+        return (ar.width * ar.height) - (br.width * br.height);
+      })[0];
+    }
+
+    const boxes = Array.from(section.querySelectorAll("div,span"))
+      .filter(visible)
+      .filter((el) => {
+        const rect = el.getBoundingClientRect();
+        const style = window.getComputedStyle(el);
+        const hasBorder = style.borderStyle !== "none" && Number.parseFloat(style.borderWidth || "0") > 0;
+        return hasBorder && rect.top >= headingBottom - 4 && rect.width >= 220 && rect.height >= 36 && rect.height <= 90;
+      });
+    return boxes.sort((a, b) => {
+      const ar = a.getBoundingClientRect();
+      const br = b.getBoundingClientRect();
+      return ar.top - br.top || ar.width - br.width;
+    })[0] || null;
+  };
+
+  const pickupOption = () => {
+    const exact = textElements("coleta a domicilio", true);
+    if (!exact.length) return null;
+    const leaf = exact.sort((a, b) => {
+      const ar = a.getBoundingClientRect();
+      const br = b.getBoundingClientRect();
+      return (ar.width * ar.height) - (br.width * br.height);
+    })[0];
+    let node = leaf;
+    for (let depth = 0; depth < 5 && node; depth += 1) {
+      if (node.matches?.("button,[role='option'],[role='menuitem'],li,[tabindex]") && visible(node)) return node;
+      node = node.parentElement;
+    }
+    return leaf;
   };
 
   const ensurePickupMode = async () => {
     if (appointmentField()) return true;
 
-    for (let attempt = 0; attempt < 5; attempt += 1) {
+    for (let attempt = 0; attempt < 8; attempt += 1) {
       const section = shippingSection();
       if (!section) {
-        await sleep(700);
+        await sleep(600);
         continue;
       }
 
-      const sectionText = normalize(section.textContent);
-      if (sectionText.includes("coleta a domicilio")) {
-        for (let poll = 0; poll < 12; poll += 1) {
+      if (normalize(section.textContent).includes("coleta a domicilio")) {
+        for (let poll = 0; poll < 10; poll += 1) {
           if (appointmentField()) return true;
           await sleep(300);
         }
       }
 
-      const control = Array.from(section.querySelectorAll("button,[role='button'],[role='combobox'],input,[tabindex]"))
-        .filter(visible)
-        .find((el) => !explicitlyDisabled(el));
-
+      const control = shippingControl();
       if (control) {
-        try { control.click(); } catch (_) {}
-        await sleep(450);
+        await smartClick(control);
+        await sleep(350);
 
-        const options = Array.from(document.querySelectorAll("button,[role='option'],[role='menuitem'],li,div,span"))
-          .filter(visible)
-          .filter((el) => {
-            const text = normalize(el.textContent);
-            if (text !== "coleta a domicilio") return false;
-            const rect = el.getBoundingClientRect();
-            return rect.width > 40 && rect.height > 12 && rect.width < 700 && rect.height < 120;
-          });
-
-        if (options.length) {
-          const option = options.sort((a, b) => {
-            const ar = a.getBoundingClientRect();
-            const br = b.getBoundingClientRect();
-            return (ar.width * ar.height) - (br.width * br.height);
-          })[0];
-          try { option.click(); } catch (_) {}
+        const option = pickupOption();
+        if (option) {
+          await smartClick(option);
         }
       }
 
-      for (let poll = 0; poll < 16; poll += 1) {
+      for (let poll = 0; poll < 18; poll += 1) {
         if (appointmentField()) return true;
         await sleep(300);
       }
@@ -273,8 +365,7 @@
       const field = appointmentField();
       if (field && !explicitlyDisabled(field)) {
         try {
-          field.scrollIntoView({ block: "center", inline: "nearest" });
-          field.click();
+          await smartClick(field);
         } catch (_) {}
       }
 
