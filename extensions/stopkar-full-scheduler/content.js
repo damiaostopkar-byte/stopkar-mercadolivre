@@ -1,11 +1,13 @@
 (() => {
-  if (window.__STOP_KAR_FULL_SCHEDULER__) return;
-  window.__STOP_KAR_FULL_SCHEDULER__ = true;
+  if (window.__STOP_KAR_FULL_SCHEDULER_V4__) return;
+  window.__STOP_KAR_FULL_SCHEDULER_V4__ = true;
 
   const MONTHS = [
     "janeiro", "fevereiro", "marco", "abril", "maio", "junho",
     "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
   ];
+
+  const WEEKDAYS = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
 
   let intervalHandle = null;
   let settings = null;
@@ -30,22 +32,46 @@
     return rect.width > 0 && rect.height > 0;
   };
 
-  const disabled = (el) => {
+  const explicitlyDisabled = (el) => {
+    if (!(el instanceof Element)) return true;
+    const style = window.getComputedStyle(el);
+    const cls = normalize(el.className);
     return Boolean(
       el.matches?.(":disabled") ||
+      el.hasAttribute?.("disabled") ||
       el.getAttribute?.("aria-disabled") === "true" ||
-      el.getAttribute?.("disabled") !== null
+      el.getAttribute?.("data-disabled") === "true" ||
+      el.getAttribute?.("data-unavailable") === "true" ||
+      cls.includes("disabled") ||
+      cls.includes("unavailable") ||
+      cls.includes("not-available") ||
+      cls.includes("blocked") ||
+      style.pointerEvents === "none"
     );
   };
 
+  const getText = (el) => normalize([
+    el?.getAttribute?.("aria-label"),
+    el?.getAttribute?.("title"),
+    el?.getAttribute?.("placeholder"),
+    el?.getAttribute?.("data-testid"),
+    el?.textContent,
+    el?.value
+  ].filter(Boolean).join(" "));
+
+  const dateParts = (iso) => {
+    const [year, month, day] = String(iso).split("-").map(Number);
+    return { year, month, day };
+  };
+
   const dateLabel = (iso) => {
-    const [year, month, day] = iso.split("-").map(Number);
-    if (!year || !month || !day) return iso;
+    const { year, month, day } = dateParts(iso);
+    if (!year || !month || !day) return String(iso || "");
     return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
   };
 
-  const patternsForDate = (iso) => {
-    const [year, month, day] = iso.split("-").map(Number);
+  const datePatterns = (iso) => {
+    const { year, month, day } = dateParts(iso);
     if (!year || !month || !day) return [];
     const dd = String(day).padStart(2, "0");
     const mm = String(month).padStart(2, "0");
@@ -55,36 +81,9 @@
       `${day}/${month}/${year}`,
       `${dd}/${mm}`,
       `${day}/${month}`,
-      `${dd} de ${monthName}`,
       `${day} de ${monthName}`,
-      `${monthName} ${dd}`,
-      `${monthName} ${day}`
+      `${dd} de ${monthName}`
     ].map(normalize);
-  };
-
-  const getText = (el) => normalize([
-    el.getAttribute?.("aria-label"),
-    el.getAttribute?.("title"),
-    el.getAttribute?.("placeholder"),
-    el.getAttribute?.("data-testid"),
-    el.textContent,
-    el.value
-  ].filter(Boolean).join(" "));
-
-  const getClickable = (el) => {
-    if (!(el instanceof Element)) return null;
-    const direct = el.closest("button, a, input, [role='button'], [role='option'], [role='gridcell'], [tabindex]");
-    if (direct && visible(direct) && !disabled(direct)) return direct;
-    if (visible(el) && !disabled(el)) return el;
-    return null;
-  };
-
-  const candidates = () => {
-    const selector = [
-      "button", "a", "input", "[role='button']", "[role='option']", "[role='gridcell']",
-      "[aria-label]", "[title]", "[placeholder]", "[data-testid]"
-    ].join(",");
-    return Array.from(document.querySelectorAll(selector)).filter(visible);
   };
 
   const setOverlay = (state, detail) => {
@@ -97,7 +96,7 @@
         right: "18px",
         bottom: "18px",
         zIndex: "2147483647",
-        width: "280px",
+        width: "300px",
         padding: "12px 14px",
         borderRadius: "12px",
         background: "#151515",
@@ -111,11 +110,11 @@
       document.documentElement.appendChild(overlay);
     }
 
-    const title = state === "found" ? "DATA ENCONTRADA" : state === "error" ? "ATENCAO" : "MONITORANDO FULL";
+    const title = state === "found" ? "DATA CONFIRMADA" : state === "error" ? "ATENCAO" : "MONITORANDO FULL";
     const accent = state === "found" ? "#5dd39e" : state === "error" ? "#ff6577" : "#ff9f1c";
     overlay.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
-        <img src="${logoUrl}" alt="Stop Kar" style="width:108px;height:auto;display:block" />
+        <img src="${logoUrl}" alt="Stop Kar" style="width:112px;height:auto;display:block" />
         <span style="font-weight:800;font-size:10px;letter-spacing:.06em;color:${accent};text-align:right">${title}</span>
       </div>
       <div style="height:1px;background:rgba(255,255,255,.12);margin-bottom:8px"></div>
@@ -129,202 +128,217 @@
     } catch (_) {}
   };
 
-  const markFound = (el) => {
-    el.style.setProperty("outline", "4px solid #ff9f1c", "important");
-    el.style.setProperty("outline-offset", "3px", "important");
-    el.style.setProperty("box-shadow", "0 0 0 7px rgba(255,159,28,.20)", "important");
-    el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+  const appointmentSection = () => {
+    const nodes = Array.from(document.querySelectorAll("section,form,div")).filter(visible);
+    const hits = nodes.filter((el) => normalize(el.textContent).includes("quando quer que a coleta"));
+    if (!hits.length) return null;
+    return hits.sort((a, b) => a.getBoundingClientRect().height - b.getBoundingClientRect().height)[0];
   };
 
-  const calendarContainers = () => {
-    const monthRegex = new RegExp("^(" + MONTHS.join("|") + ")\\s+\\d{4}$", "i");
+  const appointmentField = () => {
+    const section = appointmentSection();
+    if (!section) return null;
+
+    const controls = Array.from(section.querySelectorAll("input,button,[role='button'],[tabindex]")).filter(visible);
+    const byText = controls.find((el) => {
+      const text = getText(el);
+      return text.includes("escolha um dia") || text.includes("selecione um dia") || text.includes("selecionar um dia");
+    });
+    if (byText) return byText;
+
+    const dateInput = controls.find((el) => el.getAttribute?.("type") === "date");
+    if (dateInput) return dateInput;
+
+    const formattedDate = controls.find((el) => /\b\d{1,2}\/\d{1,2}(?:\/\d{4})?\b/.test(getText(el)));
+    if (formattedDate) return formattedDate;
+
+    return controls.find((el) => {
+      const text = getText(el);
+      return text.includes("dia") || text.includes("data");
+    }) || controls[0] || null;
+  };
+
+  const appointmentFieldMatches = (iso) => {
+    const field = appointmentField();
+    if (!field) return false;
+    const text = getText(field);
+    return datePatterns(iso).some((pattern) => text.includes(pattern));
+  };
+
+  const calendarRoot = () => {
+    const monthRegex = new RegExp(`^(${MONTHS.join("|")})\\s+\\d{4}$`, "i");
     const headings = Array.from(document.querySelectorAll("div,span,p,h1,h2,h3,h4,[role='heading']"))
       .filter(visible)
       .filter((el) => monthRegex.test(normalize(el.textContent)));
 
-    const roots = [];
+    const candidates = [];
     for (const heading of headings) {
       let node = heading;
-      for (let depth = 0; depth < 8 && node?.parentElement; depth += 1) {
+      for (let depth = 0; depth < 9 && node?.parentElement; depth += 1) {
         node = node.parentElement;
         if (!visible(node)) continue;
 
-        const confirmButton = Array.from(node.querySelectorAll("button,[role='button']"))
+        const confirm = Array.from(node.querySelectorAll("button,[role='button']"))
           .find((el) => visible(el) && normalize(el.textContent) === "confirmar");
 
-        if (confirmButton) {
-          roots.push(node);
-          break;
-        }
+        if (!confirm) continue;
+
+        const rect = node.getBoundingClientRect();
+        if (rect.width < 180 || rect.height < 180 || rect.width > 700 || rect.height > 800) continue;
+
+        candidates.push(node);
+        break;
       }
     }
 
-    return Array.from(new Set(roots));
+    if (!candidates.length) return null;
+    return candidates.sort((a, b) => {
+      const ar = a.getBoundingClientRect();
+      const br = b.getBoundingClientRect();
+      return (ar.width * ar.height) - (br.width * br.height);
+    })[0];
   };
 
-  const calendarLooksOpen = () => calendarContainers().length > 0;
-
-  const findDatePickerTrigger = () => {
-    const exactTerms = [
-      "escolha um dia",
-      "escolher um dia",
-      "selecione um dia",
-      "selecionar um dia"
-    ];
-
-    for (const el of candidates()) {
-      const text = getText(el);
-      if (!text) continue;
-      if (exactTerms.some((term) => text.includes(term))) {
-        return getClickable(el);
-      }
-    }
-
-    const sections = Array.from(document.querySelectorAll("section,div,form")).filter(visible);
-    for (const section of sections) {
-      const sectionText = normalize(section.textContent);
-      if (!sectionText.includes("quando quer que a coleta")) continue;
-
-      const trigger = Array.from(section.querySelectorAll("button,input,[role='button']"))
-        .filter((el) => visible(el) && !disabled(el))
-        .find((el) => {
-          const text = getText(el);
-          return text.includes("dia") || text.includes("data") || el.getAttribute("type") === "date";
-        });
-
-      if (trigger) return trigger;
-    }
-
-    return null;
+  const calendarConfirm = (root) => {
+    if (!(root instanceof Element)) return null;
+    return Array.from(root.querySelectorAll("button,[role='button']"))
+      .find((el) => visible(el) && normalize(el.textContent) === "confirmar") || null;
   };
 
   const ensureCalendarOpen = async () => {
-    if (calendarLooksOpen()) return true;
+    if (calendarRoot()) return true;
 
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      const trigger = findDatePickerTrigger();
-      if (!trigger) {
-        await sleep(600);
-        continue;
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const field = appointmentField();
+      if (field && !explicitlyDisabled(field)) {
+        try {
+          field.scrollIntoView({ block: "center", inline: "nearest" });
+          field.click();
+        } catch (_) {}
       }
-
-      try {
-        trigger.scrollIntoView({ block: "center", inline: "nearest" });
-        trigger.click();
-      } catch (_) {}
 
       for (let poll = 0; poll < 12; poll += 1) {
         await sleep(250);
-        if (calendarLooksOpen()) return true;
+        if (calendarRoot()) return true;
       }
     }
 
     return false;
   };
 
-  const restoreCalendarAfterReload = async () => {
-    const shouldRestore = sessionStorage.getItem("stopkar-full-reopen-calendar") === "1";
-    if (!shouldRestore) return false;
+  const leafDayNodes = (root) => {
+    if (!(root instanceof Element)) return [];
+    const raw = Array.from(root.querySelectorAll(
+      "button,[role='button'],[role='gridcell'],[tabindex],[aria-label],[title],span,div"
+    )).filter(visible).filter((el) => {
+      const text = normalize(el.textContent);
+      if (!/^([1-9]|[12][0-9]|3[01])$/.test(text)) return false;
+      const rect = el.getBoundingClientRect();
+      if (rect.width < 8 || rect.height < 8 || rect.width > 90 || rect.height > 90) return false;
+      const childHasSameNumber = Array.from(el.children || []).some((child) => normalize(child.textContent) === text);
+      return !childHasSameNumber;
+    });
 
-    sessionStorage.removeItem("stopkar-full-reopen-calendar");
-    setOverlay("running", "Pagina atualizada. Reabrindo o calendario...");
-    await report({ statusDetail: "Pagina atualizada. Reabrindo o calendario..." });
-
-    await sleep(900);
-    const opened = await ensureCalendarOpen();
-
-    if (!opened) {
-      await report({
-        status: "error",
-        statusDetail: "A pagina carregou, mas nao consegui abrir o calendario automaticamente."
-      });
-    }
-    return opened;
-  };
-
-  const unavailable = (el) => {
-    if (!(el instanceof Element)) return true;
-
-    let node = el;
-    for (let depth = 0; depth < 4 && node; depth += 1) {
-      const cls = normalize(node.className);
-      const aria = normalize(node.getAttribute?.("aria-disabled"));
-      const dataDisabled = normalize(node.getAttribute?.("data-disabled"));
-      const dataUnavailable = normalize(node.getAttribute?.("data-unavailable"));
-      const style = window.getComputedStyle(node);
-
-      if (
-        node.matches?.(":disabled") ||
-        node.hasAttribute?.("disabled") ||
-        aria === "true" ||
-        dataDisabled === "true" ||
-        dataUnavailable === "true" ||
-        cls.includes("disabled") ||
-        cls.includes("unavailable") ||
-        cls.includes("blocked") ||
-        cls.includes("not-available") ||
-        style.pointerEvents === "none"
-      ) return true;
-
-      node = node.parentElement;
+    const byPosition = new Map();
+    for (const el of raw) {
+      const rect = el.getBoundingClientRect();
+      const key = `${Math.round((rect.left + rect.width / 2) / 3)}:${Math.round((rect.top + rect.height / 2) / 3)}`;
+      const existing = byPosition.get(key);
+      if (!existing || (rect.width * rect.height) < existing.area) {
+        byPosition.set(key, { el, area: rect.width * rect.height });
+      }
     }
 
-    return false;
+    return Array.from(byPosition.values()).map((x) => x.el).sort((a, b) => {
+      const ar = a.getBoundingClientRect();
+      const br = b.getBoundingClientRect();
+      const ay = ar.top + ar.height / 2;
+      const by = br.top + br.height / 2;
+      if (Math.abs(ay - by) > 8) return ay - by;
+      return (ar.left + ar.width / 2) - (br.left + br.width / 2);
+    });
   };
 
-  const clickableCalendarDay = (el, root) => {
-    if (!(el instanceof Element)) return null;
+  const detectWeekStart = (root) => {
+    if (!(root instanceof Element)) return 0;
+    const labels = Array.from(root.querySelectorAll("span,div,p,th"))
+      .filter(visible)
+      .map((el) => ({ el, text: normalize(el.textContent) }))
+      .filter((x) => WEEKDAYS.includes(x.text));
 
-    let node = el;
-    for (let depth = 0; depth < 4 && node && root.contains(node); depth += 1) {
-      if (
-        node.matches?.("button,[role='button'],[role='gridcell'],[tabindex]") ||
-        typeof node.onclick === "function"
-      ) return node;
-      node = node.parentElement;
+    if (!labels.length) return 0;
+    labels.sort((a, b) => a.el.getBoundingClientRect().left - b.el.getBoundingClientRect().left);
+    return labels[0].text === "seg" ? 1 : 0;
+  };
+
+  const clickableDay = (node, root) => {
+    let el = node;
+    for (let depth = 0; depth < 5 && el && root.contains(el); depth += 1) {
+      if (el.matches?.("button,[role='button'],[role='gridcell'],[tabindex]")) return el;
+      el = el.parentElement;
+    }
+    return node;
+  };
+
+  const targetDay = (root, iso) => {
+    const { year, month, day } = dateParts(iso);
+    if (!year || !month || !day || !(root instanceof Element)) return null;
+
+    const heading = `${MONTHS[month - 1]} ${year}`;
+    if (!normalize(root.textContent).includes(normalize(heading))) return null;
+
+    const cells = leafDayNodes(root);
+    if (!cells.length) return null;
+
+    const weekStart = detectWeekStart(root);
+    const firstWeekday = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+    const offset = (firstWeekday - weekStart + 7) % 7;
+    const index = offset + day - 1;
+
+    let node = cells[index] || null;
+    if (node && Number(normalize(node.textContent)) !== day) node = null;
+
+    if (!node) {
+      const exact = cells.filter((el) => Number(normalize(el.textContent)) === day);
+      if (exact.length === 1) node = exact[0];
+      if (exact.length > 1) {
+        node = exact.reduce((best, el) => {
+          const i = cells.indexOf(el);
+          if (!best) return { el, distance: Math.abs(i - index) };
+          const distance = Math.abs(i - index);
+          return distance < best.distance ? { el, distance } : best;
+        }, null)?.el || null;
+      }
     }
 
-    return el;
+    if (!node) return null;
+    const clickTarget = clickableDay(node, root);
+    return { iso, root, dayNode: node, clickTarget };
   };
 
-  const parseRgb = (value) => {
+  const rgb = (value) => {
     const match = String(value || "").match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
     if (!match) return null;
     return [Number(match[1]), Number(match[2]), Number(match[3])];
   };
 
-  const nearestBackground = (el) => {
+  const saturatedBackground = (el) => {
+    if (!(el instanceof Element)) return false;
     let node = el;
-    for (let depth = 0; depth < 6 && node; depth += 1) {
-      const color = parseRgb(window.getComputedStyle(node).backgroundColor);
-      if (color && !(color[0] === 0 && color[1] === 0 && color[2] === 0)) {
-        const raw = window.getComputedStyle(node).backgroundColor;
-        if (!raw.includes("rgba(0, 0, 0, 0)") && raw !== "transparent") return color;
+    for (let depth = 0; depth < 4 && node; depth += 1) {
+      const color = rgb(window.getComputedStyle(node).backgroundColor);
+      if (color) {
+        const max = Math.max(...color);
+        const min = Math.min(...color);
+        if (max - min > 45 && max > 120) return true;
       }
       node = node.parentElement;
     }
-    return [255, 255, 255];
-  };
-
-  const visuallyUnavailable = (el) => {
-    if (!(el instanceof Element)) return true;
-    const style = window.getComputedStyle(el);
-    const fg = parseRgb(style.color);
-    const bg = nearestBackground(el);
-
-    if (Number(style.opacity) < 0.65) return true;
-    if (style.cursor === "not-allowed") return true;
-
-    if (fg && bg) {
-      const fgLight = (fg[0] + fg[1] + fg[2]) / 3;
-      const bgLight = (bg[0] + bg[1] + bg[2]) / 3;
-      if (fgLight > 135 && bgLight > 220) return true;
-    }
-
     return false;
   };
 
-  const selectedLike = (el) => {
+  const selectedState = (el) => {
+    if (!(el instanceof Element)) return false;
     let node = el;
     for (let depth = 0; depth < 5 && node; depth += 1) {
       const cls = normalize(node.className);
@@ -332,51 +346,20 @@
         node.getAttribute?.("aria-selected") === "true" ||
         node.getAttribute?.("data-selected") === "true" ||
         cls.includes("selected") ||
-        cls.includes("is-selected") ||
-        cls.includes("active")
+        cls.includes("is-selected")
       ) return true;
       node = node.parentElement;
     }
-    return false;
+    return saturatedBackground(el);
   };
 
-  const styleSignature = (el) => {
-    if (!(el instanceof Element)) return "";
-    const style = window.getComputedStyle(el);
-    return [
-      style.color,
-      style.backgroundColor,
-      style.borderColor,
-      style.fontWeight,
-      style.opacity
-    ].join("|");
-  };
+  const probeTargetSelection = async (target) => {
+    if (!target?.clickTarget || explicitlyDisabled(target.clickTarget) || explicitlyDisabled(target.dayNode)) {
+      return false;
+    }
 
-  const confirmState = (root) => {
-    if (!(root instanceof Element)) return null;
-    const button = Array.from(root.querySelectorAll("button,[role='button']"))
-      .find((el) => visible(el) && normalize(el.textContent) === "confirmar");
-    if (!button) return null;
-    return {
-      disabled: disabled(button),
-      cls: normalize(button.className),
-      style: styleSignature(button)
-    };
-  };
-
-  const selectionFieldText = () => {
-    const trigger = findDatePickerTrigger();
-    return trigger ? getText(trigger) : "";
-  };
-
-  const verifySelectionAfterClick = async (target) => {
-    if (!target?.clickTarget) return false;
-
-    const before = {
-      field: selectionFieldText(),
-      dayStyle: styleSignature(target.clickTarget),
-      confirm: confirmState(target.root)
-    };
+    const wasSelected = selectedState(target.clickTarget) || selectedState(target.dayNode);
+    if (wasSelected) return true;
 
     try {
       target.clickTarget.click();
@@ -384,84 +367,37 @@
       return false;
     }
 
-    await sleep(600);
+    await sleep(450);
+    return selectedState(target.clickTarget) || selectedState(target.dayNode);
+  };
 
-    if (selectedLike(target.dayNode) || selectedLike(target.clickTarget)) return true;
+  const commitCalendarSelection = async (target) => {
+    const confirm = calendarConfirm(target.root);
+    if (!confirm || explicitlyDisabled(confirm)) return false;
 
-    const afterField = selectionFieldText();
-    if (
-      afterField &&
-      afterField !== before.field &&
-      !afterField.includes("escolha um dia") &&
-      !afterField.includes("selecionar um dia")
-    ) return true;
+    try {
+      confirm.click();
+    } catch (_) {
+      return false;
+    }
 
-    const afterConfirm = confirmState(target.root);
-    if (
-      before.confirm &&
-      afterConfirm &&
-      before.confirm.disabled &&
-      !afterConfirm.disabled
-    ) return true;
-
-    const afterStyle = styleSignature(target.clickTarget);
-    if (afterStyle && before.dayStyle && afterStyle !== before.dayStyle) return true;
+    for (let poll = 0; poll < 12; poll += 1) {
+      await sleep(250);
+      if (appointmentFieldMatches(target.iso)) return true;
+    }
 
     return false;
   };
 
-  const findTargetDay = () => {
-    const dates = Array.isArray(settings?.targetDates) ? settings.targetDates : [];
-    const calendars = calendarContainers();
-
-    for (const iso of dates) {
-      const [year, month, day] = iso.split("-").map(Number);
-      if (!year || !month || !day) continue;
-
-      const monthName = normalize(MONTHS[month - 1]);
-      const expectedHeader = monthName + " " + year;
-
-      for (const root of calendars) {
-        const rootText = normalize(root.textContent);
-        if (!rootText.includes(expectedHeader)) continue;
-
-        const nodes = Array.from(root.querySelectorAll(
-          "button,[role='button'],[role='gridcell'],[tabindex],[aria-label],[title],span,div"
-        )).filter(visible);
-
-        const exact = nodes.filter((el) => {
-          const text = normalize(el.textContent);
-          if (text !== String(day) && text !== String(day).padStart(2, "0")) return false;
-
-          const rect = el.getBoundingClientRect();
-          return rect.width <= 80 && rect.height <= 80;
-        });
-
-        for (const dayNode of exact) {
-          const clickTarget = clickableCalendarDay(dayNode, root);
-          const isUnavailable =
-            unavailable(dayNode) ||
-            unavailable(clickTarget) ||
-            visuallyUnavailable(dayNode) ||
-            visuallyUnavailable(clickTarget);
-
-          return {
-            iso,
-            root,
-            dayNode,
-            clickTarget,
-            available: !isUnavailable,
-            text: normalize(dayNode.textContent)
-          };
-        }
-      }
-    }
-
-    return null;
+  const markFound = (el) => {
+    if (!(el instanceof Element)) return;
+    el.style.setProperty("outline", "4px solid #ff9f1c", "important");
+    el.style.setProperty("outline-offset", "3px", "important");
+    el.style.setProperty("box-shadow", "0 0 0 7px rgba(255,159,28,.20)", "important");
   };
 
   const scan = async (reason = "manual") => {
-    if (!settings || scanBusy) return null;
+    if (!settings || scanBusy) return { status: "busy" };
     scanBusy = true;
 
     try {
@@ -469,84 +405,88 @@
       const now = Date.now();
       const labels = (settings.targetDates || []).map(dateLabel).join(", ");
 
-      setOverlay("running", `Procurando ${labels || "a data configurada"}. Tentativa ${attempts}.`);
+      setOverlay("running", `Procurando ${labels}. Tentativa ${attempts}.`);
       await report({
         status: "running",
-        statusDetail: `Procurando ${labels || "a data configurada"}.`,
+        statusDetail: `Procurando ${labels}.`,
         lastCheckAt: now,
         attempts
       });
 
       const opened = await ensureCalendarOpen();
       if (!opened) {
-        setOverlay("error", "Nao consegui abrir o calendario do Mercado Livre.");
-        await report({
-          status: "error",
-          statusDetail: "Nao consegui abrir o calendario do Mercado Livre.",
-          lastCheckAt: now,
-          attempts
-        });
-        return null;
+        const detail = "Nao consegui abrir o calendario do Mercado Livre.";
+        setOverlay("error", detail);
+        await report({ status: "error", statusDetail: detail, lastCheckAt: now, attempts });
+        return { status: "calendar_error", detail };
       }
 
-      const target = findTargetDay();
+      const root = calendarRoot();
+      if (!root) return { status: "calendar_error" };
 
-      if (!target) {
-        setOverlay("running", `Calendario aberto. Procurando ${labels}. Tentativa ${attempts}.`);
-        await report({
-          status: "running",
-          statusDetail: "Calendario aberto, mas a data configurada nao apareceu no mes exibido.",
-          lastCheckAt: now,
-          attempts
-        });
-        return null;
-      }
+      for (const iso of settings.targetDates || []) {
+        const target = targetDay(root, iso);
+        if (!target) continue;
 
-      if (!target.available) {
-        setOverlay("running", `${dateLabel(target.iso)} esta visivel, mas ainda indisponivel. Tentativa ${attempts}.`);
-        await report({
-          status: "running",
-          statusDetail: `${dateLabel(target.iso)} esta visivel, mas ainda indisponivel.`,
-          lastCheckAt: now,
-          attempts
-        });
-        return null;
-      }
-
-      const mode = settings.mode === "select" ? "select" : "detect";
-
-      if (mode === "select") {
-        const selected = await verifySelectionAfterClick(target);
-
-        if (!selected) {
-          setOverlay("running", `${dateLabel(target.iso)} esta visivel, mas o Mercado Livre nao aceitou a selecao. Continuando a busca.`);
-          await report({
-            status: "running",
-            statusDetail: `${dateLabel(target.iso)} esta visivel, mas ainda nao esta selecionavel.`,
-            lastCheckAt: now,
-            attempts
-          });
-          return null;
+        if (explicitlyDisabled(target.dayNode) || explicitlyDisabled(target.clickTarget)) {
+          const detail = `${dateLabel(iso)} esta visivel, mas indisponivel.`;
+          setOverlay("running", `${detail} Tentativa ${attempts}.`);
+          await report({ status: "running", statusDetail: detail, lastCheckAt: now, attempts });
+          return { status: "unavailable", iso, detail };
         }
+
+        const selected = await probeTargetSelection(target);
+        if (!selected) {
+          const detail = `${dateLabel(iso)} ainda nao pode ser selecionada.`;
+          setOverlay("running", `${detail} Tentativa ${attempts}.`);
+          await report({ status: "running", statusDetail: detail, lastCheckAt: now, attempts });
+          return { status: "unavailable", iso, detail };
+        }
+
+        if (settings.mode !== "select") {
+          const detail = `${dateLabel(iso)} esta selecionavel.`;
+          markFound(target.clickTarget || target.dayNode);
+          setOverlay("found", `${detail} Revise a tela antes de confirmar.`);
+          const response = await chrome.runtime.sendMessage({
+            type: "FOUND_DATE",
+            date: iso,
+            dateLabel: dateLabel(iso),
+            text: detail,
+            mode: "detect",
+            reason
+          });
+          if (response?.stop) stopLocal(false);
+          return { status: "found", iso, detail };
+        }
+
+        const committed = await commitCalendarSelection(target);
+        if (!committed) {
+          const detail = `${dateLabel(iso)} nao foi confirmada pelo seletor de data. Continuando a busca.`;
+          setOverlay("running", detail);
+          await report({ status: "running", statusDetail: detail, lastCheckAt: now, attempts });
+          return { status: "unavailable", iso, detail };
+        }
+
+        const detail = `${dateLabel(iso)} foi aceita pelo Mercado Livre e aplicada no campo de coleta.`;
+        markFound(appointmentField());
+        setOverlay("found", `${detail} Falta apenas a confirmacao final da pagina.`);
+
+        const response = await chrome.runtime.sendMessage({
+          type: "FOUND_DATE",
+          date: iso,
+          dateLabel: dateLabel(iso),
+          text: detail,
+          mode: "select",
+          reason
+        });
+        if (response?.stop) stopLocal(false);
+        return { status: "found", iso, detail };
       }
 
-      markFound(target.clickTarget || target.dayNode);
-
-      setOverlay("found", mode === "select"
-        ? `${dateLabel(target.iso)} ficou disponivel e a selecao foi confirmada na tela. Revise e confirme manualmente.`
-        : `${dateLabel(target.iso)} ficou disponivel. Revise antes de confirmar.`);
-
-      const response = await chrome.runtime.sendMessage({
-        type: "FOUND_DATE",
-        date: target.iso,
-        dateLabel: dateLabel(target.iso),
-        text: target.text,
-        mode,
-        reason
-      });
-
-      if (response?.stop) stopLocal(false);
-      return target;
+      const detail = "Calendario aberto, mas a data configurada nao foi localizada no mes exibido.";
+      setOverlay("running", detail);
+      await report({ status: "running", statusDetail: detail, lastCheckAt: now, attempts });
+      return { status: "not_visible", detail };
     } finally {
       scanBusy = false;
     }
@@ -556,7 +496,6 @@
     if (intervalHandle) clearInterval(intervalHandle);
     intervalHandle = null;
     settings = null;
-
     if (removeOverlay && overlay) {
       overlay.remove();
       overlay = null;
@@ -570,23 +509,24 @@
 
     const intervalMs = Math.max(30000, Number(settings.intervalSeconds || 30) * 1000);
     const labels = (settings.targetDates || []).map(dateLabel).join(", ");
+    setOverlay("running", `Procurando ${labels}.`);
 
-    setOverlay("running", `Procurando ${labels}. Deixe esta aba aberta.`);
+    const restoreAfterReload = sessionStorage.getItem("stopkar-full-reopen-calendar") === "1";
+    sessionStorage.removeItem("stopkar-full-reopen-calendar");
+    if (restoreAfterReload) await sleep(1100);
 
-    await restoreCalendarAfterReload();
-    await scan("inicio");
+    const first = await scan(restoreAfterReload ? "apos-reload" : "inicio");
+    if (first?.status === "found") return;
 
     intervalHandle = setInterval(async () => {
       if (!settings || scanBusy) return;
 
       const result = await scan("intervalo");
-      if (result || !settings) return;
+      if (!settings || result?.status === "found") return;
 
       if (settings.autoRefresh) {
         sessionStorage.setItem("stopkar-full-reopen-calendar", "1");
-        await report({
-          statusDetail: "Data ainda nao esta disponivel. Atualizando a pagina..."
-        });
+        await report({ statusDetail: "Data ainda indisponivel. Atualizando a pagina para consultar novamente..." });
         window.location.reload();
       }
     }, intervalMs);
@@ -595,21 +535,24 @@
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     void (async () => {
       if (message?.type === "START_WATCHER") {
-        await startLocal(message.settings);
+        await startLocal(message.settings, 0);
         sendResponse({ ok: true });
         return;
       }
+
       if (message?.type === "STOP_WATCHER") {
         stopLocal(true);
         sendResponse({ ok: true });
         return;
       }
+
       if (message?.type === "CHECK_NOW") {
-        if (message.settings) settings = message.settings;
+        settings = message.settings || settings;
         const result = await scan("teste-manual");
-        sendResponse({ ok: true, found: Boolean(result) });
+        sendResponse({ ok: true, ...result, found: result?.status === "found" });
         return;
       }
+
       sendResponse({ ok: false });
     })();
     return true;
