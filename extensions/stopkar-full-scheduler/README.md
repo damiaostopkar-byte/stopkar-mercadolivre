@@ -1,25 +1,19 @@
-# Stop Kar Full Scheduler v0.4.1
+# Stop Kar Full Scheduler v0.4.2
 
-Correcao de empacotamento da versao 0.4: o motor novo agora esta realmente dentro da extensao carregada pelo Chrome.
+Esta versao corrige dois problemas reais encontrados nos testes da Stop Kar:
 
-## Fluxo
+- o pacote podia entrar na pagina antes de o Mercado Livre terminar de carregar o fluxo de coleta;
+- depois de um reload, o campo de envio podia voltar sem `Coleta a domicilio`, fazendo o campo `Escolha um dia` desaparecer.
 
-1. Aguarda a tela do Mercado Livre terminar de carregar.
-2. Abre o seletor `Escolha um dia`.
-3. Localiza a data na posicao correta do mes e ano.
-4. Tenta selecionar o dia.
-5. Clica em `Confirmar` dentro do calendario.
-6. So considera sucesso se o campo de coleta passar a mostrar a data escolhida.
-7. A confirmacao final da pagina permanece manual.
+## Fluxo v0.4.2
 
-## Instalacao limpa
+1. Aguarda o Mercado Livre carregar.
+2. Se necessario, restaura `Coleta a domicilio`.
+3. Aguarda `Escolha um dia` aparecer.
+4. Abre o calendario.
+5. Localiza a data na posicao correta do mes.
+6. Tenta selecionar o dia e confirma dentro do calendario.
+7. So considera sucesso quando a data aparece no campo de coleta.
+8. O `Confirmar` final da pagina continua manual.
 
-1. Abra `chrome://extensions`.
-2. Remova qualquer versao anterior do Stop Kar Full Scheduler.
-3. Descompacte este ZIP.
-4. Ative `Modo do desenvolvedor`.
-5. Clique em `Carregar sem compactacao`.
-6. Escolha a pasta `stopkar-full-scheduler`.
-7. Abra novamente a tela de agendamento do Full e pressione F5 uma vez.
-
-A versao 0.4.1 redefine o modo inicial para `Selecionar a data`, ativa a atualizacao automatica e para quando encontrar.
+A extensao nao recarrega a pagina enquanto o fluxo de coleta ainda estiver carregando.
