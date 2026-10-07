@@ -1,19 +1,21 @@
-# Stop Kar Full Scheduler v0.4.2
+# Stop Kar Full Scheduler v0.5.0
 
-Esta versao corrige dois problemas reais encontrados nos testes da Stop Kar:
+Esta versao troca a deteccao antiga por uma leitura visual da estrutura da tela do Mercado Livre.
 
-- o pacote podia entrar na pagina antes de o Mercado Livre terminar de carregar o fluxo de coleta;
-- depois de um reload, o campo de envio podia voltar sem `Coleta a domicilio`, fazendo o campo `Escolha um dia` desaparecer.
+## O que foi corrigido
 
-## Fluxo v0.4.2
+- o bloco "Escolha como voce deseja envia-los" agora e encontrado pelo titulo e pelo painel ao redor, nao pelo menor div da pagina;
+- o seletor de "Coleta a domicilio" e localizado mesmo quando o componente nao usa button/role padrao;
+- o campo "Escolha um dia" e encontrado pelo texto e pelo contorno visual do campo;
+- os cliques usam uma sequencia de mouse compativel com componentes React;
+- o calendario so e procurado depois que o fluxo de coleta estiver realmente pronto;
+- o sucesso continua sendo validado somente quando a data entra no campo de coleta.
 
-1. Aguarda o Mercado Livre carregar.
-2. Se necessario, restaura `Coleta a domicilio`.
-3. Aguarda `Escolha um dia` aparecer.
-4. Abre o calendario.
-5. Localiza a data na posicao correta do mes.
-6. Tenta selecionar o dia e confirma dentro do calendario.
-7. So considera sucesso quando a data aparece no campo de coleta.
-8. O `Confirmar` final da pagina continua manual.
+## Configuracao recomendada
 
-A extensao nao recarrega a pagina enquanto o fluxo de coleta ainda estiver carregando.
+- Verificar: 30 segundos
+- Ao encontrar: Selecionar a data
+- Atualizar a pagina automaticamente: ativado
+- Parar quando encontrar: ativado
+
+A confirmacao final da pagina continua manual.
