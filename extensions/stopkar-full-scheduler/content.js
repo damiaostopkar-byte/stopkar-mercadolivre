@@ -158,6 +158,67 @@
     }) || controls[0] || null;
   };
 
+  const shippingSection = () => {
+    const nodes = Array.from(document.querySelectorAll("section,form,div")).filter(visible);
+    const hits = nodes.filter((el) => normalize(el.textContent).includes("escolha como voce deseja envia-los"));
+    if (!hits.length) return null;
+    return hits.sort((a, b) => a.getBoundingClientRect().height - b.getBoundingClientRect().height)[0];
+  };
+
+  const ensurePickupMode = async () => {
+    if (appointmentField()) return true;
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const section = shippingSection();
+      if (!section) {
+        await sleep(700);
+        continue;
+      }
+
+      const sectionText = normalize(section.textContent);
+      if (sectionText.includes("coleta a domicilio")) {
+        for (let poll = 0; poll < 12; poll += 1) {
+          if (appointmentField()) return true;
+          await sleep(300);
+        }
+      }
+
+      const control = Array.from(section.querySelectorAll("button,[role='button'],[role='combobox'],input,[tabindex]"))
+        .filter(visible)
+        .find((el) => !explicitlyDisabled(el));
+
+      if (control) {
+        try { control.click(); } catch (_) {}
+        await sleep(450);
+
+        const options = Array.from(document.querySelectorAll("button,[role='option'],[role='menuitem'],li,div,span"))
+          .filter(visible)
+          .filter((el) => {
+            const text = normalize(el.textContent);
+            if (text !== "coleta a domicilio") return false;
+            const rect = el.getBoundingClientRect();
+            return rect.width > 40 && rect.height > 12 && rect.width < 700 && rect.height < 120;
+          });
+
+        if (options.length) {
+          const option = options.sort((a, b) => {
+            const ar = a.getBoundingClientRect();
+            const br = b.getBoundingClientRect();
+            return (ar.width * ar.height) - (br.width * br.height);
+          })[0];
+          try { option.click(); } catch (_) {}
+        }
+      }
+
+      for (let poll = 0; poll < 16; poll += 1) {
+        if (appointmentField()) return true;
+        await sleep(300);
+      }
+    }
+
+    return Boolean(appointmentField());
+  };
+
   const appointmentFieldMatches = (iso) => {
     const field = appointmentField();
     if (!field) return false;
@@ -413,6 +474,14 @@
         attempts
       });
 
+      const pickupReady = await ensurePickupMode();
+      if (!pickupReady) {
+        const detail = "Aguardando o Mercado Livre carregar a opcao Coleta a domicilio e o campo Escolha um dia.";
+        setOverlay("running", detail);
+        await report({ status: "running", statusDetail: detail, lastCheckAt: now, attempts });
+        return { status: "waiting_page", detail };
+      }
+
       const opened = await ensureCalendarOpen();
       if (!opened) {
         const detail = "Nao consegui abrir o calendario do Mercado Livre.";
@@ -524,7 +593,7 @@
       const result = await scan("intervalo");
       if (!settings || result?.status === "found") return;
 
-      if (settings.autoRefresh) {
+      if (settings.autoRefresh && ["unavailable", "not_visible"].includes(result?.status)) {
         sessionStorage.setItem("stopkar-full-reopen-calendar", "1");
         await report({ statusDetail: "Data ainda indisponivel. Atualizando a pagina para consultar novamente..." });
         window.location.reload();
