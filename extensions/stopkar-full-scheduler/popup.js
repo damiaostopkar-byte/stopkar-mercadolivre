@@ -212,8 +212,12 @@ els.checkNow.addEventListener("click", async () => {
   }
 
   try {
-    const response = await chrome.tabs.sendMessage(tab.id, { type: "CHECK_NOW", settings: { ...settings, mode: "detect" } });
-    showMessage(response?.found ? "A data foi encontrada nesta pagina." : "A data ainda nao apareceu nesta pagina.", response?.found ? "success" : "");
+    const response = await chrome.tabs.sendMessage(tab.id, { type: "CHECK_NOW", settings: { ...settings } });
+    if (response?.found) {
+      showMessage("A data foi validada pelo Mercado Livre.", "success");
+    } else {
+      showMessage(response?.detail || "A data ainda nao esta disponivel nesta pagina.", "");
+    }
   } catch (_) {
     showMessage("Recarregue a pagina do Mercado Livre e teste novamente.", "error");
   }
