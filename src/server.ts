@@ -4293,11 +4293,13 @@ function createServer(env: Env) {
         "Inclui em lotes seguros na campanha oficial 10.10 (DEAL P-MLB18061082) os anuncios ativos da campanha Damiao, preservando o preco promocional ja configurado. Faz preview por padrao, valida convite e faixa de preco e exige confirmacao para gravar.",
       inputSchema: {
         limite_lote: z.number().int().min(1).max(25).optional().default(20),
+        item_ids: z.array(z.string().regex(/^MLB\d+$/)).min(1).max(5).optional()
+          .describe("MLBs especificos para validar e incluir, evitando paginacao de centenas de anuncios."),
         confirmar: z.boolean().optional().default(false),
         motivo: z.string().max(300).optional()
       }
     },
-    async ({ limite_lote, confirmar, motivo }) => {
+    async ({ limite_lote, item_ids, confirmar, motivo }) => {
       const sourcePromotionId = "C-MLB5661788";
       const targetPromotionId = "P-MLB18061082";
       const batchLimit = Number(limite_lote ?? 20);
@@ -4370,11 +4372,39 @@ function createServer(env: Env) {
         throw new Error("A campanha oficial 10.10 nao esta ativa.");
       }
 
-      const [damiaoStarted, targetCandidates, targetStarted] = await Promise.all([
-        fetchPromotionItems(sourcePromotionId, "SELLER_CAMPAIGN", "started"),
-        fetchPromotionItems(targetPromotionId, "DEAL", "candidate"),
-        fetchPromotionItems(targetPromotionId, "DEAL", "started")
-      ]);
+      const damiaoStarted: any[] = [];
+      const targetCandidates: any[] = [];
+      const targetStarted: any[] = [];
+      if (item_ids?.length) {
+        // Escopo restrito: cada MLB precisa comprovar individualmente
+        // promocao SK started e convite DEAL candidate, ou DEAL started.
+        for (const itemId of [...new Set(item_ids)]) {
+          const promotions = await getItemPromotions(env, itemId);
+          const source = promotions.find(
+            (row: any) =>
+              promotionIdOf(row) === sourcePromotionId &&
+              String(row?.type ?? row?.promotion_type ?? "").toUpperCase() === "SELLER_CAMPAIGN" &&
+              String(row?.status ?? "") === "started"
+          );
+          const target = promotions.find(
+            (row: any) =>
+              promotionIdOf(row) === targetPromotionId &&
+              String(row?.type ?? row?.promotion_type ?? "").toUpperCase() === "DEAL"
+          );
+          if (source) damiaoStarted.push({ ...source, id: itemId });
+          if (target?.status === "candidate") targetCandidates.push({ ...target, id: itemId });
+          if (target?.status === "started") targetStarted.push({ ...target, id: itemId });
+        }
+      } else {
+        const pages = await Promise.all([
+          fetchPromotionItems(sourcePromotionId, "SELLER_CAMPAIGN", "started"),
+          fetchPromotionItems(targetPromotionId, "DEAL", "candidate"),
+          fetchPromotionItems(targetPromotionId, "DEAL", "started")
+        ]);
+        damiaoStarted.push(...pages[0]);
+        targetCandidates.push(...pages[1]);
+        targetStarted.push(...pages[2]);
+      }
 
       const candidateById = new Map(
         targetCandidates.map((entry: any) => [String(entry?.id), entry])
