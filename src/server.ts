@@ -4660,28 +4660,36 @@ function createServer(env: Env) {
         }
       }
 
-      const targetStartedAfter = await fetchPromotionItems(
-        targetPromotionId,
-        "DEAL",
-        "started"
-      );
-      const verifiedItems = new Map(
-        targetStartedAfter.map((entry: any) => [String(entry?.id), entry])
-      );
-      const confirmedResults = results.map((entry) => {
-        const atual = verifiedItems.get(entry.item_id) as any;
-        const precoAtual = atual?.price == null ? null : Number(atual.price);
+      // Consulta o status de cada item individualmente, para evitar dezenas
+      // de chamadas paginadas que podem estourar o limite do Cloudflare Worker.
+      const confirmedResults = [];
+      for (const entry of results) {
+        let campanha: any = null;
+        let verificacaoErro: string | null = null;
+        try {
+          const promocoes = await getItemPromotions(env, entry.item_id);
+          campanha = promocoes.find(
+            (promotion: any) =>
+              promotionIdOf(promotion) === targetPromotionId &&
+              String(promotion?.type ?? promotion?.promotion_type ?? "").toUpperCase() === "DEAL"
+          );
+        } catch (error) {
+          verificacaoErro = error instanceof Error ? error.message : String(error);
+        }
+        const precoAtual = campanha?.price == null ? null : Number(campanha.price);
         const precoConfere =
           precoAtual !== null &&
           Number.isFinite(precoAtual) &&
           Math.abs(precoAtual - entry.deal_price) < 0.011;
-        return {
+        confirmedResults.push({
           ...entry,
           preco_1010_confirmado: precoAtual,
           preco_confere: precoConfere,
-          confirmado_na_1010: Boolean(atual) && precoConfere
-        };
-      });
+          status_1010: campanha?.status ?? null,
+          verificacao_erro: verificacaoErro,
+          confirmado_na_1010: campanha?.status === "started" && precoConfere
+        });
+      }
       const confirmedCount = confirmedResults.filter(
         (entry) => entry.confirmado_na_1010
       ).length;
