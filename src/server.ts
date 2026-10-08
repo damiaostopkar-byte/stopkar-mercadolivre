@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.11";
+const SERVER_VERSION = "0.18.0";
 
 function textResult(value: unknown) {
   return {
@@ -1266,23 +1266,96 @@ async function getPadsAdvertiser(env: Env, siteId: string) {
   );
 }
 
-function sumAdsMetrics(rows: any[]) {
-  const totals: Record<string, number> = {};
-  for (const field of PRODUCT_ADS_METRICS) totals[field] = 0;
+const PRODUCT_ADS_ADDITIVE_METRICS = [
+  "clicks",
+  "prints",
+  "cost",
+  "direct_amount",
+  "indirect_amount",
+  "total_amount",
+  "direct_units_quantity",
+  "indirect_units_quantity",
+  "units_quantity",
+  "direct_items_quantity",
+  "indirect_items_quantity",
+  "advertising_items_quantity",
+  "organic_units_quantity",
+  "organic_units_amount",
+  "organic_items_quantity"
+] as const;
+
+function finiteNumber(value: unknown, fallback = 0) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function rounded(value: number, digits = 4) {
+  return Number(value.toFixed(digits));
+}
+
+function weightedAdsMetric(rows: any[], field: string, weightField = "prints") {
+  let numerator = 0;
+  let denominator = 0;
 
   for (const row of rows) {
     const metrics = row?.metrics ?? row?.metrics_summary ?? row ?? {};
-    for (const field of PRODUCT_ADS_METRICS) {
+    const value = Number(metrics?.[field]);
+    const weight = Number(metrics?.[weightField]);
+    if (!Number.isFinite(value) || !Number.isFinite(weight) || weight <= 0) continue;
+    numerator += value * weight;
+    denominator += weight;
+  }
+
+  return denominator > 0 ? rounded(numerator / denominator) : 0;
+}
+
+function sumAdsMetrics(rows: any[]) {
+  const totals: Record<string, number> = {};
+  for (const field of PRODUCT_ADS_ADDITIVE_METRICS) totals[field] = 0;
+
+  for (const row of rows) {
+    const metrics = row?.metrics ?? row?.metrics_summary ?? row ?? {};
+    for (const field of PRODUCT_ADS_ADDITIVE_METRICS) {
       const value = Number(metrics?.[field]);
       if (Number.isFinite(value)) totals[field] += value;
     }
   }
 
-  for (const field of PRODUCT_ADS_METRICS) {
-    totals[field] = Number(totals[field].toFixed(4));
+  for (const field of PRODUCT_ADS_ADDITIVE_METRICS) {
+    totals[field] = rounded(totals[field]);
   }
 
-  return totals;
+  const clicks = totals.clicks || 0;
+  const prints = totals.prints || 0;
+  const cost = totals.cost || 0;
+  const totalAmount = totals.total_amount || 0;
+  const organicAmount = totals.organic_units_amount || 0;
+  const units = totals.units_quantity || 0;
+
+  return {
+    ...totals,
+    cpc: clicks > 0 ? rounded(cost / clicks) : 0,
+    ctr: prints > 0 ? rounded((clicks / prints) * 100) : 0,
+    acos: totalAmount > 0 ? rounded((cost / totalAmount) * 100) : 0,
+    tacos:
+      totalAmount + organicAmount > 0
+        ? rounded((cost / (totalAmount + organicAmount)) * 100)
+        : 0,
+    cvr: clicks > 0 ? rounded((units / clicks) * 100) : 0,
+    roas: cost > 0 ? rounded(totalAmount / cost) : 0,
+    sov: weightedAdsMetric(rows, "sov"),
+    impression_share: weightedAdsMetric(rows, "impression_share"),
+    top_impression_share: weightedAdsMetric(rows, "top_impression_share"),
+    lost_impression_share_by_budget: weightedAdsMetric(
+      rows,
+      "lost_impression_share_by_budget"
+    ),
+    lost_impression_share_by_ad_rank: weightedAdsMetric(
+      rows,
+      "lost_impression_share_by_ad_rank"
+    ),
+    acos_benchmark: weightedAdsMetric(rows, "acos_benchmark")
+  };
 }
 
 async function getAdsRowsForItemPeriod(
@@ -1425,8 +1498,25 @@ const ADS_CAMPAIGN_METRICS = [
   "units_quantity",
   "direct_amount",
   "indirect_amount",
-  "total_amount"
+  "total_amount",
+  "impression_share",
+  "top_impression_share",
+  "lost_impression_share_by_budget",
+  "lost_impression_share_by_ad_rank",
+  "acos_benchmark"
 ].join(",");
+
+const STOP_KAR_BI_POLICY = {
+  imposto_percentual: 11,
+  ads_reserva_percentual: 10,
+  margem_minima_percentual: 10,
+  roas_alerta_vermelho: 4,
+  roas_alerta_verde: 10,
+  gasto_relevante_reais: 10,
+  aumento_orcamento_min_percentual: 15,
+  aumento_orcamento_max_percentual: 20,
+  cobertura_minima_escala_dias: 14
+} as const;
 
 const ADS_AD_GROUP_METRICS = [
   "CLICKS",
@@ -1541,6 +1631,487 @@ async function getProductAdsAdGroupsForItem(env: Env, advertiser: any, itemId: s
   );
 
   return Array.isArray(data?.results) ? data.results : [];
+}
+
+function todaySaoPauloDate() {
+  return saoPauloDateOnly(new Date().toISOString()) ?? new Date().toISOString().slice(0, 10);
+}
+
+function adsWindow(dataFinal: string, dias: number) {
+  return {
+    data_inicial: shiftIsoDate(dataFinal, -(dias - 1)),
+    data_final: dataFinal,
+    dias
+  };
+}
+
+function classifyAdsSurfaceMetrics(
+  metrics: any,
+  gastoRelevante = STOP_KAR_BI_POLICY.gasto_relevante_reais
+) {
+  const cost = finiteNumber(metrics?.cost);
+  const roas = finiteNumber(metrics?.roas);
+  const units = finiteNumber(metrics?.units_quantity);
+
+  if (cost >= gastoRelevante && (roas < STOP_KAR_BI_POLICY.roas_alerta_vermelho || units <= 0)) {
+    return {
+      nivel: "vermelho",
+      codigo: "ralo_de_dinheiro",
+      motivo:
+        units <= 0
+          ? "Gasto relevante acumulado sem venda atribuida."
+          : `ROAS ${roas.toFixed(2)} abaixo de ${STOP_KAR_BI_POLICY.roas_alerta_vermelho.toFixed(1)} com gasto relevante.`,
+      acao: "Pausar/revisar Ads, criativo, preco e competitividade antes de continuar investindo."
+    };
+  }
+
+  if (roas > STOP_KAR_BI_POLICY.roas_alerta_verde && units > 0) {
+    return {
+      nivel: "verde_condicional",
+      codigo: "candidato_a_escala",
+      motivo: `ROAS ${roas.toFixed(2)} acima de ${STOP_KAR_BI_POLICY.roas_alerta_verde.toFixed(1)}.`,
+      acao:
+        "Validar custo Tray, comissao, frete, margem liquida e estoque antes de aumentar verba."
+    };
+  }
+
+  return {
+    nivel: "observacao",
+    codigo: "manter_e_observar",
+    motivo: "Sem gatilho forte de corte ou escala nesta janela.",
+    acao: "Comparar 7, 15 e 30 dias antes de fazer mudanca agressiva."
+  };
+}
+
+async function getProductAdsCampaignMetrics(
+  env: Env,
+  advertiser: any,
+  campaignId: string | number,
+  dateFrom: string,
+  dateTo: string,
+  aggregationType?: "DAILY"
+) {
+  return meliGet(
+    env,
+    `/advertising/${encodeURIComponent(advertiser.site_id)}/product_ads/campaigns/${encodeURIComponent(
+      String(campaignId)
+    )}`,
+    {
+      date_from: dateFrom,
+      date_to: dateTo,
+      metrics: ADS_CAMPAIGN_METRICS,
+      aggregation_type: aggregationType
+    },
+    { "api-version": "2" }
+  );
+}
+
+function normalizeCampaignMetricsPayload(payload: any) {
+  if (Array.isArray(payload)) {
+    return {
+      raw_daily: payload,
+      metrics: sumAdsMetrics(payload)
+    };
+  }
+
+  if (Array.isArray(payload?.results)) {
+    const rows = payload.results;
+    return {
+      raw_daily: rows,
+      metrics: sumAdsMetrics(rows)
+    };
+  }
+
+  const metrics = payload?.metrics ?? payload?.metrics_summary ?? null;
+  return {
+    raw_daily: null,
+    metrics: metrics ?? {}
+  };
+}
+
+async function getTraySkuSnapshot(env: Env, sku: string) {
+  try {
+    const data = await trayGet(env, "products", {
+      reference: sku,
+      limit: "20"
+    });
+
+    const rows = trayProductRows(data);
+    for (const row of rows) {
+      const product = trayProductObject(row);
+      const variants = Array.isArray(product?.Variants)
+        ? product.Variants
+        : Array.isArray(product?.variants)
+          ? product.variants
+          : Array.isArray(product?.Variant)
+            ? product.Variant
+            : [];
+
+      if (String(product?.reference || "") === sku) {
+        return {
+          encontrado: true,
+          origem: "produto",
+          id: product?.id ?? null,
+          nome: product?.name ?? product?.title ?? null,
+          sku: product?.reference ?? sku,
+          preco_custo: Number.isFinite(Number(product?.cost_price))
+            ? Number(product.cost_price)
+            : null,
+          preco_venda: Number.isFinite(Number(product?.price)) ? Number(product.price) : null,
+          estoque: Number.isFinite(Number(product?.stock)) ? Number(product.stock) : null,
+          peso: product?.weight ?? null,
+          comprimento: product?.length ?? null,
+          largura: product?.width ?? null,
+          altura: product?.height ?? null,
+          marca: product?.brand ?? null
+        };
+      }
+
+      for (const variantRow of variants) {
+        const variant = variantRow?.Variant ?? variantRow?.variant ?? variantRow ?? {};
+        if (String(variant?.reference || "") !== sku) continue;
+        return {
+          encontrado: true,
+          origem: "variacao",
+          id: variant?.id ?? product?.id ?? null,
+          produto_id: product?.id ?? null,
+          nome: product?.name ?? product?.title ?? null,
+          sku: variant?.reference ?? sku,
+          preco_custo: Number.isFinite(Number(variant?.cost_price))
+            ? Number(variant.cost_price)
+            : Number.isFinite(Number(product?.cost_price))
+              ? Number(product.cost_price)
+              : null,
+          preco_venda: Number.isFinite(Number(variant?.price))
+            ? Number(variant.price)
+            : Number.isFinite(Number(product?.price))
+              ? Number(product.price)
+              : null,
+          estoque: Number.isFinite(Number(variant?.stock))
+            ? Number(variant.stock)
+            : Number.isFinite(Number(product?.stock))
+              ? Number(product.stock)
+              : null,
+          peso: variant?.weight ?? product?.weight ?? null,
+          comprimento: variant?.length ?? product?.length ?? null,
+          largura: variant?.width ?? product?.width ?? null,
+          altura: variant?.height ?? product?.height ?? null,
+          marca: product?.brand ?? null
+        };
+      }
+    }
+
+    return { encontrado: false, sku, erro: "SKU nao encontrado na Tray." };
+  } catch (error) {
+    return {
+      encontrado: false,
+      sku,
+      erro: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+
+async function getEffectiveSellingPrice(env: Env, item: any) {
+  const itemPrice = Number(item?.price);
+  const activePromotions: any[] = [];
+
+  try {
+    const data = await meliGet(
+      env,
+      `/seller-promotions/items/${encodeURIComponent(String(item?.id))}`,
+      { app_version: "v2" }
+    );
+    const rows = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.results)
+        ? data.results
+        : [];
+
+    for (const row of rows) {
+      if (String(row?.status || "").toLowerCase() !== "started") continue;
+      const price = Number(row?.price ?? row?.deal_price ?? row?.top_deal_price);
+      if (!Number.isFinite(price) || price <= 0) continue;
+      activePromotions.push({
+        promotion_id: row?.id ?? row?.promotion_id ?? null,
+        promotion_type: row?.type ?? row?.promotion_type ?? null,
+        price,
+        original_price: row?.original_price ?? null
+      });
+    }
+  } catch {}
+
+  const candidates = [
+    ...(Number.isFinite(itemPrice) && itemPrice > 0 ? [itemPrice] : []),
+    ...activePromotions.map((entry) => Number(entry.price))
+  ].filter((value) => Number.isFinite(value) && value > 0);
+
+  const effectivePrice = candidates.length > 0 ? Math.min(...candidates) : null;
+
+  return {
+    preco_item: Number.isFinite(itemPrice) ? itemPrice : null,
+    preco_efetivo_estimado: effectivePrice,
+    promocao_ativa_considerada:
+      effectivePrice !== null && Number.isFinite(itemPrice) && effectivePrice < itemPrice,
+    promocoes_ativas: activePromotions
+  };
+}
+
+async function getOfficialItemCostSnapshot(env: Env, item: any, price: number) {
+  const me = await meliGet(env, "/users/me");
+  const siteId = String(me?.site_id || "MLB");
+  const logisticType = item?.shipping?.logistic_type ?? null;
+  const shippingMode = item?.shipping?.mode ?? "me2";
+  const freeShipping = item?.shipping?.free_shipping === true;
+
+  let saleFeeAmount: number | null = null;
+  let feePercentage: number | null = null;
+  let fixedFee: number | null = null;
+  let listingError: string | null = null;
+
+  try {
+    const listingData = await meliGet(
+      env,
+      `/sites/${encodeURIComponent(siteId)}/listing_prices`,
+      {
+        price: String(price),
+        category_id: String(item?.category_id || ""),
+        listing_type_id: String(item?.listing_type_id || ""),
+        currency_id: String(item?.currency_id || "BRL"),
+        logistic_type: logisticType ? String(logisticType) : undefined,
+        shipping_mode: shippingMode ? String(shippingMode) : undefined,
+        channel: "marketplace"
+      }
+    );
+
+    const entries = Array.isArray(listingData) ? listingData : listingData ? [listingData] : [];
+    const selected =
+      entries.find((entry: any) => entry?.listing_type_id === item?.listing_type_id) ??
+      entries[0] ??
+      null;
+
+    if (selected) {
+      const fee = Number(selected?.sale_fee_amount);
+      saleFeeAmount = Number.isFinite(fee) ? fee : null;
+      const percentage = Number(selected?.sale_fee_details?.percentage_fee);
+      feePercentage = Number.isFinite(percentage) ? percentage : null;
+      const fixed = Number(selected?.sale_fee_details?.fixed_fee);
+      fixedFee = Number.isFinite(fixed) ? fixed : null;
+    }
+  } catch (error) {
+    listingError = error instanceof Error ? error.message : String(error);
+  }
+
+  let shippingCost: number | null = null;
+  let billableWeight: number | null = null;
+  let shippingError: string | null = null;
+
+  try {
+    const shippingData = await meliGet(
+      env,
+      `/users/${encodeURIComponent(String(me.id))}/shipping_options/free`,
+      {
+        item_id: String(item?.id || ""),
+        item_price: String(price),
+        listing_type_id: item?.listing_type_id ? String(item.listing_type_id) : undefined,
+        mode: shippingMode ? String(shippingMode) : "me2",
+        condition: String(item?.condition || "new"),
+        logistic_type: logisticType ? String(logisticType) : undefined,
+        free_shipping: String(freeShipping),
+        verbose: "true"
+      }
+    );
+
+    const coverage = shippingData?.coverage?.all_country ?? null;
+    const listCost = Number(coverage?.list_cost);
+    shippingCost = Number.isFinite(listCost) ? listCost : null;
+    const weight = Number(coverage?.billable_weight);
+    billableWeight = Number.isFinite(weight) ? weight : null;
+  } catch (error) {
+    shippingError = error instanceof Error ? error.message : String(error);
+  }
+
+  return {
+    sale_fee_amount: saleFeeAmount,
+    percentage_fee: feePercentage,
+    fixed_fee: fixedFee,
+    shipping_seller_cost_estimated: shippingCost,
+    billable_weight: billableWeight,
+    logistic_type: logisticType,
+    shipping_mode: shippingMode,
+    free_shipping: freeShipping,
+    listing_error: listingError,
+    shipping_error: shippingError
+  };
+}
+
+function calculateItemEconomics(args: {
+  price: number | null;
+  productCost: number | null;
+  saleFee: number | null;
+  shippingCost: number | null;
+  adsMetrics: any;
+  impostoPercentual: number;
+  adsReservaPercentual: number;
+}) {
+  const {
+    price,
+    productCost,
+    saleFee,
+    shippingCost,
+    adsMetrics,
+    impostoPercentual,
+    adsReservaPercentual
+  } = args;
+
+  if (
+    price === null ||
+    productCost === null ||
+    saleFee === null ||
+    shippingCost === null ||
+    !Number.isFinite(price) ||
+    price <= 0
+  ) {
+    return {
+      calculo_completo: false,
+      motivo:
+        "Faltam preco, custo Tray, comissao oficial ou frete oficial/simulado para calcular a margem completa."
+    };
+  }
+
+  const imposto = price * (impostoPercentual / 100);
+  const baseBeforeAds = price - productCost - saleFee - shippingCost - imposto;
+  const attributedAmount = finiteNumber(adsMetrics?.total_amount);
+  const organicAmount = finiteNumber(adsMetrics?.organic_units_amount);
+  const spend = finiteNumber(adsMetrics?.cost);
+  const observedRevenue = attributedAmount + organicAmount;
+  const observedTacos =
+    observedRevenue > 0 ? (spend / observedRevenue) * 100 : finiteNumber(adsMetrics?.tacos);
+  const adsObserved = price * (observedTacos / 100);
+  const adsReserve = price * (adsReservaPercentual / 100);
+  const profitObserved = baseBeforeAds - adsObserved;
+  const profitReserve = baseBeforeAds - adsReserve;
+
+  return {
+    calculo_completo: true,
+    preco_efetivo: rounded(price, 2),
+    custo_produto_tray: rounded(productCost, 2),
+    imposto_percentual: impostoPercentual,
+    imposto_estimado: rounded(imposto, 2),
+    comissao_ml: rounded(saleFee, 2),
+    frete_vendedor_estimado: rounded(shippingCost, 2),
+    margem_antes_ads_valor: rounded(baseBeforeAds, 2),
+    margem_antes_ads_percentual: rounded((baseBeforeAds / price) * 100, 2),
+    tacos_observado_percentual: rounded(observedTacos, 2),
+    ads_estimado_por_venda_com_tacos_observado: rounded(adsObserved, 2),
+    lucro_estimado_com_ads_observado: rounded(profitObserved, 2),
+    margem_liquida_com_ads_observado_percentual: rounded((profitObserved / price) * 100, 2),
+    ads_reserva_percentual: adsReservaPercentual,
+    ads_reserva_valor: rounded(adsReserve, 2),
+    lucro_estimado_com_ads_reserva: rounded(profitReserve, 2),
+    margem_liquida_com_ads_reserva_percentual: rounded((profitReserve / price) * 100, 2)
+  };
+}
+
+function calculateStockCoverage(
+  mlStock: number | null,
+  trayStock: number | null,
+  metrics30: any
+) {
+  const units30 =
+    finiteNumber(metrics30?.units_quantity) + finiteNumber(metrics30?.organic_units_quantity);
+  const velocity = units30 > 0 ? units30 / 30 : 0;
+
+  return {
+    unidades_30d_ads_e_organico: rounded(units30, 2),
+    velocidade_media_dia_30d: rounded(velocity, 4),
+    estoque_ml: mlStock,
+    estoque_tray: trayStock,
+    cobertura_ml_dias: velocity > 0 && mlStock !== null ? rounded(mlStock / velocity, 1) : null,
+    cobertura_tray_dias:
+      velocity > 0 && trayStock !== null ? rounded(trayStock / velocity, 1) : null
+  };
+}
+
+function buildAdsBusinessDecision(args: {
+  metrics30: any;
+  economics: any;
+  stockCoverage: any;
+  gastoRelevante: number;
+  margemMinima: number;
+}) {
+  const { metrics30, economics, stockCoverage, gastoRelevante, margemMinima } = args;
+  const cost = finiteNumber(metrics30?.cost);
+  const roas = finiteNumber(metrics30?.roas);
+  const units = finiteNumber(metrics30?.units_quantity);
+
+  if (cost >= gastoRelevante && (roas < STOP_KAR_BI_POLICY.roas_alerta_vermelho || units <= 0)) {
+    return {
+      nivel: "vermelho",
+      decisao: "revisar_ou_pausar_ads",
+      motivos: [
+        units <= 0
+          ? "Gasto relevante sem venda atribuida na janela de 30 dias."
+          : `ROAS de 30 dias (${roas.toFixed(2)}) abaixo de ${STOP_KAR_BI_POLICY.roas_alerta_vermelho.toFixed(1)}.`
+      ]
+    };
+  }
+
+  if (!economics?.calculo_completo) {
+    return {
+      nivel: "dados_insuficientes",
+      decisao: "nao_escalar_sem_custos",
+      motivos: [
+        economics?.motivo ??
+          "Nao foi possivel validar margem liquida completa com os custos oficiais."
+      ]
+    };
+  }
+
+  const safeMargin = finiteNumber(economics?.margem_liquida_com_ads_reserva_percentual, -999);
+  if (safeMargin < margemMinima) {
+    return {
+      nivel: "amarelo",
+      decisao: "nao_escalar_margem_insuficiente",
+      motivos: [
+        `Margem liquida com reserva de Ads de ${STOP_KAR_BI_POLICY.ads_reserva_percentual}% esta em ${safeMargin.toFixed(2)}%, abaixo do minimo de ${margemMinima.toFixed(2)}%.`
+      ]
+    };
+  }
+
+  const coverage = Number(stockCoverage?.cobertura_ml_dias);
+  if (
+    roas > STOP_KAR_BI_POLICY.roas_alerta_verde &&
+    Number.isFinite(coverage) &&
+    coverage < STOP_KAR_BI_POLICY.cobertura_minima_escala_dias
+  ) {
+    return {
+      nivel: "verde_com_reposicao",
+      decisao: "repor_estoque_antes_de_escalar",
+      motivos: [
+        `ROAS de 30 dias em ${roas.toFixed(2)}, mas cobertura no Mercado Livre estimada em apenas ${coverage.toFixed(1)} dias.`
+      ]
+    };
+  }
+
+  if (roas > STOP_KAR_BI_POLICY.roas_alerta_verde) {
+    return {
+      nivel: "verde",
+      decisao: "candidato_a_escala_controlada",
+      motivos: [
+        `ROAS de 30 dias em ${roas.toFixed(2)} e margem liquida protegida acima de ${margemMinima.toFixed(2)}%.`,
+        "Escalar em passos de 15% a 20% e reavaliar ROAS, margem e cobertura de estoque."
+      ]
+    };
+  }
+
+  return {
+    nivel: "observacao",
+    decisao: "manter_e_monitorar",
+    motivos: [
+      "Sem sinal suficiente para corte ou escala agressiva.",
+      "Usar as janelas de 7, 15 e 30 dias para evitar reagir a oscilacoes de poucas horas."
+    ]
+  };
 }
 
 async function recordAdsAudit(env: Env, entry: Record<string, unknown>) {
