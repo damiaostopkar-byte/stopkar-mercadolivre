@@ -4359,8 +4359,9 @@ function createServer(env: Env) {
           String(entry?.type ?? "").toUpperCase() === "DEAL"
       );
 
-      if (!sourceCampaign || String(sourceCampaign?.name ?? "").toLowerCase() !== "damiao") {
-        throw new Error("Protecao Stop Kar: a campanha de origem Damiao nao foi confirmada.");
+      const sourceCampaignName = String(sourceCampaign?.name ?? "").trim().toLocaleLowerCase("pt-BR");
+      if (!sourceCampaign || !["damiao", "damião", "sk pecas", "sk peças"].includes(sourceCampaignName)) {
+        throw new Error("Protecao Stop Kar: a campanha de origem SK pecas nao foi confirmada.");
       }
       if (!targetCampaign || String(targetCampaign?.name ?? "") !== "10.10") {
         throw new Error("Protecao Stop Kar: a campanha oficial 10.10 nao foi confirmada.");
