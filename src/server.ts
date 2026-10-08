@@ -4375,10 +4375,22 @@ function createServer(env: Env) {
       const damiaoStarted: any[] = [];
       const targetCandidates: any[] = [];
       const targetStarted: any[] = [];
-      if (item_ids?.length) {
+      // Clientes que ainda exponham o esquema antigo podem enviar o escopo
+      // no motivo no formato LOTE_1010:MLB123,MLB456|justificativa.
+      // O mesmo limite e as mesmas validacoes de elegibilidade se aplicam.
+      const matchLoteMotivo = String(motivo ?? "").match(
+        /^LOTE_1010:\s*(MLB\d+(?:\s*,\s*MLB\d+)*)\s*\|/i
+      );
+      const selectedItemIds =
+        item_ids?.length ? item_ids : matchLoteMotivo?.[1]?.split(/\s*,\s*/);
+      if (selectedItemIds && (selectedItemIds.length > 5 ||
+        selectedItemIds.some((id: string) => !/^MLB\d+$/.test(id)))) {
+        throw new Error("Lote 10.10 invalido: informe de 1 a 5 MLBs.");
+      }
+      if (selectedItemIds?.length) {
         // Escopo restrito: cada MLB precisa comprovar individualmente
         // promocao SK started e convite DEAL candidate, ou DEAL started.
-        for (const itemId of [...new Set(item_ids)]) {
+        for (const itemId of [...new Set(selectedItemIds)]) {
           const promotions = await getItemPromotions(env, itemId);
           const source = promotions.find(
             (row: any) =>
