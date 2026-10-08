@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.18.0";
+const SERVER_VERSION = "0.18.1";
 
 function textResult(value: unknown) {
   return {
@@ -1498,7 +1498,11 @@ const ADS_CAMPAIGN_METRICS = [
   "units_quantity",
   "direct_amount",
   "indirect_amount",
-  "total_amount",
+  "total_amount"
+].join(",");
+
+const ADS_CAMPAIGN_DETAIL_METRICS = [
+  ADS_CAMPAIGN_METRICS,
   "impression_share",
   "top_impression_share",
   "lost_impression_share_by_budget",
@@ -1699,7 +1703,7 @@ async function getProductAdsCampaignMetrics(
     {
       date_from: dateFrom,
       date_to: dateTo,
-      metrics: ADS_CAMPAIGN_METRICS,
+      metrics: ADS_CAMPAIGN_DETAIL_METRICS,
       aggregation_type: aggregationType
     },
     { "api-version": "2" }
