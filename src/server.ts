@@ -4440,7 +4440,147 @@ function createServer(env: Env) {
         });
       }
 
-      const batch = eligible.slice(0, batchLimit);
+      // Somente aderir a DEALs quando a margem estiver validada com
+      // custo real Tray, tarifa oficial ML e frete estimado no preco do DEAL.
+      // Qualquer custo ausente bloqueia o item sem modificar precos.
+      const safeBatch: Array<(typeof eligible)[number] & {
+        seller_sku: string;
+        custo_produto: number;
+        comissao: number;
+        frete_estimado: number;
+        margem_liquida_percentual: number;
+      }> = [];
+      let margemVerificada = 0;
+      const margemMinimaPercentual = 10;
+      const impostoPercentual = 11;
+      const adsReservaPercentual = 10;
+
+      for (const entry of eligible) {
+        if (safeBatch.length >= batchLimit) break;
+        margemVerificada += 1;
+        try {
+          const item = await meliGet(env, "/items/" + encodeURIComponent(entry.item_id));
+          if (
+            String(item?.id ?? "") !== entry.item_id ||
+            String(item?.seller_id ?? "") !== String(me?.id ?? "") ||
+            item?.status !== "active" ||
+            !(Number(item?.available_quantity) > 0)
+          ) {
+            throw new Error("anuncio_nao_ativo_ou_sem_estoque");
+          }
+          if (Array.isArray(item?.variations) && item.variations.length > 0) {
+            throw new Error("variacoes_exigem_conferencia_individual_de_custo");
+          }
+          const sku = String(getSellerSku(item) ?? "").trim();
+          if (!sku) throw new Error("sku_ausente");
+
+          const listingType = String(item?.listing_type_id ?? "");
+          const logisticType = String(item?.shipping?.logistic_type ?? "");
+          const shippingMode = String(item?.shipping?.mode ?? "");
+          const categoryId = String(item?.category_id ?? "");
+          const freeShipping = item?.shipping?.free_shipping;
+          if (
+            !["gold_special", "gold_pro"].includes(listingType) ||
+            !logisticType ||
+            !shippingMode ||
+            !categoryId ||
+            typeof freeShipping !== "boolean"
+          ) {
+            throw new Error("dados_logisticos_ou_tipo_anuncio_incompletos");
+          }
+
+          const trayResponse = await trayGet(env, "products", {
+            reference: sku,
+            limit: "20"
+          });
+          const produtosExatos = trayProductRows(trayResponse)
+            .map((row: any) => trayProductObject(row))
+            .filter((product: any) => String(product?.reference ?? "").trim() === sku);
+          if (produtosExatos.length !== 1) {
+            throw new Error("referencia_Tray_ausente_ou_duplicada");
+          }
+          const custoProduto = Number(produtosExatos[0]?.cost_price);
+          if (!Number.isFinite(custoProduto) || custoProduto <= 0) {
+            throw new Error("custo_Tray_invalido");
+          }
+
+          const [freteData, taxaData] = await Promise.all([
+            meliGet(
+              env,
+              "/users/" + encodeURIComponent(String(me.id)) + "/shipping_options/free",
+              {
+                item_id: entry.item_id,
+                item_price: String(entry.deal_price),
+                listing_type_id: listingType,
+                mode: shippingMode,
+                condition: String(item?.condition ?? "new"),
+                logistic_type: logisticType,
+                free_shipping: String(freeShipping),
+                verbose: "true"
+              }
+            ),
+            meliGet(env, "/sites/MLB/listing_prices", {
+              price: String(entry.deal_price),
+              category_id: categoryId,
+              listing_type_id: listingType,
+              currency_id: String(item?.currency_id ?? "BRL"),
+              logistic_type: logisticType,
+              shipping_mode: shippingMode,
+              channel: "marketplace"
+            })
+          ]);
+          const freteEstimado = Number(freteData?.coverage?.all_country?.list_cost);
+          const taxas = Array.isArray(taxaData) ? taxaData : [taxaData];
+          const taxaEscolhida = taxas.find(
+            (row: any) => String(row?.listing_type_id ?? "") === listingType
+          );
+          const comissao = Number(taxaEscolhida?.sale_fee_amount);
+          if (
+            !Number.isFinite(freteEstimado) ||
+            freteEstimado < 0 ||
+            !Number.isFinite(comissao) ||
+            comissao < 0
+          ) {
+            throw new Error("frete_ou_comissao_nao_confirmados");
+          }
+
+          const preco = entry.deal_price;
+          const lucro =
+            preco -
+            custoProduto -
+            freteEstimado -
+            comissao -
+            preco * ((impostoPercentual + adsReservaPercentual) / 100);
+          const margem = (lucro / preco) * 100;
+          if (!Number.isFinite(margem) || margem + 0.000001 < margemMinimaPercentual) {
+            blocked.push({
+              item_id: entry.item_id,
+              motivo: "margem_inferior_a_10_percent",
+              margem_liquida_percentual: Number.isFinite(margem)
+                ? Number(margem.toFixed(2))
+                : null,
+              deal_price: preco
+            });
+            continue;
+          }
+
+          safeBatch.push({
+            ...entry,
+            seller_sku: sku,
+            custo_produto: custoProduto,
+            comissao,
+            frete_estimado: freteEstimado,
+            margem_liquida_percentual: Number(margem.toFixed(2))
+          });
+        } catch (error) {
+          blocked.push({
+            item_id: entry.item_id,
+            motivo: "validacao_de_margem_indisponivel",
+            detalhe: error instanceof Error ? error.message : String(error)
+          });
+        }
+      }
+      const batch = safeBatch;
       const preview = {
         acao: confirmar ? "gravar" : "simulacao",
         origem: {
@@ -4456,7 +4596,13 @@ function createServer(env: Env) {
           status: targetCampaign?.status ?? null
         },
         ja_ativos_na_1010: alreadyStarted.length,
-        elegiveis_restantes: eligible.length,
+        elegiveis_por_convite_e_preco: eligible.length,
+        margem_verificada: margemVerificada,
+        margem_minima_percentual: margemMinimaPercentual,
+        imposto_percentual: impostoPercentual,
+        ads_reserva_percentual: adsReservaPercentual,
+        elegiveis_restantes: safeBatch.length,
+        pendentes_de_validacao_de_margem: Math.max(0, eligible.length - margemVerificada),
         bloqueados: blocked.length,
         limite_lote: batchLimit,
         lote_preparado: batch.length,
