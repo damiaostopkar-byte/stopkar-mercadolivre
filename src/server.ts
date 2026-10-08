@@ -6801,6 +6801,146 @@ function createServer(env: Env) {
   );
 
   server.registerTool(
+    "consultar_ads_bi_carteira",
+    {
+      description:
+        "Raio-X senior da carteira Product Ads da Stop Kar. Compara a conta em 7, 15 e 30 dias, identifica campanhas e Ad Groups com desperdicio ou potencial de escala e prioriza quais MLBs devem passar pelo cruzamento profundo de custo/margem/estoque.",
+      inputSchema: {
+        data_final: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional()
+          .describe("Data final YYYY-MM-DD. Se omitida, usa a data atual de Sao Paulo."),
+        gasto_relevante: z.number().min(0).optional().default(10),
+        limite_alertas: z.number().int().min(1).max(50).optional().default(20)
+      }
+    },
+    async ({ data_final, gasto_relevante, limite_alertas }) => {
+      const advertiser = await getProductAdsAdvertiser(env);
+      const endDate = data_final || todaySaoPauloDate();
+      const windows = [7, 15, 30].map((dias) => adsWindow(endDate, dias));
+
+      const campaignWindows = await Promise.all(
+        windows.map(async (window) => {
+          const payload = await meliGet(
+            env,
+            `/advertising/${encodeURIComponent(advertiser.site_id)}/advertisers/${encodeURIComponent(
+              String(advertiser.advertiser_id)
+            )}/product_ads/campaigns/search`,
+            {
+              limit: "100",
+              offset: "0",
+              date_from: window.data_inicial,
+              date_to: window.data_final,
+              metrics: ADS_CAMPAIGN_METRICS,
+              metrics_summary: "true",
+              "filters[channel]": "marketplace"
+            },
+            { "api-version": "2" }
+          );
+
+          const rows = Array.isArray(payload?.results) ? payload.results : [];
+          return {
+            ...window,
+            metrics_summary: payload?.metrics_summary ?? null,
+            campanhas: rows.map((row: any) => ({
+              id: row?.id ?? null,
+              name: row?.name ?? null,
+              status: row?.status ?? null,
+              budget: row?.budget ?? null,
+              daily_budget: row?.daily_budget ?? null,
+              roas_target: row?.roas_target ?? null,
+              metrics: row?.metrics ?? null,
+              bi_sinal: classifyAdsSurfaceMetrics(
+                row?.metrics ?? {},
+                Number(gasto_relevante ?? STOP_KAR_BI_POLICY.gasto_relevante_reais)
+              )
+            }))
+          };
+        })
+      );
+
+      const window30 = windows.find((entry) => entry.dias === 30)!;
+      const adGroupsPayload = await meliGet(
+        env,
+        `/advertising/${encodeURIComponent(advertiser.site_id)}/advertisers/${encodeURIComponent(
+          String(advertiser.advertiser_id)
+        )}/product_ads/ad_groups/search`,
+        {
+          date_from: window30.data_inicial,
+          date_to: window30.data_final,
+          limit: "800",
+          offset: "0",
+          sort: "desc",
+          sort_by: "cost",
+          metrics: ADS_AD_GROUP_METRICS,
+          metrics_summary: "true",
+          "filters[channel]": "marketplace",
+          sll: "false"
+        },
+        { "api-version": "2" }
+      );
+
+      const adGroups = Array.isArray(adGroupsPayload?.results) ? adGroupsPayload.results : [];
+      const enriched = adGroups.map((row: any) => ({
+        id: row?.id ?? null,
+        ad_group_external_id: row?.ad_group_external_id ?? null,
+        title: row?.title ?? null,
+        campaign_id: row?.campaign_id ?? null,
+        status: row?.status ?? null,
+        domain_id: row?.domain_id ?? null,
+        metrics: row?.metrics ?? null,
+        bi_sinal: classifyAdsSurfaceMetrics(
+          row?.metrics ?? {},
+          Number(gasto_relevante ?? STOP_KAR_BI_POLICY.gasto_relevante_reais)
+        )
+      }));
+
+      const red = enriched
+        .filter((row: any) => row.bi_sinal?.nivel === "vermelho")
+        .sort((a: any, b: any) => finiteNumber(b.metrics?.cost) - finiteNumber(a.metrics?.cost))
+        .slice(0, Number(limite_alertas ?? 20));
+
+      const green = enriched
+        .filter((row: any) => row.bi_sinal?.nivel === "verde_condicional")
+        .sort((a: any, b: any) => finiteNumber(b.metrics?.roas) - finiteNumber(a.metrics?.roas))
+        .slice(0, Number(limite_alertas ?? 20));
+
+      const wastedSpend = red.reduce(
+        (sum: number, row: any) => sum + finiteNumber(row.metrics?.cost),
+        0
+      );
+
+      return textResult({
+        advertiser: {
+          advertiser_id: advertiser.advertiser_id,
+          site_id: advertiser.site_id,
+          advertiser_name: advertiser.advertiser_name
+        },
+        data_final: endDate,
+        janelas_campanhas: campaignWindows,
+        carteira_30d: {
+          periodo: window30,
+          paging: adGroupsPayload?.paging ?? null,
+          metrics_summary: adGroupsPayload?.metrics_summary ?? null,
+          total_ad_groups_retornados: adGroups.length,
+          gasto_em_alertas_vermelhos: rounded(wastedSpend, 2),
+          alertas_vermelhos: red,
+          candidatos_verdes: green
+        },
+        proximo_passo:
+          "Rode consultar_ads_bi_anuncio nos MLBs dos alertas/candidatos antes de pausar ou escalar. Essa segunda etapa cruza Tray, comissao, frete, imposto, margem e estoque.",
+        politica_stop_kar: {
+          ...STOP_KAR_BI_POLICY,
+          gasto_relevante_reais: Number(
+            gasto_relevante ?? STOP_KAR_BI_POLICY.gasto_relevante_reais
+          )
+        }
+      });
+    }
+  );
+
+  server.registerTool(
     "consultar_ads_tendencia_campanha",
     {
       description:
@@ -7159,9 +7299,11 @@ function createServer(env: Env) {
         nextBudget !== null &&
         Number.isFinite(currentBudget) &&
         currentBudget > 0 &&
-        Math.abs(nextBudget - currentBudget) / currentBudget > 0.25
+        Math.abs(nextBudget - currentBudget) / currentBudget > 0.20
       ) {
-        throw new Error("Protecao Stop Kar: altere o budget em etapas de no maximo 25% por operacao.");
+        throw new Error(
+          "Protecao Stop Kar: para escala, altere o budget em etapas de no maximo 20% por operacao e reavalie margem/ROAS/estoque."
+        );
       }
 
       if (
