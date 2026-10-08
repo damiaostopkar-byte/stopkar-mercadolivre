@@ -4529,12 +4529,17 @@ function createServer(env: Env) {
               channel: "marketplace"
             })
           ]);
-          const freteEstimado = Number(freteData?.coverage?.all_country?.list_cost);
+          const valorFrete = freteData?.coverage?.all_country?.list_cost;
           const taxas = Array.isArray(taxaData) ? taxaData : [taxaData];
           const taxaEscolhida = taxas.find(
             (row: any) => String(row?.listing_type_id ?? "") === listingType
           );
-          const comissao = Number(taxaEscolhida?.sale_fee_amount);
+          const valorComissao = taxaEscolhida?.sale_fee_amount;
+          if (valorFrete == null || valorComissao == null) {
+            throw new Error("frete_ou_comissao_nao_confirmados");
+          }
+          const freteEstimado = Number(valorFrete);
+          const comissao = Number(valorComissao);
           if (
             !Number.isFinite(freteEstimado) ||
             freteEstimado < 0 ||
