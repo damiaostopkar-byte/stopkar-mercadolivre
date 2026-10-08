@@ -932,7 +932,7 @@ async function resolveListingReference(env: Env, reference: string) {
     }
   }
 
-  const items = ids.map((id) => byId.get(id)).filter(Boolean);
+  const items = ids.map((id: string) => byId.get(id)).filter(Boolean);
   if (items.length === 0) {
     throw new Error(
       `O User Product ${normalized} foi localizado, mas os detalhes dos itens nao puderam ser consultados.`
@@ -1647,7 +1647,7 @@ function adsWindow(dataFinal: string, dias: number) {
 
 function classifyAdsSurfaceMetrics(
   metrics: any,
-  gastoRelevante = STOP_KAR_BI_POLICY.gasto_relevante_reais
+  gastoRelevante: number = STOP_KAR_BI_POLICY.gasto_relevante_reais
 ) {
   const cost = finiteNumber(metrics?.cost);
   const roas = finiteNumber(metrics?.roas);
@@ -3819,7 +3819,7 @@ function createServer(env: Env) {
         }
       );
       const afterAttributes = Array.isArray(after?.attributes) ? after.attributes : [];
-      const afterById = new Map(
+      const afterById = new Map<string, any>(
         afterAttributes
           .filter((attribute: any) => attribute?.id)
           .map((attribute: any) => [String(attribute.id), attribute] as const)
@@ -7131,11 +7131,13 @@ function createServer(env: Env) {
       const metrics30 = snapshots.find((entry) => entry.dias === 30)?.metrics ?? {};
       const item = await meliGet(env, `/items/${encodeURIComponent(item_id)}`);
       const sku = getSellerSku(item);
-      const tray = sku
+      const tray: any = sku
         ? await getTraySkuSnapshot(env, String(sku))
         : {
             encontrado: false,
             sku: null,
+            preco_custo: null,
+            estoque: null,
             erro: "O anuncio nao possui SELLER_SKU para cruzar com a Tray."
           };
 
