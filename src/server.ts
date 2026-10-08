@@ -4665,13 +4665,23 @@ function createServer(env: Env) {
         "DEAL",
         "started"
       );
-      const verifiedIds = new Set(
-        targetStartedAfter.map((entry: any) => String(entry?.id))
+      const verifiedItems = new Map(
+        targetStartedAfter.map((entry: any) => [String(entry?.id), entry])
       );
-      const confirmedResults = results.map((entry) => ({
-        ...entry,
-        confirmado_na_1010: verifiedIds.has(entry.item_id)
-      }));
+      const confirmedResults = results.map((entry) => {
+        const atual = verifiedItems.get(entry.item_id) as any;
+        const precoAtual = atual?.price == null ? null : Number(atual.price);
+        const precoConfere =
+          precoAtual !== null &&
+          Number.isFinite(precoAtual) &&
+          Math.abs(precoAtual - entry.deal_price) < 0.011;
+        return {
+          ...entry,
+          preco_1010_confirmado: precoAtual,
+          preco_confere: precoConfere,
+          confirmado_na_1010: Boolean(atual) && precoConfere
+        };
+      });
       const confirmedCount = confirmedResults.filter(
         (entry) => entry.confirmado_na_1010
       ).length;
