@@ -4535,9 +4535,52 @@ function createServer(env: Env) {
             reference: sku,
             limit: "20"
           });
-          const produtosExatos = trayProductRows(trayResponse)
+          let produtosExatos = trayProductRows(trayResponse)
             .map((row: any) => trayProductObject(row))
             .filter((product: any) => String(product?.reference ?? "").trim() === sku);
+          if (produtosExatos.length !== 1) {
+            // Estes MLBs usam o ID interno Tray como SKU. Vinculos conferidos
+            // com ficha Mercado Livre, nome, lado/modelo, ID e custo Tray.
+            // Nao altera SKU e nao usa ID desconhecido automaticamente.
+            const trayIdsVerificados: Record<string, {
+              id: string; tipo: string; modelo: string
+            }> = {
+              MLB6845184786: { id: "183", tipo: "calota", modelo: "ka" },
+              MLB5342636261: { id: "125", tipo: "lanterna", modelo: "gol" },
+              MLB5337657429: { id: "583", tipo: "lanterna", modelo: "s10" },
+              MLB5336580317: { id: "587", tipo: "lanterna", modelo: "s10" },
+              MLB5336579099: { id: "585", tipo: "lanterna", modelo: "s10" },
+              MLB5336038509: { id: "519", tipo: "lanterna", modelo: "ranger" },
+              MLB5336006439: { id: "513", tipo: "lanterna", modelo: "ranger" }
+            };
+            const autorizado = trayIdsVerificados[entry.item_id];
+            const conferir = (valor: unknown, termo: string) => {
+              const v = String(valor ?? "").normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "").toLowerCase();
+              return new RegExp("(^|[^a-z0-9])" + termo + "([^a-z0-9]|$)").test(v);
+            };
+            if (
+              autorizado &&
+              sku === autorizado.id &&
+              String(item?.seller_custom_field ?? "").trim() === autorizado.id &&
+              conferir(item?.title, autorizado.tipo) &&
+              conferir(item?.title, autorizado.modelo)
+            ) {
+              const respostaPorId = await trayGet(env, "products", {
+                id: autorizado.id,
+                limit: "2"
+              });
+              produtosExatos = trayProductRows(respostaPorId)
+                .map((row: any) => trayProductObject(row))
+                .filter((product: any) =>
+                  String(product?.id ?? "") === autorizado.id &&
+                  String(product?.reference ?? "").trim().length > 0 &&
+                  Number(product?.cost_price) > 0 &&
+                  conferir(product?.name, autorizado.tipo) &&
+                  conferir(product?.name, autorizado.modelo)
+                );
+            }
+          }
           if (produtosExatos.length !== 1) {
             throw new Error("referencia_Tray_ausente_ou_duplicada");
           }
