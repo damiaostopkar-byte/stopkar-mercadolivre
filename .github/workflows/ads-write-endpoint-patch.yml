@@ -1,0 +1,71 @@
+name: Patch Product Ads advertiser scoped writes
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch Product Ads write endpoints
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('src/server.ts')
+          text = path.read_text(encoding='utf-8')
+
+          text = re.sub(
+              r'const SERVER_VERSION = "(\d+)\.(\d+)\.(\d+)";',
+              lambda m: f'const SERVER_VERSION = "{m.group(1)}.{m.group(2)}.{int(m.group(3)) + 1}";',
+              text,
+              count=1,
+          )
+
+          old_campaign = '''const path = `/marketplace/advertising/${encodeURIComponent(
+        advertiser.site_id
+      )}/product_ads/campaigns/${encodeURIComponent(String(current.id))}`;'''
+          new_campaign = '''const path = `/marketplace/advertising/${encodeURIComponent(
+        advertiser.site_id
+      )}/advertisers/${encodeURIComponent(String(advertiser.advertiser_id))}/product_ads/campaigns/${encodeURIComponent(String(current.id))}`;'''
+
+          old_ad_group = '''const path = `/marketplace/advertising/${encodeURIComponent(
+        advertiser.site_id
+      )}/product_ads/ad_groups/${encodeURIComponent(String(current.id))}`;'''
+          new_ad_group = '''const path = `/marketplace/advertising/${encodeURIComponent(
+        advertiser.site_id
+      )}/advertisers/${encodeURIComponent(String(advertiser.advertiser_id))}/product_ads/ad_groups/${encodeURIComponent(String(current.id))}`;'''
+
+          if old_campaign not in text:
+              raise SystemExit('campaign write path marker not found')
+          if old_ad_group not in text:
+              raise SystemExit('ad group write path marker not found')
+
+          text = text.replace(old_campaign, new_campaign, 1)
+          text = text.replace(old_ad_group, new_ad_group, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit patched code and remove temporary workflows
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/server.ts
+          git rm --ignore-unmatch .github/workflows/ads-write-endpoint-patch.yml .github/workflows/ads-create-tool-patch.yml .github/ads-create-tool-trigger-20261011.txt
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "fix: use advertiser scoped Product Ads write endpoints [skip ci]"
+          git push
