@@ -315,9 +315,24 @@ async function atualizarAdsAnuncioFixed(env: Env, args: any) {
     }
   }
 
+  if (!write && env.MELI_CLIENT_ID) {
+    const callerHeaders = {
+      "X-Client-Id": String(env.MELI_CLIENT_ID),
+      "X-Caller-Id": String(env.MELI_CLIENT_ID)
+    };
+    try {
+      write = await meliWrite(env, "PUT", individualPath, requested, callerHeaders);
+    } catch (error) {
+      writeAttempts.push({
+        flow: "individual_com_caller_headers",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  }
+
   if (!write) {
     throw new Error(
-      `Falha nos dois fluxos oficiais de escrita de Ad Group. ${writeAttempts
+      `Falha nos fluxos de escrita de Ad Group. ${writeAttempts
         .map((attempt) => `${attempt.flow}: ${attempt.error}`)
         .join(" | ")}`
     );
