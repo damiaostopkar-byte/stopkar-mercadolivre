@@ -3,7 +3,7 @@
   "name": "stopkar-mercadolivre",
   "compatibility_date": "2026-06-11",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "src/server.ts",
+  "main": "src/server-ads-fixed.ts",
   "keep_vars": true,
   "vars": {
     "ADS_WRITES_ENABLED": "true",
