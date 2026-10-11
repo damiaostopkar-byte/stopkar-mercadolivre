@@ -4,13 +4,14 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   patch:
-    if: contains(github.event.head_commit.message, '[ads-create-tool]')
+    if: ${{ contains(github.event.head_commit.message, '[ads-create-tool]') || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -156,7 +157,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/server.ts
-          git rm --ignore-unmatch .github/workflows/ads-create-tool-patch.yml
+          git rm --ignore-unmatch .github/workflows/ads-create-tool-patch.yml .github/ads-create-tool-trigger-20261011.txt
           if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
