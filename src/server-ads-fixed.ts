@@ -277,14 +277,79 @@ async function atualizarAdsAnuncioFixed(env: Env, args: any) {
   const adGroupId = Number(current.id);
   if (!Number.isFinite(adGroupId) || adGroupId <= 0) throw new Error("Ad Group ID invalido para escrita em lote.");
 
-  const body = { ad_groups: [adGroupId], ...requested };
-  const path = `/marketplace/advertising/${encodeURIComponent(advertiser.site_id)}/advertisers/${encodeURIComponent(String(advertiser.advertiser_id))}/product_ads/ad_groups`;
-  const write = await meliWrite(env, "PUT", path, body, { "api-version": "2" });
-  const afterGroups = await getProductAdsAdGroupsForItem(env, advertiser, String(item_id));
-  const after = afterGroups.find((group: any) => String(group?.id) === String(current?.id)) ?? afterGroups[0] ?? null;
-  const audit_id = await recordAdsAudit(env, { tipo: "ad_group_update_bulk_fixed", item_id, ad_group_id: current?.id ?? null, motivo: motivo.trim(), antes: current, solicitado: body, depois: after, endpoint: write.path_used });
+  // A documentacao atual do Product Ads usa o endpoint individual sem advertiser_id
+  // para mover/ativar um Ad Group. O endpoint bulk usa advertiser_id. Nos exemplos
+  // oficiais de escrita de Ad Group nao ha header api-version, por isso nao o
+  // forcamos aqui. Tentamos o fluxo individual primeiro e caimos para o bulk.
+  let write: { data: any; path_used: string } | null = null;
+  const writeAttempts: Array<{ flow: string; error: string }> = [];
 
-  return textResult({ ...preview, acao: "gravado", audit_id, endpoint_utilizado: write.path_used, resposta_api: write.data, depois: after });
+  const individualPath = `/marketplace/advertising/${encodeURIComponent(
+    advertiser.site_id
+  )}/product_ads/ad_groups/${encodeURIComponent(String(adGroupId))}`;
+
+  try {
+    write = await meliWrite(env, "PUT", individualPath, requested);
+  } catch (error) {
+    writeAttempts.push({
+      flow: "individual",
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+
+  if (!write) {
+    const bulkBody = { ad_groups: [adGroupId], ...requested };
+    const bulkPath = `/marketplace/advertising/${encodeURIComponent(
+      advertiser.site_id
+    )}/advertisers/${encodeURIComponent(
+      String(advertiser.advertiser_id)
+    )}/product_ads/ad_groups`;
+
+    try {
+      write = await meliWrite(env, "PUT", bulkPath, bulkBody);
+    } catch (error) {
+      writeAttempts.push({
+        flow: "bulk",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  }
+
+  if (!write) {
+    throw new Error(
+      `Falha nos dois fluxos oficiais de escrita de Ad Group. ${writeAttempts
+        .map((attempt) => `${attempt.flow}: ${attempt.error}`)
+        .join(" | ")}`
+    );
+  }
+
+  const afterGroups = await getProductAdsAdGroupsForItem(env, advertiser, String(item_id));
+  const after =
+    afterGroups.find((group: any) => String(group?.id) === String(current?.id)) ??
+    afterGroups[0] ??
+    null;
+
+  const audit_id = await recordAdsAudit(env, {
+    tipo: "ad_group_update_documented_flow",
+    item_id,
+    ad_group_id: current?.id ?? null,
+    motivo: motivo.trim(),
+    antes: current,
+    solicitado: requested,
+    tentativas: writeAttempts,
+    depois: after,
+    endpoint: write.path_used
+  });
+
+  return textResult({
+    ...preview,
+    acao: "gravado",
+    audit_id,
+    endpoint_utilizado: write.path_used,
+    tentativas_anteriores: writeAttempts,
+    resposta_api: write.data,
+    depois: after
+  });
 }
 
 async function interceptMcpToolCall(request: Request, env: Env): Promise<Response | null> {
