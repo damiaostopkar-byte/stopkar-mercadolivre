@@ -1,0 +1,165 @@
+name: Add Product Ads create campaign tool
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: contains(github.event.head_commit.message, '[ads-create-tool]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch src/server.ts
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('src/server.ts')
+          text = path.read_text(encoding='utf-8')
+
+          text = re.sub(
+              r'const SERVER_VERSION = "(\d+)\.(\d+)\.(\d+)";',
+              lambda m: f'const SERVER_VERSION = "{m.group(1)}.{m.group(2)}.{int(m.group(3)) + 1}";',
+              text,
+              count=1,
+          )
+
+          tool = r'''
+  server.registerTool(
+    "criar_ads_campanha",
+    {
+      description:
+        "Cria uma campanha Product Ads do zero no Mercado Ads com protecoes Stop Kar. Por padrao apenas simula; para gravar, confirmar=true, motivo e ADS_WRITES_ENABLED=true sao obrigatorios.",
+      inputSchema: {
+        name: z.string().min(3).max(100).describe("Nome da campanha Product Ads."),
+        status: z.enum(["active", "paused"]).optional().default("paused"),
+        budget: z.number().positive().describe("Orcamento diario da campanha."),
+        roas_target: z.number().min(1).max(35).optional().default(10)
+          .describe("ROAS objetivo entre 1 e 35. Para proteger margem, use 10 ou mais na maioria dos casos."),
+        strategy: z.enum(["profitability", "increase", "visibility"]).optional().default("profitability")
+          .describe("Estrategia: profitability para campeoes, increase para equilibrio, visibility para teste/alcance."),
+        channel: z.string().min(1).optional().default("marketplace"),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ name, status, budget, roas_target, strategy, channel, confirmar, motivo }) => {
+      const advertiser = await getProductAdsAdvertiser(env);
+      const campaignName = name.trim();
+      const dailyBudget = Number(budget);
+      const targetRoas = Number(roas_target ?? 10);
+      const normalizedStrategy = String(strategy || "profitability").toLowerCase();
+      const normalizedChannel = String(channel || "marketplace").toLowerCase();
+
+      if (!campaignName) throw new Error("Informe um nome valido para a campanha.");
+      if (!Number.isFinite(dailyBudget) || dailyBudget <= 0) {
+        throw new Error("Informe um budget diario positivo.");
+      }
+      if (!Number.isFinite(targetRoas) || targetRoas < 1 || targetRoas > 35) {
+        throw new Error("roas_target deve ficar entre 1 e 35.");
+      }
+
+      const body = {
+        name: campaignName,
+        status: status || "paused",
+        budget: dailyBudget,
+        strategy: normalizedStrategy,
+        channel: normalizedChannel,
+        roas_target: targetRoas
+      };
+
+      const endpoint = `/marketplace/advertising/${encodeURIComponent(
+        advertiser.site_id
+      )}/advertisers/${encodeURIComponent(String(advertiser.advertiser_id))}/product_ads/campaigns`;
+
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        advertiser: {
+          advertiser_id: advertiser.advertiser_id,
+          site_id: advertiser.site_id,
+          advertiser_name: advertiser.advertiser_name
+        },
+        campanha_solicitada: body,
+        endpoint_planejado: endpoint,
+        escrita_ads_habilitada: adsWritesEnabled(env),
+        protecoes: {
+          default_status: "paused",
+          exige_confirmar_para_gravar: true,
+          exige_motivo: true,
+          roas_minimo_api: 1,
+          roas_maximo_api: 35
+        }
+      };
+
+      if (!confirmar) return textResult(preview);
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Para criar uma campanha de Ads, informe um motivo objetivo com pelo menos 5 caracteres.");
+      }
+
+      requireAdsWritesEnabled(env);
+
+      const write = await meliWrite(env, "POST", endpoint, body, { "api-version": "2" });
+      const createdId = write?.data?.id ?? write?.data?.campaign_id ?? null;
+      let created: any = null;
+      let created_lookup_error: string | null = null;
+
+      if (createdId !== null && createdId !== undefined) {
+        try {
+          created = await getProductAdsCampaign(env, advertiser, createdId);
+        } catch (error) {
+          created_lookup_error = error instanceof Error ? error.message : String(error);
+        }
+      }
+
+      const audit_id = await recordAdsAudit(env, {
+        tipo: "campaign_create",
+        motivo: motivo.trim(),
+        solicitado: body,
+        resposta: write.data,
+        campanha_criada: created,
+        endpoint: write.path_used
+      });
+
+      return textResult({
+        ...preview,
+        acao: "gravado",
+        audit_id,
+        endpoint_utilizado: write.path_used,
+        resposta_api: write.data,
+        campaign_id: createdId,
+        campanha_criada: created,
+        created_lookup_error
+      });
+    }
+  );
+
+'''
+
+          if '"criar_ads_campanha"' not in text:
+              marker = '  server.registerTool(\n    "atualizar_ads_campanha",'
+              if marker not in text:
+                  raise SystemExit('Marker for Product Ads campaign update tool not found')
+              text = text.replace(marker, tool + marker, 1)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit patch and remove one-shot workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/server.ts
+          git rm --ignore-unmatch .github/workflows/ads-create-tool-patch.yml
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "feat: add Product Ads campaign creation tool [skip ci]"
+          git push
