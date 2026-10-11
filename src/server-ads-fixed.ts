@@ -277,10 +277,9 @@ async function atualizarAdsAnuncioFixed(env: Env, args: any) {
   const adGroupId = Number(current.id);
   if (!Number.isFinite(adGroupId) || adGroupId <= 0) throw new Error("Ad Group ID invalido para escrita em lote.");
 
-  // A documentacao atual do Product Ads usa o endpoint individual sem advertiser_id
-  // para mover/ativar um Ad Group. O endpoint bulk usa advertiser_id. Nos exemplos
-  // oficiais de escrita de Ad Group nao ha header api-version, por isso nao o
-  // forcamos aqui. Tentamos o fluxo individual primeiro e caimos para o bulk.
+  // O suporte tecnico do Mercado Livre pediu confirmacao explicita do header
+  // api-version: 2 nas rotas de Product Ads. Mantemos os dois fluxos oficiais
+  // (individual e bulk) e enviamos esse header em todas as tentativas de escrita.
   let write: { data: any; path_used: string } | null = null;
   const writeAttempts: Array<{ flow: string; error: string }> = [];
 
@@ -289,7 +288,7 @@ async function atualizarAdsAnuncioFixed(env: Env, args: any) {
   )}/product_ads/ad_groups/${encodeURIComponent(String(adGroupId))}`;
 
   try {
-    write = await meliWrite(env, "PUT", individualPath, requested);
+    write = await meliWrite(env, "PUT", individualPath, requested, { "api-version": "2" });
   } catch (error) {
     writeAttempts.push({
       flow: "individual",
@@ -306,7 +305,7 @@ async function atualizarAdsAnuncioFixed(env: Env, args: any) {
     )}/product_ads/ad_groups`;
 
     try {
-      write = await meliWrite(env, "PUT", bulkPath, bulkBody);
+      write = await meliWrite(env, "PUT", bulkPath, bulkBody, { "api-version": "2" });
     } catch (error) {
       writeAttempts.push({
         flow: "bulk",
@@ -317,6 +316,7 @@ async function atualizarAdsAnuncioFixed(env: Env, args: any) {
 
   if (!write && env.MELI_CLIENT_ID) {
     const callerHeaders = {
+      "api-version": "2",
       "X-Client-Id": String(env.MELI_CLIENT_ID),
       "X-Caller-Id": String(env.MELI_CLIENT_ID)
     };
