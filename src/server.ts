@@ -3921,11 +3921,11 @@ function createServer(env: Env) {
       description:
         "Adiciona, atualiza ou remove um anuncio de uma SELLER_CAMPAIGN da Stop Kar. Mantem compatibilidade com a campanha SK pecas C-MLB5661788, mas aceita promotion_id de outra campanha do vendedor. Sempre faz preview e exige confirmacao para gravar.",
       inputSchema: {
-        item_id: z.string().regex(/^(MLB|MLBU)\\d+$/),
+        item_id: z.string().regex(/^(MLB|MLBU)\d+$/),
         acao: z.enum(["adicionar_ou_atualizar", "remover"]),
         deal_price: z.number().positive().optional(),
         promotion_id: z.string().min(2).optional().default("C-MLB5661788"),
-        mlb_id: z.string().regex(/^MLB\\d+$/).optional(),
+        mlb_id: z.string().regex(/^MLB\d+$/).optional(),
         confirmar: z.boolean().optional().default(false),
         motivo: z.string().max(300).optional()
       }
