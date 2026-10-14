@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.12";
+const SERVER_VERSION = "0.17.13";
 
 function textResult(value: unknown) {
   return {
@@ -4087,11 +4087,13 @@ function createServer(env: Env) {
         target_promotion_id: z.string().min(2),
         limite_lote: z.number().int().min(1).max(25).optional().default(20),
         search_after: z.string().min(1).optional(),
+        item_ids: z.array(z.string().regex(/^MLB\d+$/)).min(1).max(5).optional()
+          .describe("MLBs especificos ja validados para duplicar; quando informado, ignora paginacao generica."),
         confirmar: z.boolean().optional().default(false),
         motivo: z.string().max(300).optional()
       }
     },
-    async ({ source_promotion_id, target_promotion_id, limite_lote, search_after, confirmar, motivo }) => {
+    async ({ source_promotion_id, target_promotion_id, limite_lote, search_after, item_ids, confirmar, motivo }) => {
       const sourceId = String(source_promotion_id);
       const targetId = String(target_promotion_id);
       if (sourceId === targetId) {
@@ -4117,20 +4119,45 @@ function createServer(env: Env) {
         throw new Error("Protecao Stop Kar: origem e destino precisam ser SELLER_CAMPAIGN.");
       }
 
-      const sourcePage = await meliGet(
-        env,
-        `/seller-promotions/promotions/${encodeURIComponent(sourceId)}/items`,
-        {
-          promotion_type: "SELLER_CAMPAIGN",
-          status: "started",
-          app_version: "v2",
-          limit: String(Math.min(50, Math.max(1, Number(limite_lote ?? 20)))),
-          search_after
-        }
-      );
-      const sourceItems = (Array.isArray(sourcePage?.results) ? sourcePage.results : [])
-        .filter((entry: any) => Number(entry?.price ?? entry?.deal_price) > 0)
-        .slice(0, Number(limite_lote ?? 20));
+      let sourcePage: any = null;
+      let sourceItems: any[] = [];
+
+      if (Array.isArray(item_ids) && item_ids.length > 0) {
+        const explicitRows = await Promise.all(
+          item_ids.map(async (itemId: string) => {
+            const data = await meliGet(
+              env,
+              `/seller-promotions/promotions/${encodeURIComponent(sourceId)}/items`,
+              {
+                promotion_type: "SELLER_CAMPAIGN",
+                status: "started",
+                item_id: itemId,
+                app_version: "v2"
+              }
+            );
+            const rows = Array.isArray(data?.results) ? data.results : [];
+            return rows.find((row: any) => String(row?.id) === String(itemId)) ?? null;
+          })
+        );
+        sourceItems = explicitRows
+          .filter(Boolean)
+          .filter((entry: any) => Number(entry?.price ?? entry?.deal_price) > 0);
+      } else {
+        sourcePage = await meliGet(
+          env,
+          `/seller-promotions/promotions/${encodeURIComponent(sourceId)}/items`,
+          {
+            promotion_type: "SELLER_CAMPAIGN",
+            status: "started",
+            app_version: "v2",
+            limit: String(Math.min(50, Math.max(1, Number(limite_lote ?? 20)))),
+            search_after
+          }
+        );
+        sourceItems = (Array.isArray(sourcePage?.results) ? sourcePage.results : [])
+          .filter((entry: any) => Number(entry?.price ?? entry?.deal_price) > 0)
+          .slice(0, Number(limite_lote ?? 20));
+      }
 
       const targetChecks = await Promise.all(
         sourceItems.map(async (entry: any) => {
@@ -4184,7 +4211,8 @@ function createServer(env: Env) {
           elegiveis_destino: eligible.length,
           ignorados: targetChecks.length - eligible.length,
           next_search_after:
-            sourcePage?.searchAfter ?? sourcePage?.search_after ?? sourcePage?.paging?.searchAfter ?? null
+            sourcePage?.searchAfter ?? sourcePage?.search_after ?? sourcePage?.paging?.searchAfter ?? null,
+          item_ids_explicitos: Array.isArray(item_ids) ? item_ids : null
         },
         itens: targetChecks,
         garantia:
