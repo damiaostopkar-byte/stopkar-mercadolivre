@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.11";
+const SERVER_VERSION = "0.17.12";
 
 function textResult(value: unknown) {
   return {
@@ -3919,18 +3919,19 @@ function createServer(env: Env) {
     "gerenciar_promocao_damiao",
     {
       description:
-        "Adiciona, atualiza ou remove um anuncio da campanha Damiao (SELLER_CAMPAIGN C-MLB5661788) com preview e confirmacao obrigatoria.",
+        "Adiciona, atualiza ou remove um anuncio de uma SELLER_CAMPAIGN da Stop Kar. Mantem compatibilidade com a campanha SK pecas C-MLB5661788, mas aceita promotion_id de outra campanha do vendedor. Sempre faz preview e exige confirmacao para gravar.",
       inputSchema: {
-        item_id: z.string().regex(/^(MLB|MLBU)\d+$/),
+        item_id: z.string().regex(/^(MLB|MLBU)\\d+$/),
         acao: z.enum(["adicionar_ou_atualizar", "remover"]),
         deal_price: z.number().positive().optional(),
-        mlb_id: z.string().regex(/^MLB\d+$/).optional(),
+        promotion_id: z.string().min(2).optional().default("C-MLB5661788"),
+        mlb_id: z.string().regex(/^MLB\\d+$/).optional(),
         confirmar: z.boolean().optional().default(false),
         motivo: z.string().max(300).optional()
       }
     },
-    async ({ item_id, acao, deal_price, mlb_id, confirmar, motivo }) => {
-      const promotionId = "C-MLB5661788";
+    async ({ item_id, acao, deal_price, promotion_id, mlb_id, confirmar, motivo }) => {
+      const promotionId = String(promotion_id || "C-MLB5661788");
       const chosen = await chooseListingForWrite(env, item_id, mlb_id);
       if (!chosen.selected) {
         return textResult({
@@ -3946,11 +3947,21 @@ function createServer(env: Env) {
       }
       const item = chosen.selected;
       if (acao === "adicionar_ou_atualizar" && !(Number(deal_price) > 0)) {
-        throw new Error("Informe deal_price para adicionar ou atualizar a campanha Damiao.");
+        throw new Error("Informe deal_price para adicionar ou atualizar a campanha.");
+      }
+
+      const campaign = await meliGet(
+        env,
+        `/seller-promotions/promotions/${encodeURIComponent(promotionId)}`,
+        { promotion_type: "SELLER_CAMPAIGN", app_version: "v2" }
+      );
+      const campaignType = String(campaign?.type ?? campaign?.promotion_type ?? "SELLER_CAMPAIGN").toUpperCase();
+      if (campaignType !== "SELLER_CAMPAIGN") {
+        throw new Error("Protecao Stop Kar: promotion_id informado nao e uma SELLER_CAMPAIGN.");
       }
 
       const promos = await getItemPromotions(env, String(item.id));
-      const damiao = promos.find(
+      const target = promos.find(
         (entry: any) =>
           promotionIdOf(entry) === promotionId &&
           String(entry?.type ?? entry?.promotion_type ?? "").toUpperCase() === "SELLER_CAMPAIGN"
@@ -3966,32 +3977,24 @@ function createServer(env: Env) {
         acao_solicitada: acao,
         gravar: confirmar === true,
         promotion_id: promotionId,
-        promotion_name: "Damiao",
+        promotion_name: campaign?.name ?? null,
+        promotion_status: campaign?.status ?? null,
         mlb: item.id,
         titulo: item.title ?? null,
         preco_base: item.price ?? null,
         deal_price: deal_price ?? null,
-        ja_esta_na_damiao: Boolean(damiao),
-        oferta_damiao_atual: damiao ? compactPromotionItem(damiao) : null,
+        ja_esta_na_campanha: Boolean(target),
+        oferta_atual: target ? compactPromotionItem(target) : null,
         outras_campanhas_vendedor: otherSellerCampaigns.map((entry: any) => compactPromotionItem(entry)),
         escrita_promocoes_habilitada: promotionWritesEnabled(env)
       };
 
-      if (acao === "adicionar_ou_atualizar" && otherSellerCampaigns.length > 0 && !damiao) {
-        return textResult({
-          ...preview,
-          acao: "bloqueado_por_conflito",
-          mensagem:
-            "O item participa de outra SELLER_CAMPAIGN. Remova primeiro a campanha antiga para evitar conflito antes de entrar na Damiao."
-        });
-      }
-
-      if (acao === "remover" && !damiao) {
+      if (acao === "remover" && !target) {
         return textResult({ ...preview, acao: "nenhuma_alteracao" });
       }
       if (!confirmar) return textResult({ ...preview, acao: "simulacao" });
       if (!motivo || motivo.trim().length < 5) {
-        throw new Error("Para alterar a promocao Damiao, informe um motivo com pelo menos 5 caracteres.");
+        throw new Error("Para alterar a promocao, informe um motivo com pelo menos 5 caracteres.");
       }
 
       requirePromotionWritesEnabled(env);
@@ -3999,8 +4002,6 @@ function createServer(env: Env) {
       const sellerId = String(seller?.id ?? "");
       if (!sellerId) throw new Error("Nao foi possivel identificar o seller_id da conta.");
 
-      // Valida no escopo da campanha antes de gravar. Isso evita confundir um
-      // candidate global com um item que nao pertence de fato a esta campanha.
       const campaignItems = await meliGet(
         env,
         `/seller-promotions/promotions/${encodeURIComponent(promotionId)}/items`,
@@ -4017,7 +4018,7 @@ function createServer(env: Env) {
           ...preview,
           acao: "bloqueado_sem_candidato",
           mensagem:
-            "O item nao apareceu no escopo da campanha Damiao no momento da gravacao. Nenhuma alteracao foi feita."
+            "O item nao apareceu no escopo da campanha informada no momento da gravacao. Nenhuma alteracao foi feita."
         });
       }
 
@@ -4036,9 +4037,9 @@ function createServer(env: Env) {
           }
         );
       } else {
-        const damiaoStatus = String(damiao?.status ?? "").toLowerCase();
+        const targetStatus = String(target?.status ?? "").toLowerCase();
         const method: MeliWriteMethod =
-          ["started", "pending"].includes(damiaoStatus) ? "PUT" : "POST";
+          ["started", "pending"].includes(targetStatus) ? "PUT" : "POST";
         write = await meliSellerPromotionWrite(
           env,
           method,
@@ -4053,9 +4054,10 @@ function createServer(env: Env) {
       }
 
       const afterPromos = await getItemPromotions(env, String(item.id));
-      const audit_id = await recordOperationAudit(env, "promotion:damiao:audit", {
-        tipo: "damiao_item_update",
+      const audit_id = await recordOperationAudit(env, "promotion:seller-campaign:audit", {
+        tipo: "seller_campaign_item_update",
         item_id: item.id,
+        promotion_id: promotionId,
         acao,
         deal_price: deal_price ?? null,
         motivo: motivo.trim(),
@@ -4071,6 +4073,190 @@ function createServer(env: Env) {
         endpoint_utilizado: write.path_used,
         fluxo_api: write.flow ?? "local_v2",
         promocoes_depois: afterPromos.map((entry: any) => compactPromotionItem(entry))
+      });
+    }
+  );
+
+  server.registerTool(
+    "duplicar_campanha_vendedor",
+    {
+      description:
+        "Duplica itens iniciados de uma SELLER_CAMPAIGN para outra SELLER_CAMPAIGN, preservando o preco promocional da origem e sem remover ou alterar a campanha de origem. Processa em lotes seguros com preview e confirmacao.",
+      inputSchema: {
+        source_promotion_id: z.string().min(2),
+        target_promotion_id: z.string().min(2),
+        limite_lote: z.number().int().min(1).max(25).optional().default(20),
+        search_after: z.string().min(1).optional(),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ source_promotion_id, target_promotion_id, limite_lote, search_after, confirmar, motivo }) => {
+      const sourceId = String(source_promotion_id);
+      const targetId = String(target_promotion_id);
+      if (sourceId === targetId) {
+        throw new Error("A campanha de origem e destino devem ser diferentes.");
+      }
+
+      const [sourceCampaign, targetCampaign] = await Promise.all([
+        meliGet(
+          env,
+          `/seller-promotions/promotions/${encodeURIComponent(sourceId)}`,
+          { promotion_type: "SELLER_CAMPAIGN", app_version: "v2" }
+        ),
+        meliGet(
+          env,
+          `/seller-promotions/promotions/${encodeURIComponent(targetId)}`,
+          { promotion_type: "SELLER_CAMPAIGN", app_version: "v2" }
+        )
+      ]);
+
+      const sourceType = String(sourceCampaign?.type ?? sourceCampaign?.promotion_type ?? "SELLER_CAMPAIGN").toUpperCase();
+      const targetType = String(targetCampaign?.type ?? targetCampaign?.promotion_type ?? "SELLER_CAMPAIGN").toUpperCase();
+      if (sourceType !== "SELLER_CAMPAIGN" || targetType !== "SELLER_CAMPAIGN") {
+        throw new Error("Protecao Stop Kar: origem e destino precisam ser SELLER_CAMPAIGN.");
+      }
+
+      const sourcePage = await meliGet(
+        env,
+        `/seller-promotions/promotions/${encodeURIComponent(sourceId)}/items`,
+        {
+          promotion_type: "SELLER_CAMPAIGN",
+          status: "started",
+          app_version: "v2",
+          limit: String(Math.min(50, Math.max(1, Number(limite_lote ?? 20)))),
+          search_after
+        }
+      );
+      const sourceItems = (Array.isArray(sourcePage?.results) ? sourcePage.results : [])
+        .filter((entry: any) => Number(entry?.price ?? entry?.deal_price) > 0)
+        .slice(0, Number(limite_lote ?? 20));
+
+      const targetChecks = await Promise.all(
+        sourceItems.map(async (entry: any) => {
+          const itemId = String(entry?.id ?? "");
+          const targetScope = await meliGet(
+            env,
+            `/seller-promotions/promotions/${encodeURIComponent(targetId)}/items`,
+            {
+              promotion_type: "SELLER_CAMPAIGN",
+              item_id: itemId,
+              app_version: "v2"
+            }
+          );
+          const candidates = Array.isArray(targetScope?.results) ? targetScope.results : [];
+          const targetEntry = candidates.find((row: any) => String(row?.id) === itemId);
+          return {
+            item_id: itemId,
+            source_price: Number(entry?.price ?? entry?.deal_price),
+            source_original_price: entry?.original_price ?? null,
+            target_candidate: Boolean(targetEntry),
+            target_status: targetEntry?.status ?? null,
+            target_min_price: targetEntry?.min_discounted_price ?? null,
+            target_max_price: targetEntry?.max_discounted_price ?? null,
+            target_suggested_price: targetEntry?.suggested_discounted_price ?? null
+          };
+        })
+      );
+
+      const eligible = targetChecks.filter((row: any) => {
+        if (!row.target_candidate || !(row.source_price > 0)) return false;
+        if (row.target_min_price != null && row.source_price < Number(row.target_min_price)) return false;
+        if (row.target_max_price != null && row.source_price > Number(row.target_max_price)) return false;
+        return true;
+      });
+
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        origem: {
+          id: sourceId,
+          name: sourceCampaign?.name ?? null,
+          status: sourceCampaign?.status ?? null
+        },
+        destino: {
+          id: targetId,
+          name: targetCampaign?.name ?? null,
+          status: targetCampaign?.status ?? null
+        },
+        lote: {
+          solicitado: Number(limite_lote ?? 20),
+          encontrados_origem: sourceItems.length,
+          elegiveis_destino: eligible.length,
+          ignorados: targetChecks.length - eligible.length,
+          next_search_after:
+            sourcePage?.searchAfter ?? sourcePage?.search_after ?? sourcePage?.paging?.searchAfter ?? null
+        },
+        itens: targetChecks,
+        garantia:
+          "A ferramenta somente adiciona/atualiza no destino. Nao remove nem altera a campanha de origem.",
+        escrita_promocoes_habilitada: promotionWritesEnabled(env)
+      };
+
+      if (!confirmar) return textResult(preview);
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Para duplicar a campanha, informe um motivo com pelo menos 5 caracteres.");
+      }
+      requirePromotionWritesEnabled(env);
+
+      const seller = await meliGet(env, "/users/me");
+      const sellerId = String(seller?.id ?? "");
+      if (!sellerId) throw new Error("Nao foi possivel identificar o seller_id da conta.");
+
+      const resultados: any[] = [];
+      for (const row of eligible) {
+        try {
+          const write = await meliSellerPromotionWrite(
+            env,
+            "POST",
+            row.item_id,
+            sellerId,
+            {
+              promotion_id: targetId,
+              promotion_type: "SELLER_CAMPAIGN",
+              deal_price: Number(row.source_price)
+            }
+          );
+          const afterPromos = await getItemPromotions(env, row.item_id);
+          const targetAfter = afterPromos.find(
+            (entry: any) =>
+              promotionIdOf(entry) === targetId &&
+              String(entry?.type ?? entry?.promotion_type ?? "").toUpperCase() === "SELLER_CAMPAIGN"
+          );
+          resultados.push({
+            item_id: row.item_id,
+            status: targetAfter ? "gravado" : "nao_confirmado",
+            deal_price: row.source_price,
+            target_after: targetAfter ? compactPromotionItem(targetAfter) : null,
+            endpoint: write.path_used
+          });
+        } catch (error) {
+          resultados.push({
+            item_id: row.item_id,
+            status: "erro",
+            deal_price: row.source_price,
+            erro: error instanceof Error ? error.message : String(error)
+          });
+        }
+      }
+
+      const audit_id = await recordOperationAudit(env, "promotion:campaign-duplicate:audit", {
+        tipo: "seller_campaign_duplicate_batch",
+        source_promotion_id: sourceId,
+        target_promotion_id: targetId,
+        motivo: motivo.trim(),
+        itens: resultados
+      });
+
+      return textResult({
+        ...preview,
+        acao: "processado",
+        audit_id,
+        resultados,
+        resumo: {
+          gravados: resultados.filter((row: any) => row.status === "gravado").length,
+          nao_confirmados: resultados.filter((row: any) => row.status === "nao_confirmado").length,
+          erros: resultados.filter((row: any) => row.status === "erro").length
+        }
       });
     }
   );
