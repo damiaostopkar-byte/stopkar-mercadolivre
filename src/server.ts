@@ -3921,16 +3921,18 @@ function createServer(env: Env) {
       description:
         "Adiciona, atualiza ou remove um anuncio de uma SELLER_CAMPAIGN da Stop Kar. Mantem compatibilidade com a campanha SK pecas C-MLB5661788, mas aceita promotion_id de outra campanha do vendedor. Sempre faz preview e exige confirmacao para gravar.",
       inputSchema: {
-        item_id: z.string().regex(/^(MLB|MLBU)\d+$/),
+        item_id: z.string().min(4),
         acao: z.enum(["adicionar_ou_atualizar", "remover"]),
         deal_price: z.number().positive().optional(),
         promotion_id: z.string().min(2).optional().default("C-MLB5661788"),
-        mlb_id: z.string().regex(/^MLB\d+$/).optional(),
+        mlb_id: z.string().min(4).optional(),
         confirmar: z.boolean().optional().default(false),
         motivo: z.string().max(300).optional()
       }
     },
     async ({ item_id, acao, deal_price, promotion_id, mlb_id, confirmar, motivo }) => {
+      if (!/^(MLB|MLBU)\d+$/.test(item_id)) throw new Error("item_id deve ser um codigo MLB ou MLBU valido.");
+      if (mlb_id && !/^MLB\d+$/.test(mlb_id)) throw new Error("mlb_id deve ser um codigo MLB valido.");
       const promotionId = String(promotion_id || "C-MLB5661788");
       const chosen = await chooseListingForWrite(env, item_id, mlb_id);
       if (!chosen.selected) {
@@ -4087,13 +4089,16 @@ function createServer(env: Env) {
         target_promotion_id: z.string().min(2),
         limite_lote: z.number().int().min(1).max(25).optional().default(20),
         search_after: z.string().min(1).optional(),
-        item_ids: z.array(z.string().regex(/^MLB\d+$/)).min(1).max(5).optional()
+        item_ids: z.array(z.string().min(4)).min(1).max(5).optional()
           .describe("MLBs especificos ja validados para duplicar; quando informado, ignora paginacao generica."),
         confirmar: z.boolean().optional().default(false),
         motivo: z.string().max(300).optional()
       }
     },
     async ({ source_promotion_id, target_promotion_id, limite_lote, search_after, item_ids, confirmar, motivo }) => {
+      if (Array.isArray(item_ids) && item_ids.some((id: string) => !/^MLB\d+$/.test(id))) {
+        throw new Error("item_ids deve conter somente codigos MLB validos.");
+      }
       const sourceId = String(source_promotion_id);
       const targetId = String(target_promotion_id);
       if (sourceId === targetId) {
