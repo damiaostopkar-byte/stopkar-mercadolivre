@@ -5227,6 +5227,9 @@ function createServer(env: Env) {
           comissao: number;
           frete_estimado: number;
           margem_liquida_percentual: number;
+          ads_ativo: boolean;
+          ads_status_confirmado: boolean;
+          ads_reserva_percentual: number;
         }> = [];
         let margemVerificada = 0;
         const margemMinimaPercentual = 10;
