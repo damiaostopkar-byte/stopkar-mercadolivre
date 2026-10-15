@@ -5020,270 +5020,6 @@ function createServer(env: Env) {
     }
   );
 
-
-  server.registerTool(
-    "participar_promocao_1111_damiao",
-    {
-      description:
-        "Inclui com seguranca um anuncio da Stop Kar na campanha oficial 11.11 da Black (DEAL P-MLB17909028). Valida convite, faixa de preco, custo Tray, tarifa, frete, imposto, Product Ads e margem minima antes de gravar. Nao altera a campanha SK nem outras promocoes.",
-      inputSchema: {
-        item_id: z.string().regex(/^MLB\d+$/),
-        deal_price: z.number().positive(),
-        confirmar: z.boolean().optional().default(false),
-        motivo: z.string().max(300).optional()
-      }
-    },
-    async ({ item_id, deal_price, confirmar, motivo }) => {
-      const targetPromotionId = "P-MLB17909028";
-      const targetPromotionName = "11.11 da Black";
-      const margemMinimaPercentual = 10;
-      const impostoPercentual = 11;
-  
-      const me = await meliGet(env, "/users/me");
-      const sellerId = String(me?.id ?? "");
-      if (!sellerId) throw new Error("Nao foi possivel identificar o seller_id da conta.");
-  
-      const campaignsData = await meliGet(
-        env,
-        `/seller-promotions/users/${encodeURIComponent(sellerId)}`,
-        { app_version: "v2" }
-      );
-      const campaigns = Array.isArray(campaignsData?.results)
-        ? campaignsData.results
-        : Array.isArray(campaignsData)
-          ? campaignsData
-          : [];
-      const targetCampaign = campaigns.find(
-        (entry: any) =>
-          String(entry?.id) === targetPromotionId &&
-          String(entry?.type ?? "").toUpperCase() === "DEAL"
-      );
-  
-      if (!targetCampaign || String(targetCampaign?.name ?? "") !== targetPromotionName) {
-        throw new Error("Protecao Stop Kar: a campanha oficial 11.11 da Black nao foi confirmada.");
-      }
-      const campaignStatus = String(targetCampaign?.status ?? "");
-      if (!["pending", "started"].includes(campaignStatus)) {
-        throw new Error(`A campanha oficial 11.11 nao esta disponivel para adesao. Status: ${campaignStatus || "desconhecido"}.`);
-      }
-  
-      const promotions = await getItemPromotions(env, item_id);
-      const target = promotions.find(
-        (row: any) =>
-          promotionIdOf(row) === targetPromotionId &&
-          String(row?.type ?? row?.promotion_type ?? "").toUpperCase() === "DEAL"
-      );
-  
-      if (!target) {
-        return textResult({
-          acao: "bloqueado_sem_convite_1111",
-          item_id,
-          promotion_id: targetPromotionId,
-          mensagem: "O Mercado Livre nao disponibilizou este anuncio como candidato da 11.11. Nenhuma alteracao foi feita."
-        });
-      }
-  
-      const targetStatus = String(target?.status ?? "");
-      const currentDealPrice = Number(target?.price);
-      if (["pending", "started"].includes(targetStatus)) {
-        return textResult({
-          acao: "ja_participa_1111",
-          item_id,
-          promotion_id: targetPromotionId,
-          promotion_name: targetPromotionName,
-          status_1111: targetStatus,
-          deal_price_atual: Number.isFinite(currentDealPrice) && currentDealPrice > 0 ? currentDealPrice : null,
-          nenhuma_alteracao: true
-        });
-      }
-      if (targetStatus !== "candidate") {
-        return textResult({
-          acao: "bloqueado_status_convite",
-          item_id,
-          promotion_id: targetPromotionId,
-          status_convite: targetStatus || null,
-          mensagem: "O convite da 11.11 nao esta no status candidate. Nenhuma alteracao foi feita."
-        });
-      }
-  
-      const minPrice = Number(target?.min_discounted_price);
-      const maxPrice = Number(target?.max_discounted_price);
-      const hasMin = Number.isFinite(minPrice) && minPrice > 0;
-      const hasMax = Number.isFinite(maxPrice) && maxPrice > 0;
-      if ((hasMin && deal_price < minPrice) || (hasMax && deal_price > maxPrice)) {
-        return textResult({
-          acao: "bloqueado_preco_fora_da_faixa_1111",
-          item_id,
-          deal_price,
-          min_discounted_price: hasMin ? minPrice : null,
-          max_discounted_price: hasMax ? maxPrice : null,
-          suggested_discounted_price: Number.isFinite(Number(target?.suggested_discounted_price))
-            ? Number(target.suggested_discounted_price)
-            : null,
-          nenhuma_alteracao: true
-        });
-      }
-  
-      const item = await meliGet(env, `/items/${encodeURIComponent(item_id)}`);
-      if (
-        String(item?.id ?? "") !== item_id ||
-        String(item?.seller_id ?? "") !== sellerId ||
-        item?.status !== "active" ||
-        !(Number(item?.available_quantity) > 0)
-      ) {
-        throw new Error("O anuncio precisa estar ativo, com estoque e pertencer a conta Stop Kar.");
-      }
-      if (Array.isArray(item?.variations) && item.variations.length > 0) {
-        throw new Error("Anuncios com variacoes exigem conferencia individual de custo antes da 11.11.");
-      }
-  
-      const sku = String(getSellerSku(item) ?? "").trim();
-      if (!sku) throw new Error("SKU ausente no anuncio.");
-  
-      const trayResponse = await trayGet(env, "products", {
-        reference: sku,
-        limit: "20"
-      });
-      const produtosExatos = trayProductRows(trayResponse)
-        .map((row: any) => trayProductObject(row))
-        .filter((product: any) => String(product?.reference ?? "").trim() === sku);
-      if (produtosExatos.length !== 1) {
-        throw new Error("Referencia Tray ausente ou duplicada. A 11.11 foi bloqueada por seguranca.");
-      }
-      const custoProduto = Number(produtosExatos[0]?.cost_price);
-      if (!Number.isFinite(custoProduto) || custoProduto <= 0) {
-        throw new Error("Custo Tray invalido. A 11.11 foi bloqueada por seguranca.");
-      }
-  
-      const listingType = String(item?.listing_type_id ?? "");
-      const logisticType = String(item?.shipping?.logistic_type ?? "");
-      const shippingMode = String(item?.shipping?.mode ?? "");
-      const categoryId = String(item?.category_id ?? "");
-      const freeShipping = item?.shipping?.free_shipping;
-      if (
-        !["gold_special", "gold_pro"].includes(listingType) ||
-        !logisticType ||
-        !shippingMode ||
-        !categoryId ||
-        typeof freeShipping !== "boolean"
-      ) {
-        throw new Error("Dados logisticos ou tipo de anuncio incompletos.");
-      }
-  
-      const [freteData, taxaData] = await Promise.all([
-        meliGet(
-          env,
-          `/users/${encodeURIComponent(sellerId)}/shipping_options/free`,
-          {
-            item_id,
-            item_price: String(deal_price),
-            listing_type_id: listingType,
-            mode: shippingMode,
-            condition: String(item?.condition ?? "new"),
-            logistic_type: logisticType,
-            free_shipping: String(freeShipping),
-            verbose: "true"
-          }
-        ),
-        meliGet(env, "/sites/MLB/listing_prices", {
-          price: String(deal_price),
-          category_id: categoryId,
-          listing_type_id: listingType,
-          currency_id: String(item?.currency_id ?? "BRL"),
-          logistic_type: logisticType,
-          shipping_mode: shippingMode,
-          channel: "marketplace"
-        })
-      ]);
-  
-      const valorFrete = freteData?.coverage?.all_country?.list_cost;
-      const taxas = Array.isArray(taxaData) ? taxaData : [taxaData];
-      const taxaEscolhida = taxas.find(
-        (row: any) => String(row?.listing_type_id ?? "") === listingType
-      );
-      const valorComissao = taxaEscolhida?.sale_fee_amount;
-      if (valorFrete == null || valorComissao == null) {
-        throw new Error("Frete ou comissao nao confirmados. A 11.11 foi bloqueada por seguranca.");
-      }
-      const freteEstimado = Number(valorFrete);
-      const comissao = Number(valorComissao);
-      if (
-        !Number.isFinite(freteEstimado) ||
-        freteEstimado < 0 ||
-        !Number.isFinite(comissao) ||
-        comissao < 0
-      ) {
-        throw new Error("Frete ou comissao invalidos. A 11.11 foi bloqueada por seguranca.");
-      }
-  
-      let adsAtivo = false;
-      let adsStatusConfirmado = false;
-      let adsDetalhe: string | null = null;
-      try {
-        const advertiser = await getProductAdsAdvertiser(env);
-        const adGroups = await getProductAdsAdGroupsForItem(env, advertiser, item_id);
-        adsAtivo = adGroups.some((group: any) => String(group?.status ?? "").toUpperCase() === "ACTIVE");
-        adsStatusConfirmado = true;
-        adsDetalhe = adGroups.length
-          ? adGroups.map((group: any) => `${String(group?.id ?? "")}:${String(group?.status ?? "")}`).join(",")
-          : "sem_ad_group";
-      } catch (error) {
-        adsDetalhe = error instanceof Error ? error.message : String(error);
-      }
-      const adsReservaPercentual = adsStatusConfirmado ? (adsAtivo ? 10 : 0) : 10;
-  
-      const lucro =
-        deal_price -
-        custoProduto -
-        freteEstimado -
-        comissao -
-        deal_price * ((impostoPercentual + adsReservaPercentual) / 100);
-      const margemLiquidaPercentual = (lucro / deal_price) * 100;
-  
-      const preview = {
-        acao: confirmar ? "gravar" : "simulacao",
-        item_id,
-        promotion_id: targetPromotionId,
-        promotion_name: targetPromotionName,
-        promotion_status: campaignStatus,
-        status_convite: targetStatus,
-        deal_price,
-        faixa_1111: {
-          min_discounted_price: hasMin ? minPrice : null,
-          max_discounted_price: hasMax ? maxPrice : null,
-          suggested_discounted_price: Number.isFinite(Number(target?.suggested_discounted_price))
-            ? Number(target.suggested_discounted_price)
-            : null
-        },
-        seller_sku: sku,
-        custo_produto: custoProduto,
-       ÛÛZ\ÜØ[Ë]WÙ\Ý[XYÎ]Q\Ý[XYË[\ÜÝ×Ü\Ù[X[[\ÜÝÔ\Ù[X[Y×ÜÝ]\×ØÛÛ\XYÎYÔÝ]\ÐÛÛ\XYËY×Ø]]ÎYÐ]]ËY×Ù][NYÑ][KY×Ü\Ù\WÜ\Ù[X[YÔ\Ù\T\Ù[X[X\Ù[WÛZ[[XWÜ\Ù[X[X\Ù[SZ[[XT\Ù[X[X\Ù[WÛ\]ZYWÜ\Ù[X[[X\X\Ù[S\]ZYT\Ù[X[Ñ^Y
-  JK\ØÜ]WÜÛ[ØÛÙ\×ÚX[]YNÛ[Ý[ÛÜ]\Ñ[XY
-  [BNÂY
-  S[X\\Ñ[]JX\Ù[S\]ZYT\Ù[X[
-  HX\Ù[S\]ZYT\Ù[X[
-  ÈHX\Ù[SZ[[XT\Ù[X[
-  HÂ]\^\Ý[
-  Â]Y]ËXØ[ÎÜ]YXY×ÛX\Ù[WÚ[\[ÜØWÌLÜ\Ù[[[XWØ[\XØ[ÎYBJNÂBY
-  XÛÛ\X\H]\^\Ý[
-  ]Y]ÊNÂY
-  [[Ý]È[Ý]Ë[J
-  K[ÝJHÂÝÈ]È\Ü\H[ÛZ\È[[Ú[ÈHLKLK[ÜYH[H[Ý]ÈÛÛH[ÈY[ÜÈHØ\XÝ\\ËNÂB\]Z\TÛ[Ý[ÛÜ]\Ñ[XY
-  [NÂÛÛÝÜ]HH]ØZ]Y[UÜ]J[ÔÕÜÙ[\\Û[Ý[ÛËÚ][\ËÉÙ[ÛÙUTPÛÛ\Û[
-  ][WÚY
-  _OØ\Ý\Ú[Û]ÂX[ÜXÙKÛ[Ý[ÛÚY\Ù]Û[Ý[ÛYÛ[Ý[ÛÝ\NPSB
-  NÂÛÛÝY\Û[Ý[ÛÈH]ØZ]Ù]][TÛ[Ý[ÛÊ[][WÚY
-  NÂÛÛÝY\HY\Û[Ý[ÛË[
-  
-  Û[Ý[Û[JHOÛ[Ý[ÛYÙÛ[Ý[ÛHOOH\Ù]Û[Ý[ÛY	Ý[ÊÛ[Ý[ÛË\HÏÈÛ[Ý[ÛËÛ[Ý[ÛÝ\HÏÈKÕ\\Ø\ÙJ
-  HOOHPS
-  NÂÛÛÝXÛÐ]X[HY\ËXÙHOH[È[[X\Y\XÙJNÂÛÛÝXÛÐÛÛ\HBXÛÐ]X[OOH[	[X\\Ñ[]JXÛÐ]X[
-  H	X]XÊXÛÐ]X[HX[ÜXÙJHLNÂÛÛÝÝ]\ÌLLLHHÝ[ÊY\ËÝ]\ÈÏÈNÂÛÛÝÛÛ\XYÓLLLLHHÈ[[ÈÝ\YK[ÛY\ÊÝ]\ÌLLLJH	XÛÐÛÛ\NÂÛÛÝ]Y]ÚYH]ØZ]XÛÜÜ\][Û]Y]
-  [Û[Ý[ÛX[LLLLN]Y]Â\ÎX[ÌLLLWÚÚ[][WÚY\Ý[Î\Ù]Û[Ý[ÛY[Ý]Î[Ý]Ë[J
-  KX[ÜXÙKX\Ù[WÛ\]ZYWÜ\Ù[X[[X\X\Ù[S\]ZYT\Ù[X[Ñ^Y
-  JKY×Ø]]ÎYÐ]]ËY×Ü\Ù\WÜ\Ù[X[YÔ\Ù\T\Ù[X[ÛÛ\XY×ÛWÌLLLNÛÛ\XYÓLLLLK\ÜÜÝNÜ]K]BJNÂ]\^\Ý[
-  Â]Y]ËXØ[ÎÜ]YÈ]Y]ÚY[Ú[Ý][^YÎÜ]K]Ý\ÙYÝ]\×ÌLLLNÝ]\ÌLLLH[XÛ×ÌLLLWØÛÛ\XYÎXÛÐ]X[XÛ×ØÛÛ\NXÛÐÛÛ\KÛÛ\XY×ÛWÌLLLNÛÛ\XYÓLLLLK\ÜÜÝNÜ]K]BJNÂBNÂ
-
   server.registerTool(
     "participar_oferta_relampago",
     {
