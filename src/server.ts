@@ -5020,6 +5020,551 @@ function createServer(env: Env) {
     }
   );
 
+
+  server.registerTool(
+      "participar_promocao_1111_damiao",
+      {
+        description:
+          "Inclui em lotes seguros na campanha oficial 11.11 (DEAL P-MLB17909028) os anuncios ativos da campanha Damiao, preservando o preco promocional ja configurado. Faz preview por padrao, valida convite e faixa de preco e exige confirmacao para gravar.",
+        inputSchema: {
+          limite_lote: z.number().int().min(1).max(25).optional().default(20),
+          item_ids: z.array(z.string().regex(/^MLB\d+$/)).min(1).max(5).optional()
+            .describe("MLBs especificos para validar e incluir, evitando paginacao de centenas de anuncios."),
+          confirmar: z.boolean().optional().default(false),
+          motivo: z.string().max(300).optional()
+        }
+      },
+      async ({ limite_lote, item_ids, confirmar, motivo }) => {
+        const sourcePromotionId = "C-MLB5661788";
+        const targetPromotionId = "P-MLB17909028";
+        const batchLimit = Number(limite_lote ?? 20);
+  
+        const fetchPromotionItems = async (
+          promotionId: string,
+          promotionType: string,
+          status: "started" | "candidate"
+        ) => {
+          const results: any[] = [];
+          let searchAfter: string | undefined;
+  
+          for (let page = 0; page < 30; page += 1) {
+            const data = await meliGet(
+              env,
+              `/seller-promotions/promotions/${encodeURIComponent(promotionId)}/items`,
+              {
+                promotion_type: promotionType,
+                status,
+                status_item: "active",
+                app_version: "v2",
+                limit: "50",
+                search_after: searchAfter
+              }
+            );
+            const entries = Array.isArray(data?.results)
+              ? data.results
+              : Array.isArray(data)
+                ? data
+                : [];
+            results.push(...entries);
+            searchAfter =
+              data?.searchAfter ?? data?.search_after ?? data?.paging?.searchAfter ?? undefined;
+            if (!searchAfter) return results;
+          }
+  
+          throw new Error(`Paginacao excedeu o limite seguro para a promocao ${promotionId}.`);
+        };
+  
+        const me = await meliGet(env, "/users/me");
+        const campaignsData = await meliGet(
+          env,
+          `/seller-promotions/users/${encodeURIComponent(String(me.id))}`,
+          { app_version: "v2" }
+        );
+        const campaigns = Array.isArray(campaignsData?.results)
+          ? campaignsData.results
+          : Array.isArray(campaignsData)
+            ? campaignsData
+            : [];
+        const sourceCampaign = campaigns.find(
+          (entry: any) =>
+            String(entry?.id) === sourcePromotionId &&
+            String(entry?.type ?? "").toUpperCase() === "SELLER_CAMPAIGN"
+        );
+        const targetCampaign = campaigns.find(
+          (entry: any) =>
+            String(entry?.id) === targetPromotionId &&
+            String(entry?.type ?? "").toUpperCase() === "DEAL"
+        );
+  
+        const sourceCampaignName = String(sourceCampaign?.name ?? "").trim().toLocaleLowerCase("pt-BR");
+        if (!sourceCampaign || !["damiao", "damião", "sk pecas", "sk peças"].includes(sourceCampaignName)) {
+          throw new Error("Protecao Stop Kar: a campanha de origem SK pecas nao foi confirmada.");
+        }
+        if (!targetCampaign || String(targetCampaign?.name ?? "") !== "11.11 da Black") {
+          throw new Error("Protecao Stop Kar: a campanha oficial 11.11 nao foi confirmada.");
+        }
+        const targetCampaignStatus = String(targetCampaign?.status ?? "");
+        if (!["pending", "started"].includes(targetCampaignStatus)) {
+          throw new Error("A campanha oficial 11.11 nao esta disponivel para adesao.");
+        }
+  
+        const damiaoStarted: any[] = [];
+        const targetCandidates: any[] = [];
+        const targetStarted: any[] = [];
+        // Clientes que ainda exponham o esquema antigo podem enviar o escopo
+        // no motivo no formato LOTE_1111:MLB123,MLB456|justificativa.
+        // O mesmo limite e as mesmas validacoes de elegibilidade se aplicam.
+        const matchLoteMotivo = String(motivo ?? "").match(
+          /^LOTE_1111:\s*(MLB\d+(?:\s*,\s*MLB\d+)*)\s*\|/i
+        );
+        const selectedItemIds =
+          item_ids?.length ? item_ids : matchLoteMotivo?.[1]?.split(/\s*,\s*/);
+        if (selectedItemIds && (selectedItemIds.length > 5 ||
+          selectedItemIds.some((id: string) => !/^MLB\d+$/.test(id)))) {
+          throw new Error("Lote 11.11 invalido: informe de 1 a 5 MLBs.");
+        }
+        if (selectedItemIds?.length) {
+          // Escopo restrito: cada MLB precisa comprovar individualmente
+          // promocao SK started e convite DEAL candidate, ou DEAL started.
+          for (const itemId of [...new Set(selectedItemIds)]) {
+            const promotions = await getItemPromotions(env, itemId);
+            const source = promotions.find(
+              (row: any) =>
+                promotionIdOf(row) === sourcePromotionId &&
+                String(row?.type ?? row?.promotion_type ?? "").toUpperCase() === "SELLER_CAMPAIGN" &&
+                String(row?.status ?? "") === "started"
+            );
+            const target = promotions.find(
+              (row: any) =>
+                promotionIdOf(row) === targetPromotionId &&
+                String(row?.type ?? row?.promotion_type ?? "").toUpperCase() === "DEAL"
+            );
+            if (source) damiaoStarted.push({ ...source, id: itemId });
+            if (target?.status === "candidate") targetCandidates.push({ ...target, id: itemId });
+            if (target?.status === "started") targetStarted.push({ ...target, id: itemId });
+          }
+        } else {
+          const pages = await Promise.all([
+            fetchPromotionItems(sourcePromotionId, "SELLER_CAMPAIGN", "started"),
+            fetchPromotionItems(targetPromotionId, "DEAL", "candidate"),
+            fetchPromotionItems(targetPromotionId, "DEAL", "started")
+          ]);
+          damiaoStarted.push(...pages[0]);
+          targetCandidates.push(...pages[1]);
+          targetStarted.push(...pages[2]);
+        }
+  
+        const candidateById = new Map(
+          targetCandidates.map((entry: any) => [String(entry?.id), entry])
+        );
+        const startedIds = new Set(targetStarted.map((entry: any) => String(entry?.id)));
+        const alreadyStarted = damiaoStarted.filter((entry: any) =>
+          startedIds.has(String(entry?.id))
+        );
+        const blocked: any[] = [];
+        const eligible: Array<{
+          item_id: string;
+          deal_price: number;
+          original_price: number | null;
+          min_discounted_price: number | null;
+          max_discounted_price: number | null;
+          suggested_discounted_price: number | null;
+        }> = [];
+  
+        for (const source of damiaoStarted) {
+          const itemId = String(source?.id ?? "");
+          if (!itemId || startedIds.has(itemId)) continue;
+          const candidate = candidateById.get(itemId);
+          if (!candidate) {
+            blocked.push({ item_id: itemId, motivo: "sem_convite_1111" });
+            continue;
+          }
+  
+          const price = Number(source?.price);
+          const minPrice = Number(candidate?.min_discounted_price);
+          const maxPrice = Number(candidate?.max_discounted_price);
+          const hasMin = Number.isFinite(minPrice) && minPrice > 0;
+          const hasMax = Number.isFinite(maxPrice) && maxPrice > 0;
+          const validPrice =
+            Number.isFinite(price) &&
+            price > 0 &&
+            (!hasMin || price >= minPrice) &&
+            (!hasMax || price <= maxPrice);
+  
+          if (!validPrice) {
+            blocked.push({
+              item_id: itemId,
+              motivo: "preco_damiao_fora_da_faixa_1111",
+              deal_price: Number.isFinite(price) ? price : null,
+              min_discounted_price: hasMin ? minPrice : null,
+              max_discounted_price: hasMax ? maxPrice : null
+            });
+            continue;
+          }
+  
+          eligible.push({
+            item_id: itemId,
+            deal_price: price,
+            original_price: Number.isFinite(Number(candidate?.original_price))
+              ? Number(candidate.original_price)
+              : null,
+            min_discounted_price: hasMin ? minPrice : null,
+            max_discounted_price: hasMax ? maxPrice : null,
+            suggested_discounted_price: Number.isFinite(
+              Number(candidate?.suggested_discounted_price)
+            )
+              ? Number(candidate.suggested_discounted_price)
+              : null
+          });
+        }
+  
+        // Somente aderir a DEALs quando a margem estiver validada com
+        // custo real Tray, tarifa oficial ML e frete estimado no preco do DEAL.
+        // Qualquer custo ausente bloqueia o item sem modificar precos.
+        const safeBatch: Array<(typeof eligible)[number] & {
+          seller_sku: string;
+          custo_produto: number;
+          comissao: number;
+          frete_estimado: number;
+          margem_liquida_percentual: number;
+          ads_ativo: boolean;
+          ads_status_confirmado: boolean;
+          ads_reserva_percentual: number;
+        }> = [];
+        let margemVerificada = 0;
+        const margemMinimaPercentual = 10;
+        const impostoPercentual = 11;
+        const adsReservaPercentualPadrao = 10;
+  
+        for (const entry of eligible) {
+          if (safeBatch.length >= batchLimit) break;
+          margemVerificada += 1;
+          try {
+            const item = await meliGet(env, "/items/" + encodeURIComponent(entry.item_id));
+            if (
+              String(item?.id ?? "") !== entry.item_id ||
+              String(item?.seller_id ?? "") !== String(me?.id ?? "") ||
+              item?.status !== "active" ||
+              !(Number(item?.available_quantity) > 0)
+            ) {
+              throw new Error("anuncio_nao_ativo_ou_sem_estoque");
+            }
+            if (Array.isArray(item?.variations) && item.variations.length > 0) {
+              throw new Error("variacoes_exigem_conferencia_individual_de_custo");
+            }
+            const sku = String(getSellerSku(item) ?? "").trim();
+            if (!sku) throw new Error("sku_ausente");
+  
+            const listingType = String(item?.listing_type_id ?? "");
+            const logisticType = String(item?.shipping?.logistic_type ?? "");
+            const shippingMode = String(item?.shipping?.mode ?? "");
+            const categoryId = String(item?.category_id ?? "");
+            const freeShipping = item?.shipping?.free_shipping;
+            if (
+              !["gold_special", "gold_pro"].includes(listingType) ||
+              !logisticType ||
+              !shippingMode ||
+              !categoryId ||
+              typeof freeShipping !== "boolean"
+            ) {
+              throw new Error("dados_logisticos_ou_tipo_anuncio_incompletos");
+            }
+  
+            const trayResponse = await trayGet(env, "products", {
+              reference: sku,
+              limit: "20"
+            });
+            let produtosExatos = trayProductRows(trayResponse)
+              .map((row: any) => trayProductObject(row))
+              .filter((product: any) => String(product?.reference ?? "").trim() === sku);
+            if (produtosExatos.length !== 1) {
+              // Estes MLBs usam o ID interno Tray como SKU. Vinculos conferidos
+              // com ficha Mercado Livre, nome, lado/modelo, ID e custo Tray.
+              // Nao altera SKU e nao usa ID desconhecido automaticamente.
+              const trayIdsVerificados: Record<string, {
+                id: string; tipo: string; modelo: string
+              }> = {
+                MLB6845184786: { id: "183", tipo: "calota", modelo: "ka" },
+                MLB5342636261: { id: "125", tipo: "lanterna", modelo: "gol" },
+                MLB5337657429: { id: "583", tipo: "lanterna", modelo: "s10" },
+                MLB5336580317: { id: "587", tipo: "lanterna", modelo: "s10" },
+                MLB5336579099: { id: "585", tipo: "lanterna", modelo: "s10" },
+                MLB5336038509: { id: "519", tipo: "lanterna", modelo: "ranger" },
+                MLB5336006439: { id: "513", tipo: "lanterna", modelo: "ranger" }
+              };
+              const autorizado = trayIdsVerificados[entry.item_id];
+              const conferir = (valor: unknown, termo: string) => {
+                const v = String(valor ?? "").normalize("NFD")
+                  .replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                return new RegExp("(^|[^a-z0-9])" + termo + "([^a-z0-9]|$)").test(v);
+              };
+              if (
+                autorizado &&
+                sku === autorizado.id &&
+                String(item?.seller_custom_field ?? "").trim() === autorizado.id &&
+                conferir(item?.title, autorizado.tipo) &&
+                conferir(item?.title, autorizado.modelo)
+              ) {
+                const respostaPorId = await trayGet(env, "products", {
+                  id: autorizado.id,
+                  limit: "2"
+                });
+                produtosExatos = trayProductRows(respostaPorId)
+                  .map((row: any) => trayProductObject(row))
+                  .filter((product: any) =>
+                    String(product?.id ?? "") === autorizado.id &&
+                    String(product?.reference ?? "").trim().length > 0 &&
+                    Number(product?.cost_price) > 0 &&
+                    conferir(product?.name, autorizado.tipo) &&
+                    conferir(product?.name, autorizado.modelo)
+                  );
+              }
+            }
+            if (produtosExatos.length !== 1) {
+              throw new Error("referencia_Tray_ausente_ou_duplicada");
+            }
+            const custoProduto = Number(produtosExatos[0]?.cost_price);
+            if (!Number.isFinite(custoProduto) || custoProduto <= 0) {
+              throw new Error("custo_Tray_invalido");
+            }
+  
+            const [freteData, taxaData] = await Promise.all([
+              meliGet(
+                env,
+                "/users/" + encodeURIComponent(String(me.id)) + "/shipping_options/free",
+                {
+                  item_id: entry.item_id,
+                  item_price: String(entry.deal_price),
+                  listing_type_id: listingType,
+                  mode: shippingMode,
+                  condition: String(item?.condition ?? "new"),
+                  logistic_type: logisticType,
+                  free_shipping: String(freeShipping),
+                  verbose: "true"
+                }
+              ),
+              meliGet(env, "/sites/MLB/listing_prices", {
+                price: String(entry.deal_price),
+                category_id: categoryId,
+                listing_type_id: listingType,
+                currency_id: String(item?.currency_id ?? "BRL"),
+                logistic_type: logisticType,
+                shipping_mode: shippingMode,
+                channel: "marketplace"
+              })
+            ]);
+            const valorFrete = freteData?.coverage?.all_country?.list_cost;
+            const taxas = Array.isArray(taxaData) ? taxaData : [taxaData];
+            const taxaEscolhida = taxas.find(
+              (row: any) => String(row?.listing_type_id ?? "") === listingType
+            );
+            const valorComissao = taxaEscolhida?.sale_fee_amount;
+            if (valorFrete == null || valorComissao == null) {
+              throw new Error("frete_ou_comissao_nao_confirmados");
+            }
+            const freteEstimado = Number(valorFrete);
+            const comissao = Number(valorComissao);
+            if (
+              !Number.isFinite(freteEstimado) ||
+              freteEstimado < 0 ||
+              !Number.isFinite(comissao) ||
+              comissao < 0
+            ) {
+              throw new Error("frete_ou_comissao_nao_confirmados");
+            }
+  
+            let adsAtivo = false;
+            let adsStatusConfirmado = false;
+            try {
+              const advertiser = await getProductAdsAdvertiser(env);
+              const adGroups = await getProductAdsAdGroupsForItem(
+                env,
+                advertiser,
+                entry.item_id
+              );
+              adsAtivo = adGroups.some(
+                (group: any) => String(group?.status ?? "").toUpperCase() === "ACTIVE"
+              );
+              adsStatusConfirmado = true;
+            } catch {}
+  
+            const adsReservaPercentualItem = adsStatusConfirmado
+              ? (adsAtivo ? adsReservaPercentualPadrao : 0)
+              : adsReservaPercentualPadrao;
+  
+            const preco = entry.deal_price;
+            const lucro =
+              preco -
+              custoProduto -
+              freteEstimado -
+              comissao -
+              preco * ((impostoPercentual + adsReservaPercentualItem) / 100);
+            const margem = (lucro / preco) * 100;
+            if (!Number.isFinite(margem) || margem + 0.000001 < margemMinimaPercentual) {
+              blocked.push({
+                item_id: entry.item_id,
+                motivo: "margem_inferior_a_10_percent",
+                margem_liquida_percentual: Number.isFinite(margem)
+                  ? Number(margem.toFixed(2))
+                  : null,
+                deal_price: preco
+              });
+              continue;
+            }
+  
+            safeBatch.push({
+              ...entry,
+              seller_sku: sku,
+              custo_produto: custoProduto,
+              comissao,
+              frete_estimado: freteEstimado,
+              margem_liquida_percentual: Number(margem.toFixed(2)),
+              ads_ativo: adsAtivo,
+              ads_status_confirmado: adsStatusConfirmado,
+              ads_reserva_percentual: adsReservaPercentualItem
+            });
+          } catch (error) {
+            blocked.push({
+              item_id: entry.item_id,
+              motivo: "validacao_de_margem_indisponivel",
+              detalhe: error instanceof Error ? error.message : String(error)
+            });
+          }
+        }
+        const batch = safeBatch;
+        const preview = {
+          acao: confirmar ? "gravar" : "simulacao",
+          origem: {
+            id: sourcePromotionId,
+            nome: sourceCampaign?.name ?? "Damiao",
+            tipo: "SELLER_CAMPAIGN",
+            itens_ativos: damiaoStarted.length
+          },
+          destino: {
+            id: targetPromotionId,
+            nome: targetCampaign?.name ?? "11.11",
+            tipo: "DEAL",
+            status: targetCampaign?.status ?? null
+          },
+          ja_ativos_na_1111: alreadyStarted.length,
+          elegiveis_por_convite_e_preco: eligible.length,
+          margem_verificada: margemVerificada,
+          margem_minima_percentual: margemMinimaPercentual,
+          imposto_percentual: impostoPercentual,
+          ads_reserva_percentual_padrao: adsReservaPercentualPadrao,
+          elegiveis_restantes: safeBatch.length,
+          pendentes_de_validacao_de_margem: Math.max(0, eligible.length - margemVerificada),
+          bloqueados: blocked.length,
+          limite_lote: batchLimit,
+          lote_preparado: batch.length,
+          proximos_itens: batch,
+          bloqueios: blocked.slice(0, 25),
+          escrita_promocoes_habilitada: promotionWritesEnabled(env)
+        };
+  
+        if (!confirmar) return textResult(preview);
+        if (!motivo || motivo.trim().length < 5) {
+          throw new Error("Para incluir os anuncios na 11.11, informe um motivo com pelo menos 5 caracteres.");
+        }
+        requirePromotionWritesEnabled(env);
+  
+        const results: Array<{
+          item_id: string;
+          deal_price: number;
+          status: "enviado" | "falhou";
+          endpoint?: string;
+          resposta?: unknown;
+          erro?: string;
+        }> = [];
+  
+        for (const entry of batch) {
+          try {
+            const write = await meliWrite(
+              env,
+              "POST",
+              `/seller-promotions/items/${encodeURIComponent(entry.item_id)}?app_version=v2`,
+              {
+                deal_price: entry.deal_price,
+                promotion_id: targetPromotionId,
+                promotion_type: "DEAL"
+              }
+            );
+            results.push({
+              item_id: entry.item_id,
+              deal_price: entry.deal_price,
+              status: "enviado",
+              endpoint: write.path_used,
+              resposta: write.data
+            });
+          } catch (error) {
+            results.push({
+              item_id: entry.item_id,
+              deal_price: entry.deal_price,
+              status: "falhou",
+              erro: error instanceof Error ? error.message : String(error)
+            });
+          }
+        }
+  
+        // Consulta o status de cada item individualmente, para evitar dezenas
+        // de chamadas paginadas que podem estourar o limite do Cloudflare Worker.
+        const confirmedResults = [];
+        for (const entry of results) {
+          let campanha: any = null;
+          let verificacaoErro: string | null = null;
+          try {
+            const promocoes = await getItemPromotions(env, entry.item_id);
+            campanha = promocoes.find(
+              (promotion: any) =>
+                promotionIdOf(promotion) === targetPromotionId &&
+                String(promotion?.type ?? promotion?.promotion_type ?? "").toUpperCase() === "DEAL"
+            );
+          } catch (error) {
+            verificacaoErro = error instanceof Error ? error.message : String(error);
+          }
+          const precoAtual = campanha?.price == null ? null : Number(campanha.price);
+          const precoConfere =
+            precoAtual !== null &&
+            Number.isFinite(precoAtual) &&
+            Math.abs(precoAtual - entry.deal_price) < 0.011;
+          confirmedResults.push({
+            ...entry,
+            preco_1111_confirmado: precoAtual,
+            preco_confere: precoConfere,
+            status_1111: campanha?.status ?? null,
+            verificacao_erro: verificacaoErro,
+            confirmado_na_1111:
+              ["pending", "started"].includes(String(campanha?.status ?? "")) &&
+              precoConfere
+          });
+        }
+        const confirmedCount = confirmedResults.filter(
+          (entry) => entry.confirmado_na_1111
+        ).length;
+        const audit_id = await recordOperationAudit(env, "promotion:deal-1111:audit", {
+          tipo: "deal_1111_join_batch",
+          origem: sourcePromotionId,
+          destino: targetPromotionId,
+          motivo: motivo.trim(),
+          lote_solicitado: batch.length,
+          confirmados: confirmedCount,
+          resultados: confirmedResults
+        });
+  
+        return textResult({
+          ...preview,
+          acao: "gravado",
+          audit_id,
+          enviados: results.filter((entry) => entry.status === "enviado").length,
+          falhas: results.filter((entry) => entry.status === "falhou").length,
+          confirmados_na_1111: confirmedCount,
+          restantes_estimados: Math.max(0, eligible.length - confirmedCount),
+          resultados: confirmedResults
+        });
+      }
+    );
+  
+
   server.registerTool(
     "participar_oferta_relampago",
     {
