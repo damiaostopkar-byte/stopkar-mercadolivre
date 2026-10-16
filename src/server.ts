@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.15";
+const SERVER_VERSION = "0.17.16";
 
 function textResult(value: unknown) {
   return {
@@ -6580,6 +6580,390 @@ function createServer(env: Env) {
         next_search_after:
           data?.searchAfter ?? data?.search_after ?? data?.paging?.searchAfter ?? null,
         results: entries.map((entry: any) => compactPromotionItem(entry))
+      });
+    }
+  );
+
+
+  server.registerTool(
+    "gerenciar_preco_negocios",
+    {
+      description:
+        "Analisa e configura Preco para Negocios (PxQ percentual B2B) usando a recomendacao oficial do Mercado Livre. Soma custo Tray, reserva imposto/Ads, valida frete, comissao e margem minima antes de gravar. Faz preview por padrao e exige confirmacao para escrita.",
+      inputSchema: {
+        item_id: z.string().regex(/^MLB\\d+$/),
+        quantidades: z.array(z.number().int().min(2).max(100)).min(1).max(5).optional().default([2, 5, 10]),
+        margem_minima_percentual: z.number().min(0).max(80).optional().default(10),
+        imposto_percentual: z.number().min(0).max(50).optional().default(11),
+        ads_reserva_percentual: z.number().min(0).max(50).optional().default(0),
+        custo_produto: z.number().positive().optional(),
+        component_skus: z.array(z.string().min(1)).min(1).max(20).optional(),
+        respeitar_estoque_atual: z.boolean().optional().default(true),
+        remover_pxq_absoluto: z.boolean().optional().default(false),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({
+      item_id,
+      quantidades,
+      margem_minima_percentual,
+      imposto_percentual,
+      ads_reserva_percentual,
+      custo_produto,
+      component_skus,
+      respeitar_estoque_atual,
+      remover_pxq_absoluto,
+      confirmar,
+      motivo
+    }) => {
+      const chosen = await chooseListingForWrite(env, item_id);
+      const item = chosen.selected;
+      if (!item) throw new Error("Nao foi possivel localizar o anuncio informado.");
+
+      const availableQuantity = Number(item?.available_quantity ?? 0);
+      const requestedQuantities = [...new Set((quantidades ?? [2, 5, 10]).map((q: number) => Number(q)))]
+        .filter((q: number) => Number.isInteger(q) && q >= 2 && q <= 100)
+        .sort((a: number, b: number) => a - b)
+        .slice(0, 5);
+
+      if (requestedQuantities.length === 0) {
+        throw new Error("Informe ao menos uma quantidade valida entre 2 e 100.");
+      }
+
+      let productCost = Number(custo_produto ?? 0);
+      let costSource = custo_produto ? "custo_informado" : "tray_sku";
+      const sellerSku = String(getSellerSku(item) ?? "").trim();
+
+      if (!(productCost > 0) && Array.isArray(component_skus) && component_skus.length > 0) {
+        let sum = 0;
+        for (const componentSku of component_skus) {
+          const response = await trayGet(env, "products", {
+            reference: String(componentSku).trim(),
+            limit: "20"
+          });
+          const exact = trayProductRows(response)
+            .map((row: any) => trayProductObject(row))
+            .filter((product: any) =>
+              String(product?.reference ?? "").trim() === String(componentSku).trim()
+            );
+          if (exact.length !== 1) {
+            throw new Error("componente_Tray_ausente_ou_duplicado:" + componentSku);
+          }
+          const componentCost = Number(exact[0]?.cost_price);
+          if (!Number.isFinite(componentCost) || componentCost <= 0) {
+            throw new Error("custo_componente_Tray_invalido:" + componentSku);
+          }
+          sum += componentCost;
+        }
+        productCost = sum;
+        costSource = "tray_component_skus";
+      }
+
+      if (!(productCost > 0)) {
+        if (!sellerSku) {
+          throw new Error("Anuncio sem SKU para localizar o custo na Tray. Informe custo_produto ou component_skus.");
+        }
+        const response = await trayGet(env, "products", {
+          reference: sellerSku,
+          limit: "20"
+        });
+        const exact = trayProductRows(response)
+          .map((row: any) => trayProductObject(row))
+          .filter((product: any) => String(product?.reference ?? "").trim() === sellerSku);
+        if (exact.length !== 1) {
+          throw new Error("referencia_Tray_ausente_ou_duplicada:" + sellerSku);
+        }
+        productCost = Number(exact[0]?.cost_price);
+        if (!Number.isFinite(productCost) || productCost <= 0) {
+          throw new Error("custo_Tray_invalido:" + sellerSku);
+        }
+      }
+
+      const pricesBefore = await meliGet(
+        env,
+        `/items/${encodeURIComponent(String(item.id))}/prices`,
+        { display_version: "true" },
+        { "show-all-prices": "true" }
+      );
+
+      const version = Number(pricesBefore?.version);
+      if (!Number.isFinite(version)) {
+        throw new Error("Mercado Livre nao retornou a versao atual de precos do item.");
+      }
+
+      const standardPrices = Array.isArray(pricesBefore?.prices) ? pricesBefore.prices : [];
+      const standardNode =
+        standardPrices.find((entry: any) => {
+          const contexts = Array.isArray(entry?.conditions?.context_restrictions)
+            ? entry.conditions.context_restrictions
+            : [];
+          return String(entry?.type ?? "").toLowerCase() === "standard" && contexts.length === 0;
+        }) ??
+        standardPrices.find((entry: any) => String(entry?.type ?? "").toLowerCase() === "standard") ??
+        null;
+
+      const standardAmount = Number(standardNode?.amount ?? item?.price ?? item?.base_price);
+      if (!Number.isFinite(standardAmount) || standardAmount <= 0) {
+        throw new Error("Preco standard invalido para consultar recomendacoes B2B.");
+      }
+
+      const recommendationWrite = await meliWrite(
+        env,
+        "POST",
+        "/prices-per-quantity/v1/recommendations",
+        {
+          item_id: String(item.id),
+          range_item_quantities: requestedQuantities,
+          price: {
+            standard_amount: standardAmount,
+            currency: String(item?.currency_id ?? "BRL")
+          }
+        }
+      );
+
+      const recommendationData = recommendationWrite.data;
+      const recommendations = Array.isArray(recommendationData?.recommendations)
+        ? recommendationData.recommendations
+        : [];
+
+      if (recommendations.length === 0) {
+        return textResult({
+          acao: "bloqueado_sem_recomendacao",
+          item_id: item.id,
+          titulo: item.title ?? null,
+          sku: sellerSku || null,
+          custo_produto: Number(productCost.toFixed(2)),
+          custo_fonte: costSource,
+          quantidades_solicitadas: requestedQuantities,
+          mensagem: "O Mercado Livre nao retornou recomendacoes B2B para este item. Nenhum preco foi alterado."
+        });
+      }
+
+      const me = await meliGet(env, "/users/me");
+      const siteId = String(me?.site_id || "MLB");
+      const salePriceAmount = Number(
+        recommendationData?.price?.sale_price_amount ??
+        recommendationData?.price?.standard_amount ??
+        standardAmount
+      );
+
+      const existingPxq = Array.isArray(pricesBefore?.price_per_quantity)
+        ? pricesBefore.price_per_quantity
+        : [];
+      const existingByQuantity = new Map<number, any>();
+      for (const row of existingPxq) {
+        const quantity = Number(row?.conditions?.min_purchase_unit);
+        if (Number.isFinite(quantity)) existingByQuantity.set(quantity, row);
+      }
+
+      const analyses: any[] = [];
+      for (const recommendation of recommendations) {
+        const quantity = Number(recommendation?.quantity);
+        const recommendedPercentage = Number(recommendation?.discount?.percentage);
+        const incoherent = Boolean(recommendation?.is_incoherent_quantity);
+
+        if (!Number.isInteger(quantity) || quantity < 2) continue;
+
+        const percentage =
+          Number.isFinite(recommendedPercentage) && recommendedPercentage > 0
+            ? Math.ceil(recommendedPercentage * 100) / 100
+            : null;
+
+        if (!(percentage && percentage > 0)) {
+          analyses.push({
+            quantidade: quantity,
+            seguro: false,
+            motivo_bloqueio: "recomendacao_sem_percentual_valido"
+          });
+          continue;
+        }
+
+        const effectiveUnitPrice = Number(
+          (salePriceAmount * (1 - percentage / 100)).toFixed(2)
+        );
+
+        const feeData = await meliGet(
+          env,
+          `/sites/${encodeURIComponent(siteId)}/listing_prices`,
+          {
+            price: String(effectiveUnitPrice),
+            category_id: String(item?.category_id ?? ""),
+            listing_type_id: String(item?.listing_type_id ?? "gold_special"),
+            currency_id: String(item?.currency_id ?? "BRL"),
+            logistic_type: String(item?.shipping?.logistic_type ?? "cross_docking"),
+            shipping_mode: String(item?.shipping?.mode ?? "me2"),
+            channel: "marketplace"
+          }
+        );
+
+        const feeEntries = Array.isArray(feeData) ? feeData : feeData ? [feeData] : [];
+        const feeSelected =
+          feeEntries.find((entry: any) => entry?.listing_type_id === item?.listing_type_id) ??
+          feeEntries[0] ??
+          null;
+        const saleFee = Number(feeSelected?.sale_fee_amount);
+
+        const shippingTotal = Number(recommendation?.shipping?.cost);
+        const shippingPerUnit =
+          Number.isFinite(shippingTotal) && quantity > 0
+            ? shippingTotal / quantity
+            : NaN;
+
+        const tax = effectiveUnitPrice * (Number(imposto_percentual ?? 11) / 100);
+        const adsReserve = effectiveUnitPrice * (Number(ads_reserva_percentual ?? 0) / 100);
+        const profit =
+          effectiveUnitPrice -
+          productCost -
+          (Number.isFinite(saleFee) ? saleFee : 0) -
+          (Number.isFinite(shippingPerUnit) ? shippingPerUnit : 0) -
+          tax -
+          adsReserve;
+        const margin = effectiveUnitPrice > 0 ? (profit / effectiveUnitPrice) * 100 : -Infinity;
+
+        const stockBlocked =
+          Boolean(respeitar_estoque_atual) &&
+          Number.isFinite(availableQuantity) &&
+          availableQuantity > 0 &&
+          quantity > availableQuantity;
+        const missingShipping = !Number.isFinite(shippingPerUnit);
+        const missingFee = !Number.isFinite(saleFee);
+        const marginBlocked = !Number.isFinite(margin) || margin < Number(margem_minima_percentual ?? 10);
+
+        const safe =
+          !incoherent &&
+          !stockBlocked &&
+          !missingShipping &&
+          !missingFee &&
+          !marginBlocked;
+
+        let blockReason: string | null = null;
+        if (incoherent) blockReason = "quantidade_incoerente_no_Mercado_Livre";
+        else if (stockBlocked) blockReason = "estoque_atual_insuficiente_para_a_faixa";
+        else if (missingShipping) blockReason = "frete_recomendado_indisponivel";
+        else if (missingFee) blockReason = "comissao_indisponivel";
+        else if (marginBlocked) blockReason = "margem_abaixo_do_minimo";
+
+        analyses.push({
+          quantidade: quantity,
+          percentual_recomendado: Number(recommendedPercentage.toFixed(6)),
+          percentual_configurar: Number(percentage.toFixed(2)),
+          preco_vigente_referencia: Number(salePriceAmount.toFixed(2)),
+          preco_b2b_unitario: effectiveUnitPrice,
+          custo_produto_unitario: Number(productCost.toFixed(2)),
+          comissao_unitaria: Number.isFinite(saleFee) ? Number(saleFee.toFixed(2)) : null,
+          frete_total_recomendado: Number.isFinite(shippingTotal) ? Number(shippingTotal.toFixed(2)) : null,
+          frete_unitario_estimado: Number.isFinite(shippingPerUnit)
+            ? Number(shippingPerUnit.toFixed(2))
+            : null,
+          imposto_unitario: Number(tax.toFixed(2)),
+          reserva_ads_unitaria: Number(adsReserve.toFixed(2)),
+          lucro_unitario_estimado: Number(profit.toFixed(2)),
+          margem_estimada_percentual: Number.isFinite(margin)
+            ? Number(margin.toFixed(2))
+            : null,
+          seguro: safe,
+          motivo_bloqueio: blockReason
+        });
+      }
+
+      const safeRows = analyses
+        .filter((row: any) => row.seguro)
+        .sort((a: any, b: any) => a.quantidade - b.quantidade);
+
+      const preview = {
+        acao: confirmar ? "gravar" : "simulacao",
+        item_id: item.id,
+        titulo: item.title ?? null,
+        sku: sellerSku || null,
+        estoque_atual: availableQuantity,
+        custo_produto: Number(productCost.toFixed(2)),
+        custo_fonte: costSource,
+        preco_standard: Number(standardAmount.toFixed(2)),
+        preco_vigente_referencia: Number(salePriceAmount.toFixed(2)),
+        margem_minima_percentual: Number(margem_minima_percentual ?? 10),
+        imposto_percentual: Number(imposto_percentual ?? 11),
+        ads_reserva_percentual: Number(ads_reserva_percentual ?? 0),
+        versao_precos: version,
+        pxq_existente: existingPxq,
+        analise_faixas: analyses,
+        faixas_seguras: safeRows
+      };
+
+      if (!confirmar) return textResult(preview);
+
+      if (!motivo || motivo.trim().length < 5) {
+        throw new Error("Para configurar Preco para Negocios, informe um motivo com pelo menos 5 caracteres.");
+      }
+
+      if (safeRows.length === 0) {
+        return textResult({
+          ...preview,
+          acao: "bloqueado_sem_faixa_segura",
+          mensagem: "Nenhuma faixa preserva a margem minima. Nenhum preco B2B foi alterado."
+        });
+      }
+
+      requireListingWritesEnabled(env);
+
+      const pricePerQuantity = safeRows.map((row: any) => {
+        const existing = existingByQuantity.get(Number(row.quantidade));
+        return {
+          ...(existing?.id ? { id: existing.id } : {}),
+          type: "discount_percentage",
+          percentage: Number(row.percentual_configurar),
+          conditions: {
+            context_restrictions: ["channel_marketplace", "user_type_business"],
+            min_purchase_unit: Number(row.quantidade),
+            eligible: true
+          }
+        };
+      });
+
+      const path =
+        `/items/${encodeURIComponent(String(item.id))}/prices/price-per-quantity` +
+        (remover_pxq_absoluto ? "?remove-absolute-pxq=true" : "");
+
+      const write = await meliWrite(
+        env,
+        "POST",
+        path,
+        { price_per_quantity: pricePerQuantity },
+        { "X-Version": String(version) }
+      );
+
+      const after = await meliGet(
+        env,
+        `/items/${encodeURIComponent(String(item.id))}/prices`,
+        { display_version: "true" },
+        { "show-all-prices": "true" }
+      );
+
+      const audit_id = await recordOperationAudit(env, "pricing:b2b:audit", {
+        tipo: "b2b_price_per_quantity_percentage",
+        item_id: item.id,
+        sku: sellerSku || null,
+        motivo: motivo.trim(),
+        custo_produto: Number(productCost.toFixed(2)),
+        custo_fonte: costSource,
+        margem_minima_percentual: Number(margem_minima_percentual ?? 10),
+        imposto_percentual: Number(imposto_percentual ?? 11),
+        ads_reserva_percentual: Number(ads_reserva_percentual ?? 0),
+        antes: existingPxq,
+        solicitado: pricePerQuantity,
+        analise_faixas: analyses,
+        depois: after?.price_per_quantity ?? null,
+        endpoint: write.path_used
+      });
+
+      return textResult({
+        ...preview,
+        acao: "gravado",
+        audit_id,
+        endpoint_utilizado: write.path_used,
+        configurado: pricePerQuantity,
+        pxq_depois: after?.price_per_quantity ?? null,
+        versao_precos_depois: after?.version ?? null
       });
     }
   );
