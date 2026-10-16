@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.18";
+const SERVER_VERSION = "0.17.19";
 
 function textResult(value: unknown) {
   return {
@@ -4102,7 +4102,7 @@ function createServer(env: Env) {
 
           let configuredPct = Math.max(
             desiredPct,
-            Math.ceil(recommendedPct * 100) / 100,
+            Number((Math.ceil(recommendedPct * 100) / 100 + 0.01).toFixed(2)),
             previousConfiguredPercentage > 0 ? Number((previousConfiguredPercentage + 0.01).toFixed(2)) : 0
           );
           configuredPct = Number(configuredPct.toFixed(2));
@@ -6928,7 +6928,7 @@ function createServer(env: Env) {
       description:
         "Analisa e configura Preco para Negocios (PxQ percentual B2B) usando a recomendacao oficial do Mercado Livre. Soma custo Tray, reserva imposto/Ads, valida frete, comissao e margem minima antes de gravar. Faz preview por padrao e exige confirmacao para escrita.",
       inputSchema: {
-        item_id: z.string().regex(/^MLB\\d+$/),
+        item_id: z.string().regex(/^MLB\d+$/),
         quantidades: z.array(z.number().int().min(2).max(100)).min(1).max(5).optional().default([2, 5, 10]),
         margem_minima_percentual: z.number().min(0).max(80).optional().default(10),
         imposto_percentual: z.number().min(0).max(50).optional().default(11),
@@ -7104,7 +7104,7 @@ function createServer(env: Env) {
 
         const percentage =
           Number.isFinite(recommendedPercentage) && recommendedPercentage > 0
-            ? Math.ceil(recommendedPercentage * 100) / 100
+            ? Number((Math.ceil(recommendedPercentage * 100) / 100 + 0.01).toFixed(2))
             : null;
 
         if (!(percentage && percentage > 0)) {
