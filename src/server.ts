@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.17";
+const SERVER_VERSION = "0.17.18";
 
 function textResult(value: unknown) {
   return {
@@ -3987,22 +3987,33 @@ function createServer(env: Env) {
           .map((row: any) => trayProductObject(row))
           .filter((product: any) => String(product?.reference ?? "").trim() === sellerSku);
 
-        if (exactProducts.length !== 1) {
-          return textResult({
-            acao: "bloqueado_custo_tray",
-            mlb: item.id,
-            sku: sellerSku,
-            mensagem: "SKU ausente ou duplicado na Tray. Nenhuma alteracao foi feita."
-          });
+        const manualCost = Number(deal_price);
+        const manualCostAuthorized =
+          Number.isFinite(manualCost) &&
+          manualCost > 0 &&
+          /custo\s+manual\s+autorizado/i.test(String(motivo ?? ""));
+
+        let productCost = NaN;
+        let costSource = "tray_sku";
+
+        if (exactProducts.length === 1) {
+          productCost = Number(exactProducts[0]?.cost_price);
         }
 
-        const productCost = Number(exactProducts[0]?.cost_price);
+        if ((!Number.isFinite(productCost) || productCost <= 0) && manualCostAuthorized) {
+          productCost = manualCost;
+          costSource = "custo_manual_autorizado";
+        }
+
         if (!Number.isFinite(productCost) || productCost <= 0) {
           return textResult({
             acao: "bloqueado_custo_tray",
             mlb: item.id,
             sku: sellerSku,
-            mensagem: "Custo Tray invalido. Nenhuma alteracao foi feita."
+            mensagem:
+              exactProducts.length !== 1
+                ? "SKU ausente ou duplicado na Tray. Para usar custo manual no B2B, informe deal_price com o custo e registre 'custo manual autorizado' no motivo."
+                : "Custo Tray invalido. Para usar custo manual no B2B, informe deal_price com o custo e registre 'custo manual autorizado' no motivo."
           });
         }
 
@@ -4196,6 +4207,7 @@ function createServer(env: Env) {
           titulo: item.title ?? null,
           sku: sellerSku,
           custo_produto: Number(productCost.toFixed(2)),
+          fonte_custo: costSource,
           estoque_atual: stock,
           preco_standard: Number(standardAmount.toFixed(2)),
           preco_vigente_referencia: Number(salePriceAmount.toFixed(2)),
@@ -4269,6 +4281,8 @@ function createServer(env: Env) {
           item_id: item.id,
           sku: sellerSku,
           motivo: motivo.trim(),
+          custo_produto: Number(productCost.toFixed(2)),
+          fonte_custo: costSource,
           analise_faixas: analyses,
           solicitado: payloadRows,
           antes: existingPxq,
