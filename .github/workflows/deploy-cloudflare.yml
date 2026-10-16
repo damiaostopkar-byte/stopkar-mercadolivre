@@ -24,6 +24,8 @@ jobs:
         run: pnpm install --frozen-lockfile=false
       - name: Validate TypeScript
         run: pnpm exec tsc --noEmit
+      - name: Verify MCP authentication guard
+        run: node scripts/check-mcp-auth.mjs
       - name: Verify Cloudflare credentials
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
@@ -37,8 +39,6 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN || vars.CLOUDFLARE_API_TOKEN || vars.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || secrets.CF_ACCOUNT_ID || vars.CLOUDFLARE_ACCOUNT_ID || vars.CF_ACCOUNT_ID }}
-      - name: Verify MCP authentication guard
-        run: node scripts/check-mcp-auth.mjs
       - name: Deploy Worker
         run: pnpm run deploy
         env:
