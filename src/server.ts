@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.20";
+const SERVER_VERSION = "0.17.21";
 
 function textResult(value: unknown) {
   return {
@@ -4095,14 +4095,23 @@ function createServer(env: Env) {
         for (const recommendation of recommendations) {
           const quantity = Number(recommendation?.quantity);
           const recommendedPct = Number(recommendation?.discount?.percentage);
+          const recommendedAmount = Number(recommendation?.amount);
           const desiredPct = desiredByQuantity.get(quantity);
           const incoherent = Boolean(recommendation?.is_incoherent_quantity);
 
           if (!desiredPct || !Number.isFinite(recommendedPct) || recommendedPct <= 0) continue;
 
+          const pctByRecommendedAmount =
+            Number.isFinite(recommendedAmount) && recommendedAmount > 0 && salePriceAmount > 0
+              ? Math.ceil(
+                  (100 * (1 - Math.max(0, recommendedAmount - 0.01) / salePriceAmount)) * 100
+                ) / 100
+              : 0;
+
           let configuredPct = Math.max(
             desiredPct,
             Number((Math.ceil(recommendedPct * 100) / 100 + 0.03).toFixed(2)),
+            pctByRecommendedAmount,
             previousConfiguredPercentage > 0 ? Number((previousConfiguredPercentage + 0.01).toFixed(2)) : 0
           );
           configuredPct = Number(configuredPct.toFixed(2));
@@ -7098,13 +7107,24 @@ function createServer(env: Env) {
       for (const recommendation of recommendations) {
         const quantity = Number(recommendation?.quantity);
         const recommendedPercentage = Number(recommendation?.discount?.percentage);
+        const recommendedAmount = Number(recommendation?.amount);
         const incoherent = Boolean(recommendation?.is_incoherent_quantity);
 
         if (!Number.isInteger(quantity) || quantity < 2) continue;
 
+        const percentageByAmount =
+          Number.isFinite(recommendedAmount) && recommendedAmount > 0 && salePriceAmount > 0
+            ? Math.ceil(
+                (100 * (1 - Math.max(0, recommendedAmount - 0.01) / salePriceAmount)) * 100
+              ) / 100
+            : 0;
+
         const percentage =
           Number.isFinite(recommendedPercentage) && recommendedPercentage > 0
-            ? Number((Math.ceil(recommendedPercentage * 100) / 100 + 0.03).toFixed(2))
+            ? Math.max(
+                Number((Math.ceil(recommendedPercentage * 100) / 100 + 0.03).toFixed(2)),
+                percentageByAmount
+              )
             : null;
 
         if (!(percentage && percentage > 0)) {
