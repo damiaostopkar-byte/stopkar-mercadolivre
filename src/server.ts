@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.14";
+const SERVER_VERSION = "0.17.15";
 
 function textResult(value: unknown) {
   return {
@@ -252,15 +252,18 @@ async function meliSellerPromotionWrite(
     attempts.push({ flow: candidate.flow, status: response.status, message });
 
     const normalized = String(message || "").toLowerCase();
+    const localEndpointUnavailable =
+      response.status === 403 ||
+      response.status === 404 ||
+      response.status === 405 ||
+      response.status === 409 ||
+      response.status >= 500 ||
+      normalized.includes("oops! something went wrong") ||
+      normalized.includes("no offers found for item") ||
+      normalized.includes("resource not found") ||
+      normalized.includes("invalid promotion type");
     const canFallback =
-      candidate.flow === "local_v2" &&
-      (
-        response.status === 404 ||
-        response.status === 403 ||
-        normalized.includes("no offers found for item") ||
-        normalized.includes("resource not found") ||
-        normalized.includes("invalid promotion type")
-      );
+      candidate.flow === "local_v2" && localEndpointUnavailable;
 
     if (canFallback) continue;
 
@@ -5030,11 +5033,16 @@ function createServer(env: Env) {
           limite_lote: z.number().int().min(1).max(25).optional().default(20),
           item_ids: z.array(z.string().regex(/^MLB\d+$/)).min(1).max(5).optional()
             .describe("MLBs especificos para validar e incluir, evitando paginacao de centenas de anuncios."),
+          deal_price: z.number().positive().optional()
+            .describe("Preco do DEAL para um unico item_id. Permite entrar no 11.11 sem depender de uma SELLER_CAMPAIGN iniciada."),
+          component_skus: z.array(z.string().min(1)).min(1).max(20).optional()
+            .describe("SKUs Tray que compoem um kit. O custo e somado automaticamente para validar a margem."),
+          margem_minima_percentual: z.number().min(0).max(80).optional().default(10),
           confirmar: z.boolean().optional().default(false),
           motivo: z.string().max(300).optional()
         }
       },
-      async ({ limite_lote, item_ids, confirmar, motivo }) => {
+      async ({ limite_lote, item_ids, deal_price, component_skus, margem_minima_percentual, confirmar, motivo }) => {
         const sourcePromotionId = "C-MLB5661788";
         const targetPromotionId = "P-MLB17909028";
         const batchLimit = Number(limite_lote ?? 20);
@@ -5123,6 +5131,12 @@ function createServer(env: Env) {
           selectedItemIds.some((id: string) => !/^MLB\d+$/.test(id)))) {
           throw new Error("Lote 11.11 invalido: informe de 1 a 5 MLBs.");
         }
+        if (deal_price !== undefined && selectedItemIds?.length !== 1) {
+          throw new Error("deal_price explicito exige exatamente um item_id.");
+        }
+        if (component_skus?.length && selectedItemIds?.length !== 1) {
+          throw new Error("component_skus exige exatamente um item_id.");
+        }
         if (selectedItemIds?.length) {
           // Escopo restrito: cada MLB precisa comprovar individualmente
           // promocao SK started e convite DEAL candidate, ou DEAL started.
@@ -5139,7 +5153,16 @@ function createServer(env: Env) {
                 promotionIdOf(row) === targetPromotionId &&
                 String(row?.type ?? row?.promotion_type ?? "").toUpperCase() === "DEAL"
             );
-            if (source) damiaoStarted.push({ ...source, id: itemId });
+            if (source) {
+              damiaoStarted.push({ ...source, id: itemId });
+            } else if (target?.status === "candidate" && Number(deal_price) > 0) {
+              damiaoStarted.push({
+                id: itemId,
+                price: Number(deal_price),
+                status: "explicit_price",
+                origem_preco: "deal_price_explicito"
+              });
+            }
             if (target?.status === "candidate") targetCandidates.push({ ...target, id: itemId });
             if (target?.status === "started") targetStarted.push({ ...target, id: itemId });
           }
@@ -5230,9 +5253,10 @@ function createServer(env: Env) {
           ads_ativo: boolean;
           ads_status_confirmado: boolean;
           ads_reserva_percentual: number;
+          custo_fonte: string;
         }> = [];
         let margemVerificada = 0;
-        const margemMinimaPercentual = 10;
+        const margemMinimaPercentual = Number(margem_minima_percentual ?? 10);
         const impostoPercentual = 11;
         const adsReservaPercentualPadrao = 10;
   
@@ -5270,62 +5294,92 @@ function createServer(env: Env) {
               throw new Error("dados_logisticos_ou_tipo_anuncio_incompletos");
             }
   
-            const trayResponse = await trayGet(env, "products", {
-              reference: sku,
-              limit: "20"
-            });
-            let produtosExatos = trayProductRows(trayResponse)
-              .map((row: any) => trayProductObject(row))
-              .filter((product: any) => String(product?.reference ?? "").trim() === sku);
-            if (produtosExatos.length !== 1) {
-              // Estes MLBs usam o ID interno Tray como SKU. Vinculos conferidos
-              // com ficha Mercado Livre, nome, lado/modelo, ID e custo Tray.
-              // Nao altera SKU e nao usa ID desconhecido automaticamente.
-              const trayIdsVerificados: Record<string, {
-                id: string; tipo: string; modelo: string
-              }> = {
-                MLB6845184786: { id: "183", tipo: "calota", modelo: "ka" },
-                MLB5342636261: { id: "125", tipo: "lanterna", modelo: "gol" },
-                MLB5337657429: { id: "583", tipo: "lanterna", modelo: "s10" },
-                MLB5336580317: { id: "587", tipo: "lanterna", modelo: "s10" },
-                MLB5336579099: { id: "585", tipo: "lanterna", modelo: "s10" },
-                MLB5336038509: { id: "519", tipo: "lanterna", modelo: "ranger" },
-                MLB5336006439: { id: "513", tipo: "lanterna", modelo: "ranger" }
-              };
-              const autorizado = trayIdsVerificados[entry.item_id];
-              const conferir = (valor: unknown, termo: string) => {
-                const v = String(valor ?? "").normalize("NFD")
-                  .replace(/[\u0300-\u036f]/g, "").toLowerCase();
-                return new RegExp("(^|[^a-z0-9])" + termo + "([^a-z0-9]|$)").test(v);
-              };
-              if (
-                autorizado &&
-                sku === autorizado.id &&
-                String(item?.seller_custom_field ?? "").trim() === autorizado.id &&
-                conferir(item?.title, autorizado.tipo) &&
-                conferir(item?.title, autorizado.modelo)
-              ) {
-                const respostaPorId = await trayGet(env, "products", {
-                  id: autorizado.id,
-                  limit: "2"
+            let custoProduto: number;
+            let custoFonte = "tray_sku";
+            const usarComponentes =
+              selectedItemIds?.length === 1 &&
+              selectedItemIds[0] === entry.item_id &&
+              Array.isArray(component_skus) &&
+              component_skus.length > 0;
+
+            if (usarComponentes) {
+              let somaComponentes = 0;
+              for (const componentSku of component_skus) {
+                const respostaComponente = await trayGet(env, "products", {
+                  reference: String(componentSku).trim(),
+                  limit: "20"
                 });
-                produtosExatos = trayProductRows(respostaPorId)
+                const componentesExatos = trayProductRows(respostaComponente)
                   .map((row: any) => trayProductObject(row))
                   .filter((product: any) =>
-                    String(product?.id ?? "") === autorizado.id &&
-                    String(product?.reference ?? "").trim().length > 0 &&
-                    Number(product?.cost_price) > 0 &&
-                    conferir(product?.name, autorizado.tipo) &&
-                    conferir(product?.name, autorizado.modelo)
+                    String(product?.reference ?? "").trim() === String(componentSku).trim()
                   );
+                if (componentesExatos.length !== 1) {
+                  throw new Error("componente_Tray_ausente_ou_duplicado:" + componentSku);
+                }
+                const custoComponente = Number(componentesExatos[0]?.cost_price);
+                if (!Number.isFinite(custoComponente) || custoComponente <= 0) {
+                  throw new Error("custo_componente_Tray_invalido:" + componentSku);
+                }
+                somaComponentes += custoComponente;
               }
-            }
-            if (produtosExatos.length !== 1) {
-              throw new Error("referencia_Tray_ausente_ou_duplicada");
-            }
-            const custoProduto = Number(produtosExatos[0]?.cost_price);
-            if (!Number.isFinite(custoProduto) || custoProduto <= 0) {
-              throw new Error("custo_Tray_invalido");
+              custoProduto = somaComponentes;
+              custoFonte = "tray_component_skus";
+            } else {
+              const trayResponse = await trayGet(env, "products", {
+                reference: sku,
+                limit: "20"
+              });
+              let produtosExatos = trayProductRows(trayResponse)
+                .map((row: any) => trayProductObject(row))
+                .filter((product: any) => String(product?.reference ?? "").trim() === sku);
+              if (produtosExatos.length !== 1) {
+                const trayIdsVerificados: Record<string, {
+                  id: string; tipo: string; modelo: string
+                }> = {
+                  MLB6845184786: { id: "183", tipo: "calota", modelo: "ka" },
+                  MLB5342636261: { id: "125", tipo: "lanterna", modelo: "gol" },
+                  MLB5337657429: { id: "583", tipo: "lanterna", modelo: "s10" },
+                  MLB5336580317: { id: "587", tipo: "lanterna", modelo: "s10" },
+                  MLB5336579099: { id: "585", tipo: "lanterna", modelo: "s10" },
+                  MLB5336038509: { id: "519", tipo: "lanterna", modelo: "ranger" },
+                  MLB5336006439: { id: "513", tipo: "lanterna", modelo: "ranger" }
+                };
+                const autorizado = trayIdsVerificados[entry.item_id];
+                const conferir = (valor: unknown, termo: string) => {
+                  const v = String(valor ?? "").normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                  return new RegExp("(^|[^a-z0-9])" + termo + "([^a-z0-9]|$)").test(v);
+                };
+                if (
+                  autorizado &&
+                  sku === autorizado.id &&
+                  String(item?.seller_custom_field ?? "").trim() === autorizado.id &&
+                  conferir(item?.title, autorizado.tipo) &&
+                  conferir(item?.title, autorizado.modelo)
+                ) {
+                  const respostaPorId = await trayGet(env, "products", {
+                    id: autorizado.id,
+                    limit: "2"
+                  });
+                  produtosExatos = trayProductRows(respostaPorId)
+                    .map((row: any) => trayProductObject(row))
+                    .filter((product: any) =>
+                      String(product?.id ?? "") === autorizado.id &&
+                      String(product?.reference ?? "").trim().length > 0 &&
+                      Number(product?.cost_price) > 0 &&
+                      conferir(product?.name, autorizado.tipo) &&
+                      conferir(product?.name, autorizado.modelo)
+                    );
+                }
+              }
+              if (produtosExatos.length !== 1) {
+                throw new Error("referencia_Tray_ausente_ou_duplicada");
+              }
+              custoProduto = Number(produtosExatos[0]?.cost_price);
+              if (!Number.isFinite(custoProduto) || custoProduto <= 0) {
+                throw new Error("custo_Tray_invalido");
+              }
             }
   
             const [freteData, taxaData] = await Promise.all([
@@ -5421,7 +5475,8 @@ function createServer(env: Env) {
               margem_liquida_percentual: Number(margem.toFixed(2)),
               ads_ativo: adsAtivo,
               ads_status_confirmado: adsStatusConfirmado,
-              ads_reserva_percentual: adsReservaPercentualItem
+              ads_reserva_percentual: adsReservaPercentualItem,
+              custo_fonte: custoFonte
             });
           } catch (error) {
             blocked.push({
@@ -5452,6 +5507,8 @@ function createServer(env: Env) {
           margem_minima_percentual: margemMinimaPercentual,
           imposto_percentual: impostoPercentual,
           ads_reserva_percentual_padrao: adsReservaPercentualPadrao,
+          preco_explicito_1111: deal_price ?? null,
+          component_skus: component_skus ?? [],
           elegiveis_restantes: safeBatch.length,
           pendentes_de_validacao_de_margem: Math.max(0, eligible.length - margemVerificada),
           bloqueados: blocked.length,
