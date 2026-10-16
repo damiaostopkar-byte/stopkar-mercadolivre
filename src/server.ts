@@ -907,7 +907,7 @@ async function resolveListingReference(env: Env, reference: string) {
     }
   );
 
-  const ids = Array.isArray(search?.results)
+  const ids: string[] = Array.isArray(search?.results)
     ? search.results
         .map((entry: any) => (typeof entry === "string" ? entry : entry?.id))
         .filter((id: unknown): id is string => typeof id === "string" && /^MLB\d+$/.test(id))
@@ -3251,7 +3251,7 @@ function createServer(env: Env) {
         }
       );
       const afterAttributes = Array.isArray(after?.attributes) ? after.attributes : [];
-      const afterById = new Map(
+      const afterById = new Map<string, any>(
         afterAttributes
           .filter((attribute: any) => attribute?.id)
           .map((attribute: any) => [String(attribute.id), attribute] as const)
