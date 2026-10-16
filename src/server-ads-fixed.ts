@@ -396,6 +396,6 @@ export default {
       const intercepted = await interceptMcpToolCall(request, env);
       if (intercepted) return intercepted;
     }
-    return originalWorker.fetch(request, env, ctx);
+    return originalWorker.fetch(request as any, env as any, ctx);
   }
 } satisfies ExportedHandler<Env>;
