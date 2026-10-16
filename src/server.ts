@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.16";
+const SERVER_VERSION = "0.17.17";
 
 function textResult(value: unknown) {
   return {
@@ -3963,6 +3963,329 @@ function createServer(env: Env) {
         });
       }
       const item = chosen.selected;
+
+      if (promotionId === "B2B_PXQ") {
+        if (acao !== "adicionar_ou_atualizar") {
+          throw new Error("Modo B2B_PXQ aceita somente adicionar_ou_atualizar.");
+        }
+
+        const sellerSku = String(getSellerSku(item) ?? "").trim();
+        if (!sellerSku) {
+          return textResult({
+            acao: "bloqueado_sem_sku",
+            mlb: item.id,
+            titulo: item.title ?? null,
+            mensagem: "Anuncio sem SKU para localizar custo na Tray. Nenhuma alteracao foi feita."
+          });
+        }
+
+        const trayResponse = await trayGet(env, "products", {
+          reference: sellerSku,
+          limit: "20"
+        });
+        const exactProducts = trayProductRows(trayResponse)
+          .map((row: any) => trayProductObject(row))
+          .filter((product: any) => String(product?.reference ?? "").trim() === sellerSku);
+
+        if (exactProducts.length !== 1) {
+          return textResult({
+            acao: "bloqueado_custo_tray",
+            mlb: item.id,
+            sku: sellerSku,
+            mensagem: "SKU ausente ou duplicado na Tray. Nenhuma alteracao foi feita."
+          });
+        }
+
+        const productCost = Number(exactProducts[0]?.cost_price);
+        if (!Number.isFinite(productCost) || productCost <= 0) {
+          return textResult({
+            acao: "bloqueado_custo_tray",
+            mlb: item.id,
+            sku: sellerSku,
+            mensagem: "Custo Tray invalido. Nenhuma alteracao foi feita."
+          });
+        }
+
+        const pricesBefore = await meliGet(
+          env,
+          `/items/${encodeURIComponent(String(item.id))}/prices`,
+          { display_version: "true" },
+          { "show-all-prices": "true" }
+        );
+
+        const version = Number(pricesBefore?.version);
+        if (!Number.isFinite(version)) {
+          throw new Error("Mercado Livre nao retornou a versao atual de precos do item.");
+        }
+
+        const standardPrices = Array.isArray(pricesBefore?.prices) ? pricesBefore.prices : [];
+        const standardNode =
+          standardPrices.find((entry: any) => {
+            const contexts = Array.isArray(entry?.conditions?.context_restrictions)
+              ? entry.conditions.context_restrictions
+              : [];
+            return String(entry?.type ?? "").toLowerCase() === "standard" && contexts.length === 0;
+          }) ??
+          standardPrices.find((entry: any) => String(entry?.type ?? "").toLowerCase() === "standard") ??
+          null;
+
+        const standardAmount = Number(standardNode?.amount ?? item?.price ?? item?.base_price);
+        if (!Number.isFinite(standardAmount) || standardAmount <= 0) {
+          throw new Error("Preco standard invalido para configurar B2B.");
+        }
+
+        const recommendationWrite = await meliWrite(
+          env,
+          "POST",
+          "/prices-per-quantity/v1/recommendations",
+          {
+            item_id: String(item.id),
+            range_item_quantities: [2, 5, 10],
+            price: {
+              standard_amount: standardAmount,
+              currency: String(item?.currency_id ?? "BRL")
+            }
+          }
+        );
+
+        const recommendationData = recommendationWrite.data;
+        const recommendations = Array.isArray(recommendationData?.recommendations)
+          ? recommendationData.recommendations
+          : [];
+        const salePriceAmount = Number(
+          recommendationData?.price?.sale_price_amount ??
+          recommendationData?.price?.standard_amount ??
+          standardAmount
+        );
+
+        let adsActive = false;
+        try {
+          const advertiser = await getProductAdsAdvertiser(env);
+          const groups = await getProductAdsAdGroupsForItem(env, advertiser, String(item.id));
+          adsActive = groups.some(
+            (group: any) => String(group?.status ?? "").toLowerCase() === "active"
+          );
+        } catch {}
+
+        const adsReservePct = adsActive ? 10 : 0;
+        const desiredByQuantity = new Map<number, number>([
+          [2, 3],
+          [5, 5],
+          [10, 7]
+        ]);
+
+        const me = await meliGet(env, "/users/me");
+        const siteId = String(me?.site_id || "MLB");
+        const stock = Number(item?.available_quantity ?? 0);
+        const analyses: any[] = [];
+        const safeRows: any[] = [];
+        let previousConfiguredPercentage = 0;
+
+        for (const recommendation of recommendations) {
+          const quantity = Number(recommendation?.quantity);
+          const recommendedPct = Number(recommendation?.discount?.percentage);
+          const desiredPct = desiredByQuantity.get(quantity);
+          const incoherent = Boolean(recommendation?.is_incoherent_quantity);
+
+          if (!desiredPct || !Number.isFinite(recommendedPct) || recommendedPct <= 0) continue;
+
+          let configuredPct = Math.max(
+            desiredPct,
+            Math.ceil(recommendedPct * 100) / 100,
+            previousConfiguredPercentage > 0 ? Number((previousConfiguredPercentage + 0.01).toFixed(2)) : 0
+          );
+          configuredPct = Number(configuredPct.toFixed(2));
+
+          const unitPrice = Number(
+            (salePriceAmount * (1 - configuredPct / 100)).toFixed(2)
+          );
+
+          const feeData = await meliGet(
+            env,
+            `/sites/${encodeURIComponent(siteId)}/listing_prices`,
+            {
+              price: String(unitPrice),
+              category_id: String(item?.category_id ?? ""),
+              listing_type_id: String(item?.listing_type_id ?? "gold_special"),
+              currency_id: String(item?.currency_id ?? "BRL"),
+              logistic_type: String(item?.shipping?.logistic_type ?? "cross_docking"),
+              shipping_mode: String(item?.shipping?.mode ?? "me2"),
+              channel: "marketplace"
+            }
+          );
+
+          const feeEntries = Array.isArray(feeData) ? feeData : feeData ? [feeData] : [];
+          const feeSelected =
+            feeEntries.find((entry: any) => entry?.listing_type_id === item?.listing_type_id) ??
+            feeEntries[0] ??
+            null;
+          const saleFee = Number(feeSelected?.sale_fee_amount);
+
+          const shippingTotal = Number(recommendation?.shipping?.cost);
+          const shippingPerUnit =
+            Number.isFinite(shippingTotal) && quantity > 0
+              ? shippingTotal / quantity
+              : NaN;
+
+          const tax = unitPrice * 0.11;
+          const adsReserve = unitPrice * (adsReservePct / 100);
+          const profit =
+            unitPrice -
+            productCost -
+            (Number.isFinite(saleFee) ? saleFee : 0) -
+            (Number.isFinite(shippingPerUnit) ? shippingPerUnit : 0) -
+            tax -
+            adsReserve;
+          const margin = unitPrice > 0 ? (profit / unitPrice) * 100 : -Infinity;
+
+          const stockBlocked = Number.isFinite(stock) && stock > 0 && quantity > stock;
+          const safe =
+            !incoherent &&
+            !stockBlocked &&
+            Number.isFinite(saleFee) &&
+            Number.isFinite(shippingPerUnit) &&
+            Number.isFinite(margin) &&
+            margin >= 10;
+
+          const row = {
+            quantidade: quantity,
+            percentual_recomendado: Number(recommendedPct.toFixed(4)),
+            percentual_configurar: configuredPct,
+            preco_vigente_referencia: Number(salePriceAmount.toFixed(2)),
+            preco_b2b_unitario: unitPrice,
+            custo_produto_unitario: Number(productCost.toFixed(2)),
+            comissao_unitaria: Number.isFinite(saleFee) ? Number(saleFee.toFixed(2)) : null,
+            frete_total_recomendado: Number.isFinite(shippingTotal)
+              ? Number(shippingTotal.toFixed(2))
+              : null,
+            frete_unitario_estimado: Number.isFinite(shippingPerUnit)
+              ? Number(shippingPerUnit.toFixed(2))
+              : null,
+            imposto_unitario: Number(tax.toFixed(2)),
+            reserva_ads_percentual: adsReservePct,
+            reserva_ads_unitaria: Number(adsReserve.toFixed(2)),
+            lucro_unitario_estimado: Number(profit.toFixed(2)),
+            margem_estimada_percentual: Number.isFinite(margin)
+              ? Number(margin.toFixed(2))
+              : null,
+            estoque_atual: stock,
+            seguro: safe,
+            motivo_bloqueio: incoherent
+              ? "quantidade_incoerente_no_Mercado_Livre"
+              : stockBlocked
+                ? "estoque_atual_insuficiente_para_a_faixa"
+                : !Number.isFinite(saleFee)
+                  ? "comissao_indisponivel"
+                  : !Number.isFinite(shippingPerUnit)
+                    ? "frete_recomendado_indisponivel"
+                    : !Number.isFinite(margin) || margin < 10
+                      ? "margem_abaixo_de_10"
+                      : null
+          };
+
+          analyses.push(row);
+          if (safe) {
+            safeRows.push(row);
+            previousConfiguredPercentage = configuredPct;
+          }
+        }
+
+        const preview = {
+          acao: confirmar ? "gravar_b2b" : "simulacao_b2b",
+          mlb: item.id,
+          titulo: item.title ?? null,
+          sku: sellerSku,
+          custo_produto: Number(productCost.toFixed(2)),
+          estoque_atual: stock,
+          preco_standard: Number(standardAmount.toFixed(2)),
+          preco_vigente_referencia: Number(salePriceAmount.toFixed(2)),
+          ads_ativo: adsActive,
+          reserva_ads_percentual: adsReservePct,
+          politica_stop_kar: {
+            quantidade_2: "minimo 3% OFF",
+            quantidade_5: "minimo 5% OFF",
+            quantidade_10: "minimo 7% OFF",
+            margem_minima: "10%"
+          },
+          analise_faixas: analyses,
+          faixas_seguras: safeRows
+        };
+
+        if (!confirmar) return textResult(preview);
+
+        if (!motivo || motivo.trim().length < 5) {
+          throw new Error("Para configurar B2B, informe um motivo com pelo menos 5 caracteres.");
+        }
+        if (safeRows.length === 0) {
+          return textResult({
+            ...preview,
+            acao: "bloqueado_sem_faixa_segura",
+            mensagem: "Nenhuma faixa preserva margem minima de 10%. Nenhum preco B2B foi alterado."
+          });
+        }
+
+        requireListingWritesEnabled(env);
+
+        const existingPxq = Array.isArray(pricesBefore?.price_per_quantity)
+          ? pricesBefore.price_per_quantity
+          : [];
+        const existingByQuantity = new Map<number, any>();
+        for (const row of existingPxq) {
+          const q = Number(row?.conditions?.min_purchase_unit);
+          if (Number.isFinite(q)) existingByQuantity.set(q, row);
+        }
+
+        const payloadRows = safeRows.map((row: any) => {
+          const existing = existingByQuantity.get(Number(row.quantidade));
+          return {
+            ...(existing?.id ? { id: existing.id } : {}),
+            type: "discount_percentage",
+            percentage: Number(row.percentual_configurar),
+            conditions: {
+              context_restrictions: ["channel_marketplace", "user_type_business"],
+              min_purchase_unit: Number(row.quantidade),
+              eligible: true
+            }
+          };
+        });
+
+        const write = await meliWrite(
+          env,
+          "POST",
+          `/items/${encodeURIComponent(String(item.id))}/prices/price-per-quantity?remove-absolute-pxq=true`,
+          { price_per_quantity: payloadRows },
+          { "X-Version": String(version) }
+        );
+
+        const after = await meliGet(
+          env,
+          `/items/${encodeURIComponent(String(item.id))}/prices`,
+          { display_version: "true" },
+          { "show-all-prices": "true" }
+        );
+
+        const audit_id = await recordOperationAudit(env, "pricing:b2b:audit", {
+          tipo: "b2b_pxq_via_compat_tool",
+          item_id: item.id,
+          sku: sellerSku,
+          motivo: motivo.trim(),
+          analise_faixas: analyses,
+          solicitado: payloadRows,
+          antes: existingPxq,
+          depois: after?.price_per_quantity ?? null,
+          endpoint: write.path_used
+        });
+
+        return textResult({
+          ...preview,
+          acao: "gravado_b2b",
+          audit_id,
+          endpoint_utilizado: write.path_used,
+          configurado: payloadRows,
+          pxq_depois: after?.price_per_quantity ?? null
+        });
+      }
+
       if (acao === "adicionar_ou_atualizar" && !(Number(deal_price) > 0)) {
         throw new Error("Informe deal_price para adicionar ou atualizar a campanha.");
       }
