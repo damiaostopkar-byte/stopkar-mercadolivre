@@ -202,16 +202,23 @@ async function meliSellerPromotionWrite(
       headers: {} as Record<string, string>
     },
     {
-      flow: "marketplace_v2",
+      flow: "marketplace_v2_seller_caller",
       url: marketplaceUrl,
       headers: {
         version: "v2",
+        "X-Caller-Id": sellerId,
         ...(env.MELI_CLIENT_ID
           ? {
-              "X-Client-Id": String(env.MELI_CLIENT_ID),
-              "X-Caller-Id": String(env.MELI_CLIENT_ID)
+              "X-Client-Id": String(env.MELI_CLIENT_ID)
             }
           : {})
+      } as Record<string, string>
+    },
+    {
+      flow: "marketplace_v2_query_only",
+      url: marketplaceUrl,
+      headers: {
+        version: "v2"
       } as Record<string, string>
     }
   ];
@@ -263,7 +270,12 @@ async function meliSellerPromotionWrite(
       normalized.includes("resource not found") ||
       normalized.includes("invalid promotion type");
     const canFallback =
-      candidate.flow === "local_v2" && localEndpointUnavailable;
+      candidate.flow !== "marketplace_v2_query_only" &&
+      (
+        localEndpointUnavailable ||
+        normalized.includes("invalid caller.id") ||
+        normalized.includes("forbidden")
+      );
 
     if (canFallback) continue;
 
