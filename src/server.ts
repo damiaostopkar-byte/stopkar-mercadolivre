@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.19";
+const SERVER_VERSION = "0.17.20";
 
 function textResult(value: unknown) {
   return {
@@ -4102,7 +4102,7 @@ function createServer(env: Env) {
 
           let configuredPct = Math.max(
             desiredPct,
-            Number((Math.ceil(recommendedPct * 100) / 100 + 0.01).toFixed(2)),
+            Number((Math.ceil(recommendedPct * 100) / 100 + 0.03).toFixed(2)),
             previousConfiguredPercentage > 0 ? Number((previousConfiguredPercentage + 0.01).toFixed(2)) : 0
           );
           configuredPct = Number(configuredPct.toFixed(2));
@@ -7104,7 +7104,7 @@ function createServer(env: Env) {
 
         const percentage =
           Number.isFinite(recommendedPercentage) && recommendedPercentage > 0
-            ? Number((Math.ceil(recommendedPercentage * 100) / 100 + 0.01).toFixed(2))
+            ? Number((Math.ceil(recommendedPercentage * 100) / 100 + 0.03).toFixed(2))
             : null;
 
         if (!(percentage && percentage > 0)) {
