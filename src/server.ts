@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.22";
+const SERVER_VERSION = "0.17.23";
 
 function textResult(value: unknown) {
   return {
@@ -1650,7 +1650,7 @@ function createServer(env: Env) {
     {
       description: "Consulta as compatibilidades veiculares informadas no Mercado Livre para um MLB, incluindo a tag incomplete_compatibilities. Somente leitura.",
       inputSchema: {
-        item_id: z.string().regex(/^MLB\\d+$/)
+        item_id: z.string().regex(/^MLB\d+$/)
       }
     },
     async ({ item_id }) => {
@@ -1674,8 +1674,8 @@ function createServer(env: Env) {
     {
       description: "Pre-visualiza ou adiciona, sem remover as existentes, IDs oficiais de veiculos do catalogo Mercado Livre a um anuncio. Exige confirmacao explicita e justificativa para gravar. Nunca infere veiculos a partir de um ano ou titulo.",
       inputSchema: {
-        item_id: z.string().regex(/^MLB\\d+$/),
-        product_ids: z.array(z.string().regex(/^MLB\\d+$/)).min(1).max(200),
+        item_id: z.string().regex(/^MLB\d+$/),
+        product_ids: z.array(z.string().regex(/^MLB\d+$/)).min(1).max(200),
         confirmar: z.boolean().optional().default(false),
         motivo: z.string().max(300).optional()
       }
@@ -3025,7 +3025,7 @@ function createServer(env: Env) {
         item_id: z.string().min(3).describe("Codigo MLB ou MLBU."),
         mlb_id: z
           .string()
-          .regex(/^MLB\\d+$/)
+          .regex(/^MLB\d+$/)
           .optional()
           .describe("MLB especifico quando um MLBU estiver ligado a mais de um anuncio."),
         incluir_opcionais: z.boolean().optional().default(false)
@@ -3155,7 +3155,7 @@ function createServer(env: Env) {
         item_id: z.string().min(3).describe("Codigo MLB ou MLBU."),
         mlb_id: z
           .string()
-          .regex(/^MLB\\d+$/)
+          .regex(/^MLB\d+$/)
           .optional()
           .describe("MLB especifico quando um MLBU estiver ligado a mais de um anuncio."),
         atributos: z
