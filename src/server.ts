@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.21";
+const SERVER_VERSION = "0.17.22";
 
 function textResult(value: unknown) {
   return {
@@ -1641,6 +1641,95 @@ function createServer(env: Env) {
     name: "Stop Kar Mercado Livre",
     version: SERVER_VERSION
   });
+
+
+  // Compatibilidades de autopecas: somente leitura por padrao e inclusao aditiva,
+  // nunca substitui ou elimina compatibilidades previamente cadastradas.
+  server.registerTool(
+    "consultar_compatibilidades_anuncio",
+    {
+      description: "Consulta as compatibilidades veiculares informadas no Mercado Livre para um MLB, incluindo a tag incomplete_compatibilities. Somente leitura.",
+      inputSchema: {
+        item_id: z.string().regex(/^MLB\\d+$/)
+      }
+    },
+    async ({ item_id }) => {
+      const item = await meliGet(env, `/items/${item_id}`);
+      const compatibilidades = await meliGet(env, `/items/${item_id}/compatibilities`, { extended: "true" });
+      return textResult({
+        somente_leitura: true,
+        item_id,
+        titulo: item?.title ?? null,
+        user_product_id: item?.user_product_id ?? null,
+        categoria: item?.category_id ?? null,
+        incomplete_compatibilities: Array.isArray(item?.tags) && item.tags.includes("incomplete_compatibilities"),
+        has_compatibilities: Array.isArray(item?.attributes) && item.attributes.some((a: any) => a?.id === "HAS_COMPATIBILITIES" && (a?.value_id === "242085" || a?.value_name === "Sim")),
+        compatibilidades
+      });
+    }
+  );
+
+  server.registerTool(
+    "adicionar_compatibilidades_anuncio",
+    {
+      description: "Pre-visualiza ou adiciona, sem remover as existentes, IDs oficiais de veiculos do catalogo Mercado Livre a um anuncio. Exige confirmacao explicita e justificativa para gravar. Nunca infere veiculos a partir de um ano ou titulo.",
+      inputSchema: {
+        item_id: z.string().regex(/^MLB\\d+$/),
+        product_ids: z.array(z.string().regex(/^MLB\\d+$/)).min(1).max(200),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ item_id, product_ids, confirmar, motivo }) => {
+      const ids = [...new Set(product_ids)];
+      if (ids.length !== product_ids.length) {
+        throw new Error("IDs duplicados: informe somente uma vez cada veiculo.");
+      }
+      const item = await meliGet(env, `/items/${item_id}`);
+      if (!item || item.id !== item_id || item.status !== "active") {
+        throw new Error("Anuncio inexistente, inativo ou indisponivel para alteracao.");
+      }
+      const token = await loadToken(env);
+      if (!token?.user_id || Number(item.seller_id) !== Number(token.user_id)) {
+        throw new Error("Anuncio nao pertence ao vendedor autenticado.");
+      }
+      const antes = await meliGet(env, `/items/${item_id}/compatibilities`, { extended: "true" });
+      const payload = {
+        products: ids.map((id) => ({ id, creation_source: "ITEM_SUGGESTIONS" }))
+      };
+      if (!confirmar) {
+        return textResult({
+          acao: "simulacao",
+          somente_leitura: true,
+          item_id,
+          titulo: item.title,
+          existing_compatibilities: antes,
+          novos_ids: ids,
+          aviso: "Somente confirme apos conferir que cada ID representa veiculo/versao/ano realmente compativel. Nenhuma alteracao foi feita."
+        });
+      }
+      if (env.LISTING_WRITES_ENABLED !== "true") {
+        throw new Error("LISTING_WRITES_ENABLED nao habilitado. Inclusao bloqueada.");
+      }
+      if (!motivo || motivo.trim().length < 10) {
+        throw new Error("Para gravar, informe motivo explicito com pelo menos 10 caracteres.");
+      }
+      const escrita = await meliWrite(env, "POST", `/items/${item_id}/compatibilities`, payload);
+      const depois = await meliGet(env, `/items/${item_id}/compatibilities`, { extended: "true" });
+      const itemDepois = await meliGet(env, `/items/${item_id}`);
+      return textResult({
+        acao: "gravado",
+        item_id,
+        motivo,
+        ids_enviados: ids,
+        resposta_mercado_livre: escrita.data,
+        endpoint: escrita.path_used,
+        compatibilidades_antes: antes,
+        compatibilidades_depois: depois,
+        incomplete_compatibilities_depois: Array.isArray(itemDepois?.tags) && itemDepois.tags.includes("incomplete_compatibilities")
+      });
+    }
+  );
 
   server.registerTool(
     "consultar_produto_tray",
