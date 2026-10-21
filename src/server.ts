@@ -1740,7 +1740,7 @@ function createServer(env: Env) {
       if (!token?.user_id || Number(item.seller_id) !== Number(token.user_id)) throw new Error("Anuncio nao pertence a conta autenticada.");
       const antes = await meliGet(env, `/items/${item_id}/compatibilities`, { extended: "true" });
       const userProductId = String(item?.user_product_id || "");
-      if (!/^MLBU\\d+$/.test(userProductId)) {
+      if (!/^MLBU\d+$/.test(userProductId)) {
         throw new Error("Anuncio sem User Product valido; verificar tipo de anuncio antes do cadastro.");
       }
       const domains = [...new Set(familias.map((f) => f.domain_id))];
