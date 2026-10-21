@@ -1741,7 +1741,7 @@ function createServer(env: Env) {
       const antes = await meliGet(env, `/items/${item_id}/compatibilities`, { extended: "true" });
       const payload = { products_families: familias.map((f) => ({
         domain_id: f.domain_id,
-        creation_source: "DEFAULT",
+        creation_source: "ITEM_SUGGESTIONS",
         attributes: f.attributes
       })) };
       if (!confirmar) return textResult({
