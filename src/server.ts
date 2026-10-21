@@ -1669,6 +1669,37 @@ function createServer(env: Env) {
     }
   );
 
+  // Consulta oficial dos valores de marca, modelo e ano, preservando IDs
+  // para evitar nomes que o catalogo nao reconhece.
+  server.registerTool(
+    "consultar_valores_veiculos_catalogo",
+    {
+      description: "Consulta valores oficiais de marca, modelo e ano no catalogo brasileiro de veiculos do Mercado Livre. Somente leitura; informe IDs oficiais das etapas anteriores como filtros.",
+      inputSchema: {
+        atributo: z.enum(["BRAND", "MODEL", "VEHICLE_YEAR", "SHORT_VERSION", "ENGINE"]),
+        filtros: z.array(z.object({
+          id: z.enum(["BRAND", "MODEL", "VEHICLE_YEAR", "SHORT_VERSION"]),
+          value_id: z.string().min(1)
+        })).max(4).optional().default([])
+      }
+    },
+    async ({ atributo, filtros }) => {
+      const domain = "MLB-CARS_AND_VANS";
+      const endpoint = `/catalog_domains/${domain}/attributes/${atributo}/top_values`;
+      const resultado = await meliWrite(env, "POST", endpoint, { known_attributes: filtros });
+      const valores = Array.isArray(resultado.data) ? resultado.data : [];
+      return textResult({
+        somente_leitura: true, dominio: domain, atributo, filtros,
+        valores: valores.map((v: any) => ({
+          value_id: v?.id ?? null,
+          value_name: v?.name ?? null,
+          quantidade: v?.metric ?? null
+        })),
+        total_retornado: valores.length
+      });
+    }
+  );
+
   // Diagnostico: tag de moderacao nao equivale a ausencia de aplicacoes.
   // Desde julho/2026 as compatibilidades CATALOGO podem vir agrupadas por marca.
   server.registerTool(
