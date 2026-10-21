@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.23";
+const SERVER_VERSION = "0.17.24";
 
 function textResult(value: unknown) {
   return {
@@ -1665,6 +1665,101 @@ function createServer(env: Env) {
         incomplete_compatibilities: Array.isArray(item?.tags) && item.tags.includes("incomplete_compatibilities"),
         has_compatibilities: Array.isArray(item?.attributes) && item.attributes.some((a: any) => a?.id === "HAS_COMPATIBILITIES" && (a?.value_id === "242085" || a?.value_name === "Sim")),
         compatibilidades
+      });
+    }
+  );
+
+  // Diagnostico: tag de moderacao nao equivale a ausencia de aplicacoes.
+  // Desde julho/2026 as compatibilidades CATALOGO podem vir agrupadas por marca.
+  server.registerTool(
+    "diagnosticar_compatibilidades_anuncio",
+    {
+      description: "Diagnostica sinalizacao incomplete_compatibilities, separa compatibilidades SELLER/CATALOGO e informa quando a tag persiste apesar de veiculos cadastrados. Somente leitura.",
+      inputSchema: { item_id: z.string().regex(/^MLB\\d+$/) }
+    },
+    async ({ item_id }) => {
+      const item = await meliGet(env, `/items/${item_id}`);
+      const response = await meliGet(env, `/items/${item_id}/compatibilities`, { extended: "true" });
+      const products = Array.isArray(response?.products) ? response.products : [];
+      const seller = products.filter((p: any) => p?.source === "SELLER" || (!p?.source && p?.catalog_product_id));
+      const catalogo = products.filter((p: any) => p?.source === "CATALOGO");
+      const catalogCount = catalogo.reduce((sum: number, p: any) => sum + (Number.isFinite(Number(p?.total)) ? Number(p.total) : 0), 0);
+      const tag = Array.isArray(item?.tags) && item.tags.includes("incomplete_compatibilities");
+      const attr = Array.isArray(item?.attributes) ? item.attributes.find((a: any) => a?.id === "HAS_COMPATIBILITIES") : null;
+      const hasAttr = attr?.value_id === "242085" || ["sim", "sí", "yes"].includes(String(attr?.value_name || "").toLowerCase());
+      const total = seller.length + catalogCount;
+      const situacao = !tag ? "sem_tag_incomplete_compatibilities" :
+        total > 0 ? "tag_persiste_com_veiculos_cadastrados" : "sem_veiculos_visiveis_verificar_cadastro";
+      return textResult({
+        somente_leitura: true, item_id, titulo: item?.title ?? null,
+        user_product_id: item?.user_product_id ?? null,
+        categoria: item?.category_id ?? null, status: item?.status ?? null,
+        incomplete_compatibilities: tag, atributo_has_compatibilities: hasAttr,
+        quantidade_seller_visivel: seller.length,
+        quantidade_catalogo_resumida: catalogCount,
+        total_visivel_ou_resumido: total, situacao,
+        aviso: total > 0 && tag
+          ? "Existem aplicacoes cadastradas, mas a tag persiste. Nao adicionar veiculos sem conferir a aplicacao real. Conferir a sinalizacao e o cadastro na plataforma."
+          : "Verificar veiculos, versoes, anos e posicao antes de propor alteracoes.",
+        aplicacoes_seller: seller.map((p: any) => ({
+          id: p?.catalog_product_id ?? null,
+          veiculo: p?.catalog_product_name ?? null,
+          source: p?.source ?? "SELLER"
+        })),
+        marcas_catalogo_resumidas: catalogo.map((p: any) => ({
+          marca: p?.catalog_product_name ?? null, total: p?.total ?? null
+        }))
+      });
+    }
+  );
+
+  // A API tambem aceita familias por dominio, nao apenas IDs individuais.
+  // Nenhum atributo ou ano e inferido automaticamente.
+  server.registerTool(
+    "adicionar_compatibilidades_por_dominio",
+    {
+      description: "Simula ou adiciona familias de veiculos com dominio e atributos oficiais confirmados (marca, modelo, ano, etc.). Nunca remove existentes e exige aprovacao explicita.",
+      inputSchema: {
+        item_id: z.string().regex(/^MLB\\d+$/),
+        familias: z.array(z.object({
+          domain_id: z.string().regex(/^MLB-[A-Z0-9_]+$/),
+          attributes: z.array(z.object({
+            id: z.string().regex(/^[A-Z0-9_]+$/),
+            value_id: z.string().min(1).optional(),
+            value_name: z.string().min(1).optional()
+          }).refine((a) => Boolean(a.value_id || a.value_name), "Informe value_id ou value_name")).min(2).max(15)
+        })).min(1).max(10),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ item_id, familias, confirmar, motivo }) => {
+      const item = await meliGet(env, `/items/${item_id}`);
+      const token = await loadToken(env);
+      if (item?.id !== item_id || item?.status !== "active") throw new Error("Anuncio nao esta ativo ou nao foi encontrado.");
+      if (!token?.user_id || Number(item.seller_id) !== Number(token.user_id)) throw new Error("Anuncio nao pertence a conta autenticada.");
+      const antes = await meliGet(env, `/items/${item_id}/compatibilities`, { extended: "true" });
+      const payload = { products_families: familias.map((f) => ({
+        domain_id: f.domain_id,
+        creation_source: "DEFAULT",
+        attributes: f.attributes
+      })) };
+      if (!confirmar) return textResult({
+        acao: "simulacao", somente_leitura: true, item_id,
+        titulo: item.title, familias_propostas: payload.products_families,
+        compatibilidades_antes: antes,
+        aviso: "Familias por dominio podem abranger muitas versoes. Verifique marca, modelo, ano, motorizacao, lado e posicao antes de confirmar. Nao houve escrita."
+      });
+      if (env.LISTING_WRITES_ENABLED !== "true") throw new Error("LISTING_WRITES_ENABLED nao habilitado.");
+      if (!motivo || motivo.trim().length < 10) throw new Error("Motivo de aprovacao explicita obrigatorio (minimo 10 caracteres).");
+      const escrita = await meliWrite(env, "POST", `/items/${item_id}/compatibilities`, payload);
+      const depois = await meliGet(env, `/items/${item_id}/compatibilities`, { extended: "true" });
+      const itemDepois = await meliGet(env, `/items/${item_id}`);
+      return textResult({
+        acao: "gravado", item_id, motivo,
+        payload_enviado: payload, resposta_mercado_livre: escrita.data,
+        compatibilidades_antes: antes, compatibilidades_depois: depois,
+        incomplete_compatibilities_depois: Array.isArray(itemDepois?.tags) && itemDepois.tags.includes("incomplete_compatibilities")
       });
     }
   );
