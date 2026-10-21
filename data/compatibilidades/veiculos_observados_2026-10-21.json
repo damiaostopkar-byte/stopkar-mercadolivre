@@ -28,6 +28,302 @@
   ],
   "vehicles": [
     {
+      "id": "MLB10231277",
+      "name": "Fiat Fiorino 2019 1.4 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB10231278",
+      "name": "Fiat Uno 2019 1.0 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB10231361",
+      "name": "Fiat Uno 2019 1.0 Drive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB13143421",
+      "name": "Fiat Uno 2019 1.3 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB13143440",
+      "name": "Fiat Uno 2019 1.0 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB15166975",
+      "name": "Fiat Uno 2020 1.3 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB15166977",
+      "name": "Fiat Uno 2020 1.0 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB15166987",
+      "name": "Fiat Uno 2020 1.0 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB15167065",
+      "name": "Fiat Uno 2020 1.0 Drive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB15167124",
+      "name": "Volkswagen Gol 2010 1.6 Vht Trend Total Flex I-motion Dh 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB15167130",
+      "name": "Volkswagen Gol 2010 1.6 Vht Total Flex Dh 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB15167178",
+      "name": "Fiat Fiorino 2020 1.4 Hard Working Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB15167243",
+      "name": "Fiat Fiorino 2020 1.4 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB15167277",
+      "name": "Volkswagen Gol 2015 1.0 City Total Flex 5p 68 hp BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB15167323",
+      "name": "Volkswagen Gol 2010 1.6 Vht Trend Total Flex Dh 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB15955433",
+      "name": "Fiat Fiorino 2021 1.4 Flex 4p 5 marchas BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB15955434",
+      "name": "Fiat Fiorino 2021 1.4 Hard Working Flex 4p 5 marchas BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB16020916",
+      "name": "Fiat Uno 2021 1.0 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB16020917",
+      "name": "Fiat Uno 2021 1.0 Drive Flex 5p 5 marchas BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB16020918",
+      "name": "Fiat Uno 2021 1.0 Way Flex 5p 5 marchas BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB16020919",
+      "name": "Fiat Uno 2021 1.3 Way Flex 5p 5 marchas BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB16189284",
+      "name": "Fiat Fiorino 2021 1.4 Endurance Flex 4p 5 marchas BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB16189285",
+      "name": "Fiat Fiorino 2021 1.4 Working Flex 4p 5 marchas BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB17420783",
+      "name": "Volkswagen Gol 2013 1.6 Vht Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB17420784",
+      "name": "Volkswagen Gol 2013 1.6 Vht Trend Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB18650603",
+      "name": "Fiat Fiorino 2021 1.4 Flex 4p marchas BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB18650604",
+      "name": "Fiat Fiorino 2021 1.4 Hard Working Flex 4p marchas BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB18650605",
+      "name": "Fiat Fiorino 2021 1.4 Working Flex 4p marchas BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB18650613",
+      "name": "Fiat Uno 2021 1.0 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB18651531",
+      "name": "Volkswagen Voyage 2009 1.6 Vht Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB18651532",
+      "name": "Volkswagen Voyage 2009 1.6 Vht Trend Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB19053904",
+      "name": "Fiat Fiorino 2022 1.4 Endurance Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB19593291",
+      "name": "Fiat Uno 1987 1.3 S 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19593292",
+      "name": "Fiat Uno 2001 1.0 Smart 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19593390",
+      "name": "Fiat Uno 1986 1.3 S 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19594009",
+      "name": "Fiat Uno mille 1998 1.0 Young 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19594013",
+      "name": "Fiat Uno 1984 1.3 S 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
       "id": "MLB19594045",
       "name": "Chevrolet Corsa Wagon 1998 1.6 8v Gls 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -86,6 +382,14 @@
       ]
     },
     {
+      "id": "MLB19595146",
+      "name": "Fiat Uno 1985 1.3 S 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
       "id": "MLB19595155",
       "name": "Chevrolet Corsa Wagon 1997 1.6 16v Gls 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -103,6 +407,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB19595682",
+      "name": "Fiat Uno 1990 1.3 S 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
       ]
     },
     {
@@ -154,11 +466,44 @@
       ]
     },
     {
+      "id": "MLB19596550",
+      "name": "Fiat Uno 2016 1.0 Way Rio450 Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB19596627",
+      "name": "Fiat Uno 2001 1.0 Smart 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19596913",
+      "name": "Fiat Uno 2013 1.4 Way Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
       "id": "MLB19608093",
       "name": "Chevrolet Corsa Pick Up 1998 1.6 St 2p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7853836040"
+      ]
+    },
+    {
+      "id": "MLB19608405",
+      "name": "Fiat Uno 1989 1.3 S 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
       ]
     },
     {
@@ -177,6 +522,22 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7853836040"
+      ]
+    },
+    {
+      "id": "MLB19608537",
+      "name": "Fiat Uno 1988 1.3 S 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19608546",
+      "name": "Fiat Uno 1991 1.3 S 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
       ]
     },
     {
@@ -218,6 +579,575 @@
       ]
     },
     {
+      "id": "MLB19685359",
+      "name": "Fiat Uno 1984 1.3 S 3p Etanol BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19685360",
+      "name": "Fiat Uno 1985 1.3 S 3p Etanol BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19685424",
+      "name": "Fiat Uno 1988 1.3 S 3p Etanol BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19685462",
+      "name": "Fiat Uno 1991 1.3 S 3p Etanol BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19690561",
+      "name": "Fiat Uno 2013 1.0 Way Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB19690710",
+      "name": "Fiat Uno 1989 1.3 S 3p Etanol BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19692427",
+      "name": "Fiat Uno 1986 1.3 S 3p Etanol BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19692437",
+      "name": "Fiat Uno 1987 1.3 S 3p Etanol BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19692493",
+      "name": "Fiat Uno 1990 1.3 S 3p Etanol BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19692538",
+      "name": "Fiat Uno 1992 1.3 S 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB19692539",
+      "name": "Fiat Uno 1992 1.3 S 3p Etanol BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB22384810",
+      "name": "Volkswagen Voyage 2013 1.6 Vht Tretotal Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384815",
+      "name": "Volkswagen Voyage 2013 1.0 Vht Tretotal Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384817",
+      "name": "Volkswagen Gol 2010 1.6 Vht Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384823",
+      "name": "Volkswagen Gol 2009 1.6 Vht Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384825",
+      "name": "Volkswagen Gol 2014 1.0 Tretec Total Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384827",
+      "name": "Volkswagen Voyage 2013 1.0 Tretec Total Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384829",
+      "name": "Volkswagen Gol 2012 1.6 Vht Tretotal Flex I-Motion 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384833",
+      "name": "Volkswagen Gol 2014 1.6 Vht Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384836",
+      "name": "Volkswagen Gol 2011 1.0 Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384841",
+      "name": "Volkswagen Gol 2014 1.6 Vht Tretotal Flex I-Motion 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384847",
+      "name": "Volkswagen Gol 2012 1.0 Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384854",
+      "name": "Volkswagen Gol 2014 1.0 Tretotal Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384862",
+      "name": "Volkswagen Gol 2013 1.0 Tretotal Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384864",
+      "name": "Volkswagen Gol 2009 1.0 Tretotal Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384872",
+      "name": "Volkswagen Voyage 2013 1.6 Vht Tretotal Flex I-Motion 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384876",
+      "name": "Volkswagen Gol 2008 1.0 Tretotal Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384880",
+      "name": "Volkswagen Gol 2009 1.0 Vht Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384882",
+      "name": "Volkswagen Voyage 2012 1.0 Vht Tretotal Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384884",
+      "name": "Volkswagen Voyage 2014 1.6 Vht Tretotal Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384888",
+      "name": "Volkswagen Voyage 2012 1.6 Vht Tretotal Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384891",
+      "name": "Volkswagen Voyage 2010 1.6 Vht Tretotal Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384901",
+      "name": "Volkswagen Gol 2010 1.0 Tretotal Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384905",
+      "name": "Volkswagen Voyage 2014 1.0 Tretec Total Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384908",
+      "name": "Volkswagen Gol 2012 1.0 Tretotal Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384910",
+      "name": "Volkswagen Voyage 2010 1.6 Vht Tretotal Flex I-Motion 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384914",
+      "name": "Volkswagen Gol 2010 1.0 Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384916",
+      "name": "Volkswagen Voyage 2010 1.0 Vht Tretotal Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384918",
+      "name": "Volkswagen Gol 2013 1.0 Vht Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384930",
+      "name": "Volkswagen Gol 2012 1.0 Vht Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384932",
+      "name": "Volkswagen Gol 2014 1.0 Tretec Total Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384936",
+      "name": "Volkswagen Voyage 2009 1.6 Vht Tretotal Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384940",
+      "name": "Volkswagen Gol 2011 1.0 Vht Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384947",
+      "name": "Volkswagen Gol 2010 1.0 Vht Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384949",
+      "name": "Volkswagen Gol 2013 1.0 Tretec Total Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384974",
+      "name": "Volkswagen Gol 2013 1.0 Tretec Total Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384984",
+      "name": "Volkswagen Voyage 2011 1.0 Vht Tretotal Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384988",
+      "name": "Volkswagen Gol 2014 1.6 Vht Tretotal Flex I-Motion 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384991",
+      "name": "Volkswagen Gol 2012 1.6 Vht Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22384997",
+      "name": "Volkswagen Gol 2014 1.6 Vht Tretotal Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385008",
+      "name": "Volkswagen Gol 2009 1.0 Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385015",
+      "name": "Volkswagen Gol 2011 1.0 Tretotal Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385017",
+      "name": "Volkswagen Voyage 2011 1.6 Vht Tretotal Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385019",
+      "name": "Volkswagen Gol 2010 1.6 Vht Tretotal Flex Dh 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385024",
+      "name": "Volkswagen Gol 2013 1.0 Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385030",
+      "name": "Volkswagen Gol 2010 1.6 Vht Tretotal Flex I-Motion Dh 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385032",
+      "name": "Volkswagen Gol 2008 1.0 Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385035",
+      "name": "Volkswagen Voyage 2009 1.0 Vht Tretotal Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385040",
+      "name": "Volkswagen Voyage 2011 1.6 Vht Tretotal Flex I-Motion 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385049",
+      "name": "Volkswagen Voyage 2012 1.6 Vht Tretotal Flex I-Motion 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385051",
+      "name": "Volkswagen Gol 2014 1.0 Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385063",
+      "name": "Volkswagen Gol 2013 1.6 Vht Tretotal Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385072",
+      "name": "Volkswagen Gol 2013 1.6 Vht Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385075",
+      "name": "Volkswagen Voyage 2014 1.6 Vht Tretotal Flex I-Motion 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385088",
+      "name": "Volkswagen Gol 2013 1.6 Vht Tretotal Flex I-Motion 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385104",
+      "name": "Volkswagen Gol 2009 1.6 Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385107",
+      "name": "Volkswagen Gol 2013 1.6 Vht Tretotal Flex I-Motion 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385113",
+      "name": "Volkswagen Gol 2008 1.6 Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385119",
+      "name": "Volkswagen Gol 2011 1.6 Vht Tretotal Flex I-Motion 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385125",
+      "name": "Volkswagen Gol 2010 1.6 Vht Tretotal Flex I-Motion 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB22385132",
+      "name": "Volkswagen Gol 2011 1.6 Vht Tretotal Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB22567993",
       "name": "Chevrolet Corsa Sedan 2005 1.0 Classic 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -255,6 +1185,30 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB22568125",
+      "name": "Fiat Uno 2021 1.0 Drive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB22568130",
+      "name": "Fiat Uno 2021 1.3 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB22576829",
+      "name": "Fiat Uno mille 2000 1.0 Ex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
       ]
     },
     {
@@ -678,6 +1632,14 @@
       ]
     },
     {
+      "id": "MLB23435591",
+      "name": "Volkswagen Gol 2015 1.0 City Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB23435597",
       "name": "Chevrolet Corsa Sedan 2001 1.0 Wind 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -711,6 +1673,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB23782485",
+      "name": "Volkswagen Voyage 2017 1.0 Trendline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -751,6 +1721,139 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB24212250",
+      "name": "Volkswagen Saveiro 2014 1.6 Trecab. Simples Total Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB24212251",
+      "name": "Volkswagen Saveiro 2013 1.6 Trecab. Simples Total Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB24212252",
+      "name": "Volkswagen Saveiro 2011 1.6 Trecab. Simples Total Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB24212253",
+      "name": "Volkswagen Saveiro 2012 1.6 Trecab. Simples Total Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB24212254",
+      "name": "Volkswagen Saveiro 2010 1.6 Trecab. Simples Total Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB24212255",
+      "name": "Volkswagen Saveiro 2008 1.6 Tretotal Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB24212256",
+      "name": "Volkswagen Saveiro 2009 1.8 Tretotal Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB24212257",
+      "name": "Volkswagen Saveiro 2009 1.6 Tretotal Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB24212258",
+      "name": "Volkswagen Saveiro 2014 1.6 Trecab. Estendida Total Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB24212259",
+      "name": "Volkswagen Saveiro 2013 1.6 Trecab. Estendida Total Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB24212260",
+      "name": "Volkswagen Saveiro 2010 1.6 Tretotal Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB24212262",
+      "name": "Volkswagen Saveiro 2008 1.8 Tretotal Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB24212263",
+      "name": "Volkswagen Saveiro 2010 1.6 Trecab. Estendida Total Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB24212264",
+      "name": "Volkswagen Saveiro 2012 1.6 Trecab. Estendida Total Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB24212265",
+      "name": "Volkswagen Saveiro 2011 1.6 Trecab. Estendida Total Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
       ]
     },
     {
@@ -826,6 +1929,14 @@
       ]
     },
     {
+      "id": "MLB25172528",
+      "name": "Fiat Uno Mille 1997 1.0 Ex 3p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
       "id": "MLB25172535",
       "name": "Chevrolet Corsa 1997 1.0 Super 3p",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -843,6 +1954,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB25172560",
+      "name": "Fiat Uno Mille 1997 1.0 Ex 5p Álcool",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
       ]
     },
     {
@@ -866,6 +1985,14 @@
       ]
     },
     {
+      "id": "MLB25264552",
+      "name": "Fiat Uno Mille 1998 1.0 Ex 5p Álcool",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
       "id": "MLB25264613",
       "name": "Chevrolet Corsa 1997 1.6 Gl 5p",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -886,6 +2013,30 @@
       ]
     },
     {
+      "id": "MLB25264681",
+      "name": "Fiat Uno Mille 1998 1.0 Ex 3p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB25354424",
+      "name": "Fiat Uno Mille 2001 1.0 Ex 3p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB25354556",
+      "name": "Fiat Uno Mille 2001 1.0 Ex 5p Álcool",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
       "id": "MLB25354564",
       "name": "Chevrolet Corsa Sedan 2001 1.6 Gl 4p",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -893,6 +2044,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB25354610",
+      "name": "Fiat Uno 2000 1.0 Smart 5p Álcool",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
       ]
     },
     {
@@ -936,6 +2095,38 @@
       ]
     },
     {
+      "id": "MLB25712884",
+      "name": "Volkswagen Voyage 2015 1.0 Vht Total Flex 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB25712894",
+      "name": "Volkswagen Gol 2016 1.6 City Total Flex 5p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB25712900",
+      "name": "Volkswagen Gol 2015 1.6 Vht Total Flex 3p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB25712901",
+      "name": "Volkswagen Gol 2016 1.0 Trend Tec Total Flex 3p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB25713000",
       "name": "Chevrolet Corsa 1998 1.4 Gl 3p",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -943,6 +2134,55 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB25713044",
+      "name": "Volkswagen Voyage 2015 1.6 Vht Total Flex I-motion 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB25713071",
+      "name": "Volkswagen Saveiro 2015 1.6 Trend Cab. Simples Total Flex 2p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB25713118",
+      "name": "Volkswagen Voyage 2016 1.6 Vht Total Flex 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB25713173",
+      "name": "Volkswagen Voyage 2015 1.6 Vht Total Flex 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB25713177",
+      "name": "Volkswagen Gol 2016 1.0 Trend Total Flex 5p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB25713180",
+      "name": "Volkswagen Voyage 2016 1.0 Vht Total Flex 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -1096,6 +2336,46 @@
       ]
     },
     {
+      "id": "MLB25815126",
+      "name": "Fiat Uno Mille 2003 1.0 Ex 5p Álcool",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB25815174",
+      "name": "Fiat Uno Mille 2003 1.0 Ex 3p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB25815189",
+      "name": "Fiat Uno 1999 1.0 Smart 3p Gasolina",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB25815193",
+      "name": "Fiat Uno Mille 2002 1.0 Ex 5p Álcool",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB25815201",
+      "name": "Fiat Uno 2016 1.3 Way Flex 5p Marchas",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
       "id": "MLB25815233",
       "name": "Gm Corsa 2000 1.6 Gl 3p",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1123,6 +2403,39 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB25815595",
+      "name": "Fiat Uno 2014 1.3 Way Flex 5p Marchas",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB25815596",
+      "name": "Fiat Uno 2015 1.0 Itália Flex 5p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB25815634",
+      "name": "Fiat Uno 2017 1.3 Way Flex 5p Marchas",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB25815635",
+      "name": "Fiat Uno Mille 2002 1.0 Ex 3p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
       ]
     },
     {
@@ -1163,6 +2476,22 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB25875028",
+      "name": "Volkswagen Gol 2016 1.0 Tretotal Flex 3p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB25875188",
+      "name": "Volkswagen Saveiro 2018 1.6 Trendline Cab. Estendida Total Flex 2p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -1211,6 +2540,15 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7853836040"
+      ]
+    },
+    {
+      "id": "MLB28034003",
+      "name": "Volkswagen Saveiro 2015 1.6 Trendline Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
       ]
     },
     {
@@ -1344,6 +2682,119 @@
       ]
     },
     {
+      "id": "MLB38405753",
+      "name": "Fiat Uno 2012 1.0 Way Celeb. Evo Fire Flex 8V 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB38405756",
+      "name": "Fiat Uno 2021 1.0 Ciao Fire Flex 8V 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB38405757",
+      "name": "Fiat Uno 2011 1.0 Way Celeb. Evo Fire Flex 8V 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB38405798",
+      "name": "Fiat Uno 2014 1.0 Vivace Celeb. Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB38405800",
+      "name": "Fiat Uno 2015 1.0 Vivace Celeb. Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB38405802",
+      "name": "Fiat Uno 2012 1.0 Vivace Celeb. Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB38405803",
+      "name": "Fiat Uno 2013 1.0 Vivace Celeb. Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB38405804",
+      "name": "Fiat Uno 2012 1.0 Vivace Celeb. Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB38405807",
+      "name": "Fiat Uno 2016 1.0 Vivace Celeb. Flex 3P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB38405810",
+      "name": "Fiat Uno 2011 1.0 Vivace Celeb. Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39247025",
+      "name": "Volkswagen Saveiro 2015 1.6 Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB39247029",
+      "name": "Volkswagen Saveiro 2018 1.6 Trendline Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB39247031",
+      "name": "Volkswagen Saveiro 2015 1.6 Trend Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
       "id": "MLB39249916",
       "name": "Chevrolet Corsa Sedan 2012 1.4 Maxx Econoflex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1351,6 +2802,213 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB39252724",
+      "name": "Fiat Uno 2015 1.0 Itália Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252725",
+      "name": "Fiat Uno 2012 1.0 Way Celeb. Evo Fire Flex 8V 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252726",
+      "name": "Fiat Uno 2013 1.0 Way Celeb. Evo Fire Flex 8V 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252727",
+      "name": "Fiat Uno 2014 1.0 Way Celeb. Evo Fire Flex 8V 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252729",
+      "name": "Fiat Uno 2015 1.0 Way Celeb. Evo Fire Flex 8V 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252730",
+      "name": "Fiat Uno 2016 1.0 Way Celeb. Evo Fire Flex 8V 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252731",
+      "name": "Fiat Uno 2012 1.4 Way Celeb. Evo Fire Flex 8V 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252732",
+      "name": "Fiat Uno 2011 1.4 Way Celeb. Evo Fire Flex 8V 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252733",
+      "name": "Fiat Uno 2012 1.4 Way Celeb. Evo Fire Flex 8V 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252734",
+      "name": "Fiat Uno 2013 1.4 Way Celeb. Evo Fire Flex 8V 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252735",
+      "name": "Fiat Uno 2014 1.4 Way Celeb. Evo Fire Flex 8V 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252736",
+      "name": "Fiat Uno 2015 1.4 Way Celeb. Evo Fire Flex 8V 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252737",
+      "name": "Fiat Uno 2012 1.4 Economy Celeb. Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252738",
+      "name": "Fiat Uno 2013 1.4 Economy Celeb. Flex 2P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252739",
+      "name": "Fiat Uno 2012 1.4 Economy Celeb. Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252740",
+      "name": "Fiat Uno 2013 1.4 Economy Celeb. Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252741",
+      "name": "Fiat Uno 2014 1.4 Economy Celeb. Flex 4P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252742",
+      "name": "Fiat Uno 2013 1.0 Vivace Celeb. Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252743",
+      "name": "Fiat Uno 2014 1.0 Vivace Celeb. Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252744",
+      "name": "Fiat Uno 2015 1.0 Vivace Celeb. Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39252747",
+      "name": "Fiat Uno 2016 1.0 Vivace Celeb. Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB39254298",
+      "name": "Volkswagen Gol 2014 1.6 Vht Power Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB39975125",
+      "name": "Fiat Uno mille 1994 1.0 Electronic BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB39977027",
+      "name": "Volkswagen Gol 2015 1.6 Vht Trend Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -1658,11 +3316,43 @@
       ]
     },
     {
+      "id": "MLB7423687",
+      "name": "Volkswagen Gol 2011 1.0 Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423692",
+      "name": "Volkswagen Voyage 2012 1.6 Vht Comfortline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7423696",
       "name": "Chevrolet Celta 2009 1.0 Life Flex Power 3p 77 hp BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7423707",
+      "name": "Volkswagen Gol 2012 1.0 Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423713",
+      "name": "Volkswagen Gol 2014 1.0 Trend Tec Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -1676,6 +3366,31 @@
       ]
     },
     {
+      "id": "MLB7423722",
+      "name": "Volkswagen Saveiro 2011 1.6 Trooper Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7423730",
+      "name": "Volkswagen Voyage 2014 1.6 Vht Seleção Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423732",
+      "name": "Volkswagen Gol 2015 1.6 16v Msi Rallye Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7423738",
       "name": "Chevrolet Corsa 2011 1.4 Maxx Econoflex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1683,6 +3398,22 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7423740",
+      "name": "Volkswagen Gol 2014 1.6 Vht Seleção Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423746",
+      "name": "Volkswagen Gol 2014 1.6 Vht Seleção Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -1696,6 +3427,22 @@
       ]
     },
     {
+      "id": "MLB7423755",
+      "name": "Volkswagen Gol 2009 1.0 Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423762",
+      "name": "Volkswagen Gol 2011 1.6 Vht Power Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7423779",
       "name": "Chevrolet Corsa 2000 1.0 Wind 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1703,6 +3450,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7423782",
+      "name": "Volkswagen Gol 2013 1.0 Vht 25 Anos Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -1750,6 +3505,14 @@
       ]
     },
     {
+      "id": "MLB7423808",
+      "name": "Volkswagen Gol 2017 1.6 Msi Highline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7423809",
       "name": "Chevrolet Corsa 2006 1.0 Maxx Flex Power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1777,6 +3540,80 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7423844",
+      "name": "Volkswagen Saveiro 2015 1.6 16v Cross Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7423847",
+      "name": "Volkswagen Gol 2013 1.0 Vht Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423849",
+      "name": "Volkswagen Voyage 2010 1.6 Vht Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423850",
+      "name": "Volkswagen Gol 2014 1.6 Vht Trend Total Flex I-motion 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423856",
+      "name": "Volkswagen Gol 2010 1.6 Vht Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423857",
+      "name": "Volkswagen Gol 2011 1.6 Vht Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423869",
+      "name": "Volkswagen Saveiro 2010 1.6 Surf Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7423871",
+      "name": "Volkswagen Gol 2013 1.0 Vht Black Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423875",
+      "name": "Volkswagen Voyage 2012 1.6 Vht Trend Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -1818,6 +3655,31 @@
       ]
     },
     {
+      "id": "MLB7423895",
+      "name": "Volkswagen Gol 2012 1.6 Vht Power Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423898",
+      "name": "Volkswagen Saveiro 2015 1.6 16v Cross Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7423903",
+      "name": "Volkswagen Gol 2016 1.6 16v Msi Rallye Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7423904",
       "name": "Chevrolet Corsa Sedan 2000 1.6 8v Gls 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1836,6 +3698,30 @@
       ]
     },
     {
+      "id": "MLB7423920",
+      "name": "Volkswagen Gol 2014 1.0 Trend Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423934",
+      "name": "Volkswagen Voyage 2013 1.6 Vht Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423938",
+      "name": "Volkswagen Gol 2009 1.0 Trend Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7423944",
       "name": "Chevrolet Corsa Sedan 2011 1.4 Premium Econoflex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1843,6 +3729,22 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7423946",
+      "name": "Volkswagen Gol 2014 1.6 Vht Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423948",
+      "name": "Volkswagen Gol 2015 1.6 Msi Seleção Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -1866,6 +3768,22 @@
       ]
     },
     {
+      "id": "MLB7423969",
+      "name": "Volkswagen Voyage 2011 1.6 Vht Trend Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423975",
+      "name": "Volkswagen Gol 2009 1.6 City Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7423977",
       "name": "Chevrolet Corsa Pick Up 2001 1.6 Rodeio 2p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1879,6 +3797,22 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7423982",
+      "name": "Volkswagen Gol 2011 1.0 Vht Seleção Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7423991",
+      "name": "Volkswagen Voyage 2017 1.6 Msi Comfortline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -1948,6 +3882,14 @@
       ]
     },
     {
+      "id": "MLB7424028",
+      "name": "Volkswagen Gol 2014 1.6 Vht Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424032",
       "name": "Chevrolet Corsa Classic 2007 1.6 Spirit 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1955,6 +3897,23 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7424037",
+      "name": "Volkswagen Saveiro 2011 1.6 Trooper Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7424041",
+      "name": "Volkswagen Voyage 2014 1.6 Vht Total Flex I-motion (new) 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -1968,6 +3927,23 @@
       ]
     },
     {
+      "id": "MLB7424046",
+      "name": "Volkswagen Saveiro 2014 1.6 Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7424047",
+      "name": "Volkswagen Gol 2012 1.6 Vht Trend Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424052",
       "name": "Chevrolet Corsa Sedan 2012 1.4 Premium Econoflex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1975,6 +3951,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7424053",
+      "name": "Volkswagen Gol 2014 1.6 Vht Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2018,6 +4002,23 @@
       ]
     },
     {
+      "id": "MLB7424080",
+      "name": "Volkswagen Saveiro 2009 1.6 City Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7424086",
+      "name": "Volkswagen Gol 2012 1.0 Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424091",
       "name": "Chevrolet Corsa Classic 2006 1.6 Life 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2038,11 +4039,76 @@
       ]
     },
     {
+      "id": "MLB7424099",
+      "name": "Volkswagen Gol 2014 1.0 Seleção Tec Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424101",
+      "name": "Volkswagen Gol 2014 1.0 Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424107",
+      "name": "Volkswagen Gol 2016 1.6 16v Msi Rallye Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424110",
+      "name": "Volkswagen Saveiro 2016 1.6 Trendline Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7424113",
+      "name": "Volkswagen Gol 2016 1.0 Special Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424117",
+      "name": "Volkswagen Gol 2017 1.6 Msi Connect Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424118",
+      "name": "Volkswagen Voyage 2016 1.6 Msi Comfortline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424121",
       "name": "Chevrolet Celta 2008 1.0 Spirit Flex Power 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7424122",
+      "name": "Volkswagen Voyage 2017 1.6 Msi Connect Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2056,11 +4122,51 @@
       ]
     },
     {
+      "id": "MLB7424140",
+      "name": "Volkswagen Voyage 2016 1.6 Msi Highline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424143",
       "name": "Chevrolet Corsa Pick Up 1999 1.6 Gl 2p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7853836040"
+      ]
+    },
+    {
+      "id": "MLB7424147",
+      "name": "Volkswagen Gol 2013 1.0 Bluemotion Tec Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424154",
+      "name": "Volkswagen Gol 2013 1.6 Vht Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424156",
+      "name": "Volkswagen Gol 2010 1.6 Vht Power Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424161",
+      "name": "Volkswagen Voyage 2011 1.6 Vht Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2084,11 +4190,61 @@
       ]
     },
     {
+      "id": "MLB7424170",
+      "name": "Volkswagen Saveiro 2010 1.6 Trooper Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7424184",
+      "name": "Volkswagen Voyage 2015 1.6 Msi Seleção Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424188",
+      "name": "Volkswagen Gol 2014 1.0 Trend Tec Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424215",
+      "name": "Volkswagen Gol 2014 1.6 Vht Rallye Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424220",
+      "name": "Volkswagen Saveiro 2012 1.6 Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
       "id": "MLB7424221",
       "name": "Chevrolet Meriva 2010 1.8 Premium Flex Power Easytronic 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7424223",
+      "name": "Volkswagen Voyage 2014 1.6 Vht Trend Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2100,11 +4256,28 @@
       ]
     },
     {
+      "id": "MLB7424242",
+      "name": "Volkswagen Gol 2014 1.6 Vht Highline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424261",
       "name": "Chevrolet Celta 2009 1.0 Life Flex Power 5p 77 hp BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7424263",
+      "name": "Volkswagen Saveiro 2015 1.6 Trendline Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
       ]
     },
     {
@@ -2116,11 +4289,69 @@
       ]
     },
     {
+      "id": "MLB7424283",
+      "name": "Volkswagen Gol 2012 1.0 Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424284",
+      "name": "Volkswagen Saveiro 2015 1.6 Surf Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7424294",
+      "name": "Volkswagen Gol 2014 1.6 Vht Trend Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424300",
+      "name": "Volkswagen Voyage 2012 1.6 Vht Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424306",
       "name": "Chevrolet Meriva 2007 1.8 Joy Flex Power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7424313",
+      "name": "Volkswagen Saveiro 2009 1.6 Titan Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7424318",
+      "name": "Volkswagen Gol 2013 1.6 Vht Trend Total Flex I-motion 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424319",
+      "name": "Volkswagen Gol 2015 1.6 16v Msi Rallye Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2158,6 +4389,41 @@
       ]
     },
     {
+      "id": "MLB7424360",
+      "name": "Volkswagen Saveiro 2010 1.6 Trooper Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7424362",
+      "name": "Volkswagen Saveiro 2012 1.6 Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7424368",
+      "name": "Volkswagen Voyage 2015 1.0 Comfortline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424377",
+      "name": "Volkswagen Saveiro 2013 1.6 Trooper Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
       "id": "MLB7424380",
       "name": "Chevrolet Corsa Sedan 2001 1.0 Super Milenium 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2168,6 +4434,14 @@
       ]
     },
     {
+      "id": "MLB7424384",
+      "name": "Volkswagen Saveiro 2008 1.6 Super Surf Total Flex 2p 101 hp BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424386",
       "name": "Chevrolet Corsa 2010 1.4 Premium Econoflex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2175,6 +4449,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7424390",
+      "name": "Volkswagen Voyage 2010 1.6 Vht Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2208,6 +4490,38 @@
       ]
     },
     {
+      "id": "MLB7424396",
+      "name": "Volkswagen Gol 2011 1.6 Vht Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424400",
+      "name": "Volkswagen Gol 2013 1.0 Bluemotion Tec Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424402",
+      "name": "Volkswagen Gol 2014 1.0 Ecomotion Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424408",
+      "name": "Volkswagen Gol 2011 1.6 Vht Vintage Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424419",
       "name": "Chevrolet Celta 2007 1.4 Spirit 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2223,6 +4537,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7424474",
+      "name": "Volkswagen Gol 2015 1.6 Msi Seleção Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2262,11 +4584,35 @@
       ]
     },
     {
+      "id": "MLB7424494",
+      "name": "Volkswagen Gol 2012 1.0 Trend Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424496",
+      "name": "Volkswagen Gol 2008 1.8 Power Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424503",
       "name": "Chevrolet Prisma 2009 1.4 Joy Econoflex 4p 95 hp BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7424504",
+      "name": "Volkswagen Voyage 2011 1.6 Vht Comfortline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2277,6 +4623,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7424514",
+      "name": "Volkswagen Gol 2009 1.0 Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2303,6 +4657,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7424526",
+      "name": "Volkswagen Gol 2009 1.6 Vht Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2334,6 +4696,14 @@
       ]
     },
     {
+      "id": "MLB7424541",
+      "name": "Volkswagen Voyage 2015 1.6 Msi Comfortline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424558",
       "name": "Chevrolet Corsa Sedan 2002 1.8 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2341,6 +4711,22 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7424560",
+      "name": "Volkswagen Gol 2013 1.6 Vht Power Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424574",
+      "name": "Volkswagen Voyage 2017 1.6 Msi Trendline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2354,11 +4740,35 @@
       ]
     },
     {
+      "id": "MLB7424580",
+      "name": "Volkswagen Gol 2009 1.0 Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424592",
+      "name": "Volkswagen Gol 2010 1.6 Vht Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424594",
       "name": "Chevrolet Celta 2010 1.0 Life Flex Power 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7424598",
+      "name": "Volkswagen Gol 2013 1.0 Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2397,6 +4807,39 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7424620",
+      "name": "Volkswagen Gol 2016 1.0 Trendline Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424622",
+      "name": "Volkswagen Saveiro 2017 1.6 16v Cross Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424626",
+      "name": "Volkswagen Saveiro 2014 1.6 Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7424627",
+      "name": "Volkswagen Voyage 2011 1.6 Vht Comfortline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2452,11 +4895,35 @@
       ]
     },
     {
+      "id": "MLB7424678",
+      "name": "Volkswagen Saveiro 2008 1.6 Surf Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424679",
       "name": "Chevrolet Celta 2010 1.0 Spirit Flex Power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7424685",
+      "name": "Volkswagen Gol 2016 1.6 Msi Highline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424694",
+      "name": "Volkswagen Gol 2009 1.6 City Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2526,11 +4993,43 @@
       ]
     },
     {
+      "id": "MLB7424744",
+      "name": "Volkswagen Gol 2017 1.6 Msi Comfortline Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424747",
+      "name": "Volkswagen Voyage 2017 1.6 Msi Highline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424749",
       "name": "Chevrolet Meriva 2010 1.4 Maxx Econoflex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7424753",
+      "name": "Volkswagen Gol 2015 1.6 Msi Comfortline Total Flex I-motion 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424755",
+      "name": "Volkswagen Voyage 2014 1.6 Msi Comfortline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2541,6 +5040,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7424764",
+      "name": "Volkswagen Voyage 2012 1.6 Vht Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2562,11 +5069,27 @@
       ]
     },
     {
+      "id": "MLB7424772",
+      "name": "Volkswagen Gol 2008 1.0 Trend Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424777",
       "name": "Chevrolet Meriva 2008 1.8 Joy Flex Power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7424779",
+      "name": "Volkswagen Gol 2015 1.0 Special Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2578,11 +5101,44 @@
       ]
     },
     {
+      "id": "MLB7424799",
+      "name": "Volkswagen Gol 2008 1.6 City Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424804",
       "name": "Chevrolet Prisma 2010 1.4 Maxx Econoflex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7424809",
+      "name": "Volkswagen Voyage 2009 1.6 Vht Comfortline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424814",
+      "name": "Volkswagen Gol 2016 1.6 Msi Comfortline Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424820",
+      "name": "Volkswagen Saveiro 2010 1.6 Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
       ]
     },
     {
@@ -2606,11 +5162,44 @@
       ]
     },
     {
+      "id": "MLB7424836",
+      "name": "Volkswagen Gol 2012 1.6 Vht Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424843",
+      "name": "Volkswagen Saveiro 2013 1.6 Trooper Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
       "id": "MLB7424844",
       "name": "Chevrolet Meriva 2010 1.8 Ss Flex Power Easytronic 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7424853",
+      "name": "Volkswagen Gol 2015 1.6 Msi Trendline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424859",
+      "name": "Volkswagen Gol 2011 1.0 Trend Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2660,6 +5249,30 @@
       ]
     },
     {
+      "id": "MLB7424921",
+      "name": "Volkswagen Voyage 2015 1.6 Msi Highline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424922",
+      "name": "Volkswagen Saveiro 2008 1.6 City Total Flex 2p 101 hp BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424923",
+      "name": "Volkswagen Gol 2014 1.0 Track Tec Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424925",
       "name": "Chevrolet Corsa Classic 2005 1.0 Life 4p Álcool BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2670,11 +5283,35 @@
       ]
     },
     {
+      "id": "MLB7424930",
+      "name": "Volkswagen Voyage 2011 1.6 Vht Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424932",
       "name": "Chevrolet Celta 2011 1.0 Spirit Flex Power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7424934",
+      "name": "Volkswagen Saveiro 2017 1.6 Trendline Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424948",
+      "name": "Volkswagen Voyage 2017 1.0 Trendline Total Flex 4p 72 hp BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2706,6 +5343,14 @@
       ]
     },
     {
+      "id": "MLB7424958",
+      "name": "Volkswagen Voyage 2014 1.0 Bluemotion Tec Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7424977",
       "name": "Chevrolet Corsa Wagon 2001 1.6 16v Gls 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2713,6 +5358,22 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7424981",
+      "name": "Volkswagen Gol 2012 1.6 Vht Power Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7424986",
+      "name": "Volkswagen Gol 2015 1.0 Trendline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2734,6 +5395,15 @@
       ]
     },
     {
+      "id": "MLB7425023",
+      "name": "Volkswagen Saveiro 2013 1.6 Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
       "id": "MLB7425031",
       "name": "Chevrolet Corsa 2005 1.0 Premium 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2744,6 +5414,39 @@
       ]
     },
     {
+      "id": "MLB7425032",
+      "name": "Volkswagen Voyage 2015 1.6 Msi Evidence Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425036",
+      "name": "Volkswagen Gol 2008 1.6 City Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425043",
+      "name": "Volkswagen Saveiro 2016 1.6 16v Cross Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7425049",
+      "name": "Volkswagen Gol 2016 1.0 Rock In Rio Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425055",
       "name": "Chevrolet Corsa 2009 1.0 Maxx Flex Power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2751,6 +5454,31 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7425056",
+      "name": "Volkswagen Gol 2017 1.6 Msi Trendline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425063",
+      "name": "Volkswagen Saveiro 2012 1.6 Trooper Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7425067",
+      "name": "Volkswagen Voyage 2013 1.6 Vht Trend Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2779,6 +5507,30 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7425097",
+      "name": "Volkswagen Voyage 2009 1.6 Vht Total Flex 4p Hatch BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425101",
+      "name": "Volkswagen Gol 2008 1.6 Power Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425105",
+      "name": "Volkswagen Gol 2017 1.6 Msi Highline Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2820,6 +5572,24 @@
       ]
     },
     {
+      "id": "MLB7425128",
+      "name": "Volkswagen Saveiro 2016 1.6 Trendline Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7425130",
+      "name": "Volkswagen Saveiro 2016 1.6 Highline Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
       "id": "MLB7425134",
       "name": "Chevrolet Corsa 2002 1.8 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2830,6 +5600,39 @@
       ]
     },
     {
+      "id": "MLB7425136",
+      "name": "Volkswagen Gol 2013 1.6 Vht Total Flex I-motion 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425142",
+      "name": "Volkswagen Voyage 2016 1.6 Msi Highline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425156",
+      "name": "Volkswagen Gol 2011 1.0 Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425163",
+      "name": "Volkswagen Saveiro 2016 1.6 Surf Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
       "id": "MLB7425178",
       "name": "Chevrolet Corsa 2004 1.8 Flex Power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2837,6 +5640,15 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7425181",
+      "name": "Volkswagen Saveiro 2016 1.6 Rock In Rio Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
       ]
     },
     {
@@ -2858,6 +5670,30 @@
       ]
     },
     {
+      "id": "MLB7425223",
+      "name": "Volkswagen Voyage 2015 1.0 Seleção Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425230",
+      "name": "Volkswagen Gol 2008 1.0 Plus Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425232",
+      "name": "Volkswagen Gol 2015 1.6 Msi Trendline Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425236",
       "name": "Chevrolet Meriva 2006 1.8 Joy Flex Power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2876,6 +5712,14 @@
       ]
     },
     {
+      "id": "MLB7425253",
+      "name": "Volkswagen Gol 2008 1.0 Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425255",
       "name": "Chevrolet Corsa 1999 1.6 Gls 99.5 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2883,6 +5727,23 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7425261",
+      "name": "Volkswagen Saveiro 2015 1.6 Highline Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7425271",
+      "name": "Volkswagen Gol 2015 1.6 Msi Comfortline Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2904,6 +5765,14 @@
       ]
     },
     {
+      "id": "MLB7425302",
+      "name": "Volkswagen Voyage 2014 1.6 Vht Seleção Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425311",
       "name": "Chevrolet Meriva 2011 1.4 Maxx Econoflex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2922,6 +5791,15 @@
       ]
     },
     {
+      "id": "MLB7425322",
+      "name": "Volkswagen Saveiro 2009 1.6 Surf Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
       "id": "MLB7425323",
       "name": "Chevrolet Corsa Classic 2009 1.0 Life Flex Power 4p 77 hp BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -2929,6 +5807,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7425328",
+      "name": "Volkswagen Gol 2015 1.6 Msi Highline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2958,11 +5844,27 @@
       ]
     },
     {
+      "id": "MLB7425337",
+      "name": "Volkswagen Gol 2012 1.0 Ecomotion Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425345",
       "name": "Chevrolet Celta 2007 1.4 Super 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7425348",
+      "name": "Volkswagen Gol 2011 1.0 Ecomotion Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -2973,6 +5875,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7425365",
+      "name": "Volkswagen Gol 2012 1.6 Vht Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3004,11 +5914,27 @@
       ]
     },
     {
+      "id": "MLB7425378",
+      "name": "Volkswagen Gol 2014 1.0 Bluemotion Tec Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425387",
       "name": "Chevrolet Celta 2006 1.0 Spirit Flex Power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7425389",
+      "name": "Volkswagen Saveiro 2008 1.6 City Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3019,6 +5945,22 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7425394",
+      "name": "Volkswagen Gol 2014 1.0 Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425396",
+      "name": "Volkswagen Gol 2017 1.6 Msi Connect Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3035,6 +5977,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7425426",
+      "name": "Volkswagen Gol 2012 1.0 Vht Black Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3064,6 +6014,47 @@
       ]
     },
     {
+      "id": "MLB7425434",
+      "name": "Volkswagen Voyage 2013 1.6 Vht Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425436",
+      "name": "Volkswagen Voyage 2014 1.6 Msi Highline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425438",
+      "name": "Volkswagen Saveiro 2008 1.6 Titan Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425449",
+      "name": "Volkswagen Voyage 2014 1.0 Seleção Tec Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425450",
+      "name": "Volkswagen Saveiro 2011 1.6 Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
       "id": "MLB7425457",
       "name": "Chevrolet Corsa 1999 1.6 Gl 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3071,6 +6062,22 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7425459",
+      "name": "Volkswagen Gol 2014 1.6 Vht Total Flex I-motion 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425464",
+      "name": "Volkswagen Gol 2009 1.0 City Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3092,11 +6099,35 @@
       ]
     },
     {
+      "id": "MLB7425470",
+      "name": "Volkswagen Gol 2008 1.0 City Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425473",
+      "name": "Volkswagen Voyage 2009 1.6 Vht Trend Total Flex 4p Sedã BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425477",
       "name": "Chevrolet Corsa Pick Up 2002 1.6 St 2p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7853836040"
+      ]
+    },
+    {
+      "id": "MLB7425491",
+      "name": "Volkswagen Gol 2010 1.6 Vht Trend Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3128,6 +6159,14 @@
       ]
     },
     {
+      "id": "MLB7425509",
+      "name": "Volkswagen Gol 2015 1.0 Seleção Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425515",
       "name": "Chevrolet Corsa Sedan 2010 1.4 Maxx Econoflex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3145,6 +6184,22 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7425530",
+      "name": "Volkswagen Voyage 2015 1.0 Trendline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425534",
+      "name": "Volkswagen Voyage 2016 1.6 Msi Trendline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3174,6 +6229,22 @@
       ]
     },
     {
+      "id": "MLB7425559",
+      "name": "Volkswagen Gol 2014 1.6 Vht Rallye Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425577",
+      "name": "Volkswagen Voyage 2014 1.6 Vht Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425590",
       "name": "Chevrolet Corsa Wagon 2000 1.6 8v Gls 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3200,11 +6271,27 @@
       ]
     },
     {
+      "id": "MLB7425600",
+      "name": "Volkswagen Gol 2010 1.0 Trend Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425613",
       "name": "Chevrolet Meriva 2009 1.8 Premium Flex Power Easytronic 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7425623",
+      "name": "Volkswagen Voyage 2013 1.6 Vht Comfortline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3284,6 +6371,22 @@
       ]
     },
     {
+      "id": "MLB7425696",
+      "name": "Volkswagen Gol 2011 1.0 Vht Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425697",
+      "name": "Volkswagen Gol 2016 1.6 Msi Comfortline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425699",
       "name": "Chevrolet Corsa 2007 1.0 Joy Flex Power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3336,6 +6439,14 @@
       ]
     },
     {
+      "id": "MLB7425745",
+      "name": "Volkswagen Gol 2010 1.0 Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425756",
       "name": "Chevrolet Corsa Classic 2008 1.0 Life Flex Power 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3362,6 +6473,14 @@
       ]
     },
     {
+      "id": "MLB7425773",
+      "name": "Volkswagen Gol 2009 1.6 Vht Power Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425775",
       "name": "Chevrolet Celta 2008 1.0 Life Flex Power 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3375,6 +6494,47 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7425791",
+      "name": "Volkswagen Gol 2016 1.6 Msi Highline Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425796",
+      "name": "Volkswagen Voyage 2015 1.6 Msi Evidence Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425797",
+      "name": "Volkswagen Gol 2010 1.0 Vht Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425800",
+      "name": "Volkswagen Gol 2016 1.6 Msi Trendline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425804",
+      "name": "Volkswagen Saveiro 2015 1.6 Trendline Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
       ]
     },
     {
@@ -3402,6 +6562,22 @@
       ]
     },
     {
+      "id": "MLB7425821",
+      "name": "Volkswagen Gol 2008 1.6 Power Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425822",
+      "name": "Volkswagen Gol 2010 1.0 Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425826",
       "name": "Chevrolet Corsa Classic 2009 1.0 Super Flex Power 4p 70 hp BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3412,11 +6588,44 @@
       ]
     },
     {
+      "id": "MLB7425834",
+      "name": "Volkswagen Saveiro 2008 1.8 City Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425838",
+      "name": "Volkswagen Gol 2014 1.0 Bluemotion Tec Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425845",
       "name": "Chevrolet Corsa Pick Up 2003 1.6 St 2p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7853836040"
+      ]
+    },
+    {
+      "id": "MLB7425849",
+      "name": "Volkswagen Saveiro 2012 1.6 Trooper Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7425850",
+      "name": "Volkswagen Voyage 2014 1.6 Msi Comfortline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3435,6 +6644,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7425866",
+      "name": "Volkswagen Voyage 2014 1.6 Vht Highline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3474,6 +6691,14 @@
       ]
     },
     {
+      "id": "MLB7425892",
+      "name": "Volkswagen Gol 2009 1.0 Vht Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425893",
       "name": "Chevrolet Corsa Sedan 2006 1.8 Joy Flex Power 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3481,6 +6706,32 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7425898",
+      "name": "Volkswagen Gol 2012 1.0 Ecomotion Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425904",
+      "name": "Volkswagen Saveiro 2011 1.6 Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7425907",
+      "name": "Volkswagen Saveiro 2010 1.6 Titan Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
       ]
     },
     {
@@ -3502,6 +6753,22 @@
       ]
     },
     {
+      "id": "MLB7425922",
+      "name": "Volkswagen Gol 2012 1.6 Vht Rallye Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425928",
+      "name": "Volkswagen Voyage 2013 1.0 Bluemotion Tec Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425933",
       "name": "Chevrolet Corsa Classic 2008 1.0 Spirit Flex Power 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3512,11 +6779,67 @@
       ]
     },
     {
+      "id": "MLB7425937",
+      "name": "Volkswagen Gol 2008 1.0 Plus Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425941",
+      "name": "Volkswagen Voyage 2015 1.6 Msi Seleção Total Flex Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425963",
       "name": "Chevrolet Meriva 2006 1.8 Ss Flex Power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7425965",
+      "name": "Volkswagen Gol 2013 1.0 Ecomotion Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425966",
+      "name": "Volkswagen Gol 2011 1.6 Vht Rallye Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425973",
+      "name": "Volkswagen Gol 2009 1.6 Power Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425977",
+      "name": "Volkswagen Gol 2014 1.0 Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7425978",
+      "name": "Volkswagen Voyage 2010 1.6 Vht Trend Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3550,6 +6873,14 @@
       ]
     },
     {
+      "id": "MLB7425996",
+      "name": "Volkswagen Gol 2015 1.6 Msi Highline Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7425998",
       "name": "Chevrolet Celta 2012 1.0 Ls Flex Power 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3565,6 +6896,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7426015",
+      "name": "Volkswagen Gol 2013 1.0 Trend Tec Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3588,11 +6927,59 @@
       ]
     },
     {
+      "id": "MLB7426025",
+      "name": "Volkswagen Gol 2011 1.0 Ecomotion Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426035",
+      "name": "Volkswagen Gol 2008 1.0 City Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426038",
+      "name": "Volkswagen Voyage 2014 1.6 Msi Highline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426043",
+      "name": "Volkswagen Gol 2010 1.0 Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7426050",
       "name": "Chevrolet Meriva 2006 1.8 Maxx Flex Power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7426056",
+      "name": "Volkswagen Gol 2015 1.0 Comfortline Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426063",
+      "name": "Volkswagen Gol 2011 1.6 Vht Trend Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3609,6 +6996,30 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7426076",
+      "name": "Volkswagen Gol 2012 1.0 Vht Rock In Rio Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426087",
+      "name": "Volkswagen Gol 2012 1.6 Vht Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426091",
+      "name": "Volkswagen Voyage 2010 1.6 Vht Comfortline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3632,6 +7043,14 @@
       ]
     },
     {
+      "id": "MLB7426095",
+      "name": "Volkswagen Voyage 2009 1.6 Vht Total Flex 4p Sedã BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7426099",
       "name": "Chevrolet Corsa Sedan 1999 1.6 Gl 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3649,6 +7068,30 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7426108",
+      "name": "Volkswagen Gol 2012 1.0 Vht Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426112",
+      "name": "Volkswagen Gol 2013 1.6 Vht Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426114",
+      "name": "Volkswagen Gol 2014 1.6 Vht Highline Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3690,6 +7133,30 @@
       ]
     },
     {
+      "id": "MLB7426278",
+      "name": "Volkswagen Gol 2013 1.6 Vht Power Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426338",
+      "name": "Volkswagen Gol 2010 1.6 Vht Power Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426347",
+      "name": "Volkswagen Saveiro 2017 1.6 16v Cross Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7426348",
       "name": "Chevrolet Celta 2006 1.4 Spirit 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3705,6 +7172,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7426363",
+      "name": "Volkswagen Gol 2009 1.6 Vht Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3734,6 +7209,22 @@
       ]
     },
     {
+      "id": "MLB7426455",
+      "name": "Volkswagen Gol 2008 1.6 City Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426484",
+      "name": "Volkswagen Gol 2015 1.6 Msi Comfortline Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7426502",
       "name": "Chevrolet Corsa 2006 1.8 Joy Flex Power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3754,11 +7245,59 @@
       ]
     },
     {
+      "id": "MLB7426596",
+      "name": "Volkswagen Gol 2011 1.0 Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426602",
+      "name": "Volkswagen Voyage 2013 1.6 Vht Comfortline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426614",
+      "name": "Volkswagen Gol 2013 1.0 Ecomotion Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426624",
+      "name": "Volkswagen Voyage 2016 1.0 Comfortline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7426626",
       "name": "Chevrolet Celta 2006 1.0 Life Flex Power 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7426662",
+      "name": "Volkswagen Voyage 2017 1.6 Msi Highline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426666",
+      "name": "Volkswagen Voyage 2017 1.0 Trendline Total Flex 4p 75 hp BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3782,11 +7321,35 @@
       ]
     },
     {
+      "id": "MLB7426706",
+      "name": "Volkswagen Gol 2016 1.0 Trendline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7426717",
       "name": "Chevrolet Prisma 2009 1.0 Maxx Flexpower 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7426731",
+      "name": "Volkswagen Voyage 2016 1.6 Msi Evidence Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7426733",
+      "name": "Volkswagen Voyage 2009 1.6 Vht Trend Total Flex 4p Hatch BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3797,6 +7360,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7426769",
+      "name": "Volkswagen Gol 2015 1.0 Special Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3820,6 +7391,15 @@
       ]
     },
     {
+      "id": "MLB7426806",
+      "name": "Volkswagen Saveiro 2009 1.8 City Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
       "id": "MLB7426819",
       "name": "Chevrolet Corsa Classic 2005 1.6 Super 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3837,6 +7417,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7426925",
+      "name": "Volkswagen Gol 2015 1.0 Comfortline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3870,6 +7458,22 @@
       ]
     },
     {
+      "id": "MLB7427472",
+      "name": "Volkswagen Gol 2009 1.6 Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7427479",
+      "name": "Volkswagen Saveiro 2017 1.6 Robust Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7427506",
       "name": "Chevrolet Corsa 2002 1.0 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3880,11 +7484,150 @@
       ]
     },
     {
+      "id": "MLB7427522",
+      "name": "Volkswagen Gol 2016 1.0 Special Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7427532",
+      "name": "Volkswagen Saveiro 2016 1.6 16v Cross Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7427537",
+      "name": "Volkswagen Gol 2011 1.6 Vht Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7427544",
+      "name": "Volkswagen Voyage 2015 1.6 Msi Trendline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7427549",
+      "name": "Volkswagen Voyage 2015 1.6 Msi Highline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7427553",
+      "name": "Volkswagen Voyage 2012 1.6 Vht Comfortline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7427562",
+      "name": "Volkswagen Gol 2008 1.6 Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7427563",
       "name": "Chevrolet Meriva 2012 1.4 Maxx Econoflex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7427583",
+      "name": "Volkswagen Gol 2016 1.0 Comfortline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7427587",
+      "name": "Volkswagen Gol 2008 1.6 City Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7427686",
+      "name": "Volkswagen Saveiro 2016 1.6 Trendline Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7427703",
+      "name": "Volkswagen Voyage 2015 1.6 Msi Comfortline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7427712",
+      "name": "Volkswagen Saveiro 2008 1.6 Super Surf Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7427716",
+      "name": "Volkswagen Gol 2011 1.6 Vht Power Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7427720",
+      "name": "Volkswagen Gol 2015 1.6 Msi Comfortline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7427732",
+      "name": "Volkswagen Voyage 2016 1.6 Msi Evidence Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7427756",
+      "name": "Volkswagen Saveiro 2013 1.6 Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7427779",
+      "name": "Volkswagen Gol 2013 1.0 Trend Tec Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3908,6 +7651,15 @@
       ]
     },
     {
+      "id": "MLB7427841",
+      "name": "Volkswagen Saveiro 2010 1.6 Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
       "id": "MLB7427845",
       "name": "Chevrolet Prisma 2009 1.4 Joy Econoflex 4p 89 hp BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3916,11 +7668,35 @@
       ]
     },
     {
+      "id": "MLB7427846",
+      "name": "Volkswagen Gol 2013 1.0 Trend Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7427972",
       "name": "Chevrolet Celta 2009 1.0 Spirit Flex Power 5p 70 hp BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7427982",
+      "name": "Volkswagen Voyage 2016 1.6 Msi Comfortline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7427984",
+      "name": "Volkswagen Gol 2013 1.0 Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3970,6 +7746,22 @@
       ]
     },
     {
+      "id": "MLB7428024",
+      "name": "Volkswagen Gol 2015 1.0 Trendline Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7428029",
+      "name": "Volkswagen Gol 2013 1.0 Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7428036",
       "name": "Chevrolet Corsa Wagon 1999 1.6 8v Gls 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -3980,11 +7772,68 @@
       ]
     },
     {
+      "id": "MLB7428044",
+      "name": "Volkswagen Voyage 2014 1.6 Vht Highline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7428060",
+      "name": "Volkswagen Voyage 2010 1.6 Vht Comfortline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7428062",
+      "name": "Volkswagen Saveiro 2014 1.6 Trooper Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
       "id": "MLB7428071",
       "name": "Chevrolet Celta 2006 1.4 Super 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7428073",
+      "name": "Volkswagen Voyage 2015 1.6 Msi Trendline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7428076",
+      "name": "Volkswagen Gol 2013 1.6 Vht Rallye Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7428092",
+      "name": "Volkswagen Gol 2017 1.6 Msi Comfortline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7428096",
+      "name": "Volkswagen Gol 2009 1.8 Power Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -3998,11 +7847,67 @@
       ]
     },
     {
+      "id": "MLB7428107",
+      "name": "Volkswagen Gol 2009 1.0 City Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7428122",
+      "name": "Volkswagen Voyage 2013 1.6 Vht Total Flex I-motion (new) 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7428123",
+      "name": "Volkswagen Gol 2010 1.6 Vht Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7428125",
+      "name": "Volkswagen Voyage 2017 1.6 Msi Connect Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7428126",
+      "name": "Volkswagen Voyage 2016 1.0 Trendline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7428129",
+      "name": "Volkswagen Gol 2015 1.0 Track Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7428130",
       "name": "Chevrolet Meriva 2007 1.8 Premium Flex Power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7852203400"
+      ]
+    },
+    {
+      "id": "MLB7428149",
+      "name": "Volkswagen Voyage 2017 1.6 Msi Comfortline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -4013,6 +7918,857 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7428162",
+      "name": "Volkswagen Gol 2014 1.0 Ecomotion Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7855350",
+      "name": "Fiat Uno 2014 1.4 Itália Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7855413",
+      "name": "Fiat Uno 2015 1.0 Vivace Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7855448",
+      "name": "Fiat Uno 2015 1.0 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7855497",
+      "name": "Fiat Uno 2017 1.3 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7855751",
+      "name": "Fiat Fiorino 2015 1.4 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7855896",
+      "name": "Fiat Uno 2014 1.0 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7855918",
+      "name": "Fiat Uno 2013 1.0 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7856021",
+      "name": "Fiat Uno 2012 1.4 Sporting Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7856129",
+      "name": "Fiat Uno 2011 1.0 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7856475",
+      "name": "Fiat Uno mille 2000 1.0 Ex 3p Gasolina BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7856523",
+      "name": "Fiat Uno 2017 1.3 Sporting Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7856548",
+      "name": "Fiat Uno 2014 1.4 Economy Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7856588",
+      "name": "Fiat Uno 2014 1.4 Sporting Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7856686",
+      "name": "Fiat Uno 2016 1.0 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7856742",
+      "name": "Fiat Uno 2002 1.0 Fire 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7856775",
+      "name": "Fiat Uno 2012 1.4 Attractive Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7856917",
+      "name": "Fiat Uno 2003 1.0 Fire 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7856972",
+      "name": "Fiat Uno 2001 1.0 Smart 5p Álcool BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7857011",
+      "name": "Fiat Uno mille 2002 1.0 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7857278",
+      "name": "Fiat Uno 2016 1.4 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7857417",
+      "name": "Fiat Uno mille 2000 1.0 Ex 3p Álcool BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7857459",
+      "name": "Fiat Uno 2015 1.0 Vivace Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7857515",
+      "name": "Fiat Uno 2012 1.0 Vivace Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7857532",
+      "name": "Fiat Uno 2016 1.4 Sporting Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7857661",
+      "name": "Fiat Uno 2014 1.0 Way Xingu Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7857746",
+      "name": "Fiat Uno 2016 1.4 Sporting Blue Edition Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7857761",
+      "name": "Fiat Uno 2012 1.4 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7857786",
+      "name": "Fiat Uno 2012 1.0 Vivace Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7857861",
+      "name": "Fiat Uno 2014 1.4 Sporting Interlagos Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7858008",
+      "name": "Fiat Uno 2017 1.0 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7858017",
+      "name": "Fiat Uno 2013 1.4 Economy Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7858039",
+      "name": "Fiat Uno 2016 1.4 Sporting Blue Edition Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7858068",
+      "name": "Fiat Uno 2012 1.0 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7858169",
+      "name": "Fiat Uno 2011 1.4 Sporting Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7858239",
+      "name": "Fiat Uno mille 2003 1.0 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7858702",
+      "name": "Fiat Uno 2001 1.0 Smart 3p Álcool BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7858799",
+      "name": "Fiat Fiorino 2012 1.3 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7858967",
+      "name": "Fiat Uno 2013 1.4 Sporting Interlagos Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7859021",
+      "name": "Fiat Uno 2015 1.4 Sporting Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7859025",
+      "name": "Fiat Uno mille 2003 1.0 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7859506",
+      "name": "Fiat Uno 2016 1.4 Way Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7859540",
+      "name": "Fiat Uno 2013 1.4 Sporting Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7859723",
+      "name": "Fiat Uno 2016 1.0 Vivace Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7860379",
+      "name": "Fiat Uno mille 2002 1.0 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7860398",
+      "name": "Fiat Uno 2011 1.4 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7860612",
+      "name": "Fiat Uno 2015 1.4 Way Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7860637",
+      "name": "Fiat Fiorino 2016 1.4 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7860642",
+      "name": "Fiat Uno 2014 1.4 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7860701",
+      "name": "Fiat Uno 2014 1.0 Vivace Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7860703",
+      "name": "Fiat Uno 2014 1.4 Way Xingu Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7860714",
+      "name": "Fiat Fiorino 2013 1.3 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7860937",
+      "name": "Fiat Fiorino 2017 1.4 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7861097",
+      "name": "Fiat Uno 2012 1.4 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7861185",
+      "name": "Fiat Uno 2016 1.4 Sporting Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7861218",
+      "name": "Fiat Uno 2002 1.0 Fire 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7861349",
+      "name": "Fiat Uno 2014 1.0 Vivace Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7861487",
+      "name": "Fiat Uno 2015 1.4 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7861516",
+      "name": "Fiat Uno 2013 1.4 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7861696",
+      "name": "Fiat Uno 2012 1.4 Way Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7861702",
+      "name": "Fiat Uno 2015 1.0 Way Rio450 Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7861803",
+      "name": "Fiat Uno 2013 1.0 Way Xingu Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7861927",
+      "name": "Fiat Uno mille 1999 1.0 Young 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7862023",
+      "name": "Fiat Uno 2013 1.4 Economy Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7862080",
+      "name": "Fiat Uno 2016 1.0 Vivace Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7862316",
+      "name": "Fiat Uno mille 2000 1.0 Ex 5p Álcool BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7862540",
+      "name": "Fiat Fiorino 2011 1.3 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7862638",
+      "name": "Fiat Uno 2016 1.4 Evolution Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7862738",
+      "name": "Fiat Uno 2014 1.0 Rua Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7862753",
+      "name": "Fiat Uno 2014 1.0 Vivace College Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7862904",
+      "name": "Fiat Uno 2011 1.0 Vivace Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7863096",
+      "name": "Fiat Uno 2011 1.4 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7863151",
+      "name": "Fiat Fiorino 2017 1.4 Hard Working Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7863331",
+      "name": "Fiat Uno 2012 1.4 Economy Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7863508",
+      "name": "Fiat Uno 2013 1.0 Vivace Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7863522",
+      "name": "Fiat Fiorino 2014 1.4 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7863578",
+      "name": "Fiat Uno 2013 1.0 Itália Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7863622",
+      "name": "Fiat Uno 2017 1.3 Way Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7863956",
+      "name": "Fiat Uno mille 1999 1.0 Ex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7863964",
+      "name": "Fiat Uno 2012 1.4 Economy Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7863990",
+      "name": "Fiat Uno 2016 1.0 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7864102",
+      "name": "Fiat Uno 2001 1.0 Smart 3p Gasolina BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7864287",
+      "name": "Fiat Uno 2012 1.4 Sporting Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7864833",
+      "name": "Fiat Uno 2017 1.3 Sporting Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7864922",
+      "name": "Fiat Uno 2015 1.0 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7864927",
+      "name": "Fiat Fiorino 2010 1.3 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7864945",
+      "name": "Fiat Uno 2013 1.4 Way Xingu Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7865125",
+      "name": "Fiat Uno 2015 1.4 Evolution Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7865152",
+      "name": "Fiat Uno mille 2000 1.0 Ex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7865492",
+      "name": "Fiat Uno 2013 1.0 Vivace Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7865601",
+      "name": "Fiat Uno mille 1999 1.0 Ex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7865656",
+      "name": "Fiat Uno 2012 1.0 Way Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5400610233",
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7865703",
+      "name": "Fiat Uno 2015 1.4 Sporting Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7865738",
+      "name": "Fiat Uno 2001 1.0 Smart 5p Gasolina BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7865824",
+      "name": "Fiat Uno 2003 1.0 Fire 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420243854"
+      ]
+    },
+    {
+      "id": "MLB7878378",
+      "name": "Volkswagen Voyage 2018 1.6 Msi Trendline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878397",
+      "name": "Volkswagen Saveiro 2014 1.6 Cross Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878398",
+      "name": "Volkswagen Gol 2015 1.6 Msi Trendline Total Flex I-motion 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878404",
+      "name": "Volkswagen Gol 2013 1.0 Vht Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878405",
+      "name": "Volkswagen Saveiro 2012 1.6 Cross Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878409",
+      "name": "Volkswagen Saveiro 2010 1.6 Trend Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
       ]
     },
     {
@@ -4046,6 +8802,14 @@
       ]
     },
     {
+      "id": "MLB7878436",
+      "name": "Volkswagen Gol 2008 1.6 Rallye Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7878443",
       "name": "Chevrolet Corsa 1999 1.0 16v Super 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -4056,6 +8820,54 @@
       ]
     },
     {
+      "id": "MLB7878445",
+      "name": "Volkswagen Gol 2009 1.0 Vht Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878446",
+      "name": "Volkswagen Voyage 2009 1.0 Vht Trend Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878460",
+      "name": "Volkswagen Gol 2017 1.0 12v Trendline Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878464",
+      "name": "Volkswagen Voyage 2018 1.0 Trendline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878476",
+      "name": "Volkswagen Saveiro 2008 1.6 Trend Total Flex 2p 97 hp BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878482",
+      "name": "Volkswagen Gol 2016 1.0 12v Track Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7878490",
       "name": "Chevrolet Corsa Sedan 2002 1.0 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -4063,6 +8875,22 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7878513",
+      "name": "Volkswagen Gol 2018 1.6 Msi Comfortline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878523",
+      "name": "Volkswagen Gol 2017 1.0 12v Connect Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -4096,6 +8924,23 @@
       ]
     },
     {
+      "id": "MLB7878540",
+      "name": "Volkswagen Saveiro 2012 1.6 Trend Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878571",
+      "name": "Volkswagen Voyage 2018 1.6 Msi Comfortline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7878578",
       "name": "Chevrolet Corsa 1999 1.0 Super 5p 60 hp BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -4116,6 +8961,40 @@
       ]
     },
     {
+      "id": "MLB7878584",
+      "name": "Volkswagen Voyage 2012 1.0 Vht Trend Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878585",
+      "name": "Volkswagen Saveiro 2013 1.6 Trend Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878595",
+      "name": "Volkswagen Saveiro 2014 1.6 Trend Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878597",
+      "name": "Volkswagen Voyage 2010 1.0 Vht Trend Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7878598",
       "name": "Chevrolet Corsa Sedan 2003 1.0 Classic 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -4123,6 +9002,96 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7878599",
+      "name": "Volkswagen Voyage 2018 1.6 Msi Highline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878609",
+      "name": "Volkswagen Saveiro 2011 1.6 Cross Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878611",
+      "name": "Volkswagen Saveiro 2010 1.6 Trend Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878617",
+      "name": "Volkswagen Gol 2013 1.6 Vht Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878619",
+      "name": "Volkswagen Gol 2012 1.0 Vht Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878621",
+      "name": "Volkswagen Voyage 2013 1.0 Trend Tec Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878626",
+      "name": "Volkswagen Voyage 2018 1.6 Msi Comfortline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878635",
+      "name": "Volkswagen Voyage 2017 1.0 12v Connect Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878641",
+      "name": "Volkswagen Gol 2015 1.6 Msi Trendline Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878651",
+      "name": "Volkswagen Gol 2013 1.6 Vht Trend Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878652",
+      "name": "Volkswagen Gol 2017 1.0 12v Trendline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -4136,6 +9105,115 @@
       ]
     },
     {
+      "id": "MLB7878671",
+      "name": "Volkswagen Saveiro 2016 1.6 Startline Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878672",
+      "name": "Volkswagen Voyage 2018 1.6 Msi Highline Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878698",
+      "name": "Volkswagen Saveiro 2018 1.6 16v Cross Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878700",
+      "name": "Volkswagen Voyage 2011 1.6 Vht Trend Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878703",
+      "name": "Volkswagen Saveiro 2008 1.8 Surf Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878705",
+      "name": "Volkswagen Saveiro 2013 1.6 Trend Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878710",
+      "name": "Volkswagen Voyage 2012 1.6 Vht Trend Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878711",
+      "name": "Volkswagen Gol 2018 1.6 Msi Trendline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878726",
+      "name": "Volkswagen Saveiro 2008 1.6 Trend Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878731",
+      "name": "Volkswagen Saveiro 2009 1.8 Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878734",
+      "name": "Volkswagen Saveiro 2010 1.6 Cross Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878735",
+      "name": "Volkswagen Saveiro 2010 1.6 Trend Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878740",
+      "name": "Volkswagen Gol 2014 1.6 Vht Trend Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7878758",
       "name": "Chevrolet Corsa Sedan 2004 1.0 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -4143,6 +9221,79 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7878759",
+      "name": "Volkswagen Saveiro 2012 1.6 Trend Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878767",
+      "name": "Volkswagen Voyage 2017 1.0 12v Comfortline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878770",
+      "name": "Volkswagen Gol 2018 1.0 12v Track Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878782",
+      "name": "Volkswagen Voyage 2013 1.0 Tec Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878786",
+      "name": "Volkswagen Gol 2017 1.0 12v Track Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878805",
+      "name": "Volkswagen Saveiro 2008 1.8 Trend Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878833",
+      "name": "Volkswagen Gol 2013 1.0 Tec Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878840",
+      "name": "Volkswagen Voyage 2010 1.0 Vht Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878843",
+      "name": "Volkswagen Gol 2016 1.0 12v Comfortline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -4156,6 +9307,56 @@
       ]
     },
     {
+      "id": "MLB7878851",
+      "name": "Volkswagen Voyage 2013 1.6 Vht Trend Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878852",
+      "name": "Volkswagen Saveiro 2018 1.6 16v Cross Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878859",
+      "name": "Volkswagen Saveiro 2011 1.6 Trend Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878868",
+      "name": "Volkswagen Saveiro 2009 1.8 Surf Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878873",
+      "name": "Volkswagen Voyage 2012 1.0 Vht Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878880",
+      "name": "Volkswagen Voyage 2010 1.6 Vht Trend Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7878888",
       "name": "Chevrolet Corsa Sedan 2004 1.0 Classic 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -4166,6 +9367,189 @@
       ]
     },
     {
+      "id": "MLB7878891",
+      "name": "Volkswagen Saveiro 2013 1.6 Cross Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878894",
+      "name": "Volkswagen Gol 2013 1.6 Vht Rallye Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878904",
+      "name": "Volkswagen Saveiro 2014 1.6 Trend Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878905",
+      "name": "Volkswagen Gol 2011 1.0 Vht Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878906",
+      "name": "Volkswagen Saveiro 2009 1.6 Trend Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878908",
+      "name": "Volkswagen Voyage 2014 1.0 Trend Tec Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878931",
+      "name": "Volkswagen Voyage 2009 1.0 Vht Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878946",
+      "name": "Volkswagen Gol 2018 1.6 Msi Comfortline Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878950",
+      "name": "Volkswagen Saveiro 2008 1.8 Supersurf Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878971",
+      "name": "Volkswagen Saveiro 2015 1.6 Startline Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878973",
+      "name": "Volkswagen Voyage 2014 1.0 Tec Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878982",
+      "name": "Volkswagen Gol 2010 1.0 Titan Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878983",
+      "name": "Volkswagen Gol 2013 1.0 Tec Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878989",
+      "name": "Volkswagen Gol 2011 1.6 Vht Rallye Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7878990",
+      "name": "Volkswagen Saveiro 2011 1.6 Trend Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7878994",
+      "name": "Volkswagen Saveiro 2009 1.8 Trend Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7879008",
+      "name": "Volkswagen Voyage 2018 1.0 12v Comfortline Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7879011",
+      "name": "Volkswagen Gol 2018 1.0 12v Trendline Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7879012",
+      "name": "Volkswagen Saveiro 2010 1.6 Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
+      "id": "MLB7879013",
+      "name": "Volkswagen Gol 2009 1.6 Rallye Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7879019",
+      "name": "Volkswagen Voyage 2011 1.0 Vht Trend Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7879022",
+      "name": "Volkswagen Gol 2014 1.6 Vht Trend Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
       "id": "MLB7879032",
       "name": "Chevrolet Corsa Sedan 2001 1.6 Super 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -4173,6 +9557,14 @@
         "MLB7853836040",
         "MLB5431497761",
         "MLB7853095834"
+      ]
+    },
+    {
+      "id": "MLB7879039",
+      "name": "Volkswagen Voyage 2013 1.0 Vht Trend Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
       ]
     },
     {
@@ -4196,6 +9588,55 @@
       ]
     },
     {
+      "id": "MLB7879059",
+      "name": "Volkswagen Gol 2011 1.0 Titan Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7879062",
+      "name": "Volkswagen Voyage 2013 1.0 Vht Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7879064",
+      "name": "Volkswagen Saveiro 2018 1.6 Robust Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7879083",
+      "name": "Volkswagen Gol 2012 1.6 Vht Rallye Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7879085",
+      "name": "Volkswagen Voyage 2014 1.6 Vht Trend Total Flex I-motion 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7879098",
+      "name": "Volkswagen Saveiro 2009 1.6 Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988",
+        "MLB5248353911"
+      ]
+    },
+    {
       "id": "MLB7879114",
       "name": "Chevrolet Corsa Sedan 2001 1.0 Super 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -4204,6 +9645,271 @@
         "MLB5431497761",
         "MLB7853095834"
       ]
+    },
+    {
+      "id": "MLB7879116",
+      "name": "Volkswagen Gol 2014 1.0 Tec Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7879122",
+      "name": "Volkswagen Voyage 2011 1.0 Vht Total Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7879124",
+      "name": "Volkswagen Gol 2010 1.0 Vht Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7879128",
+      "name": "Volkswagen Gol 2014 1.0 Tec Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7938088",
+      "name": "Fiat Uno 2017 1.0 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7939043",
+      "name": "Fiat Uno 2021 1.3 Way Flex 5p marchas BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7967718",
+      "name": "Volkswagen Saveiro 2018 1.6 Pepper Cab. Estendida Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7967810",
+      "name": "Volkswagen Saveiro 2018 1.6 Pepper Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7967888",
+      "name": "Volkswagen Saveiro 2017 1.6 Highline Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7967909",
+      "name": "Volkswagen Saveiro 2018 1.6 Highline Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7968050",
+      "name": "Volkswagen Saveiro 2018 1.6 Trendline Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7968137",
+      "name": "Volkswagen Saveiro 2018 1.6 Robust Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7968187",
+      "name": "Volkswagen Saveiro 2017 1.6 Trendline Cab. Dupla Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7968194",
+      "name": "Volkswagen Saveiro 2017 1.6 Trendline Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB7968219",
+      "name": "Volkswagen Saveiro 2018 1.6 Trendline Cab. Simples Total Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB8011160",
+      "name": "Fiat Uno 2021 1.0 Attractive Flex 5p marchas BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB8011429",
+      "name": "Fiat Uno 2018 1.3 Sporting Flex Gsr 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB8011439",
+      "name": "Fiat Fiorino 2018 1.4 Hard Working Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB8011453",
+      "name": "Fiat Uno 2018 1.0 Drive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB8011522",
+      "name": "Fiat Fiorino 2018 1.4 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB8011617",
+      "name": "Fiat Uno 2018 1.3 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB8011658",
+      "name": "Fiat Uno 2018 1.3 Sporting Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB8011710",
+      "name": "Fiat Uno 2021 1.0 Drive Flex 5p marchas BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB8011788",
+      "name": "Fiat Uno 2018 1.0 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB8011813",
+      "name": "Fiat Uno 2018 1.3 Way Flex Gsr 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB8863990",
+      "name": "Volkswagen Gol 2015 1.0 City Total Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB8864015",
+      "name": "Volkswagen Gol 2015 1.0 City Total Flex 5p 72 hp BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB9290067",
+      "name": "Volkswagen Gol 2015 1.0 Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB9290068",
+      "name": "Volkswagen Gol 2015 1.6 City Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB9290073",
+      "name": "Volkswagen Gol 2015 1.6 Mi Total Flex I-motion 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB9290074",
+      "name": "Volkswagen Gol 2015 1.6 Vht Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
+    },
+    {
+      "id": "MLB9290075",
+      "name": "Volkswagen Gol 2014 1.6 City Total Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7783160988"
+      ]
     }
-  ]
+  ],
+  "scanned_item_ids": [
+    "MLB5437913329",
+    "MLB7783160988",
+    "MLB7420243854",
+    "MLB5248353911",
+    "MLB5400610233",
+    "MLB5065000671"
+  ],
+  "unique_vehicles": 1147
 }
