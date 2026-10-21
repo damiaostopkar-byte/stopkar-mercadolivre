@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.25";
+const SERVER_VERSION = "0.17.26";
 
 function textResult(value: unknown) {
   return {
@@ -1869,7 +1869,13 @@ function createServer(env: Env) {
         throw new Error("Anuncio nao pertence ao vendedor autenticado.");
       }
       const antes = await meliGet(env, `/items/${item_id}/compatibilities`, { extended: "true" });
+      const userProductId = String(item.user_product_id ?? "");
+      if (!/^MLBU\d+$/.test(userProductId)) {
+        throw new Error("Anuncio sem User Product valido para compatibilidades individuais.");
+      }
       const payload = {
+        domain_id: "MLB-CARS_AND_VANS",
+        category_id: item.category_id,
         products: ids.map((id) => ({ id, creation_source: "ITEM_SUGGESTIONS" }))
       };
       if (!confirmar) {
@@ -1889,7 +1895,7 @@ function createServer(env: Env) {
       if (!motivo || motivo.trim().length < 10) {
         throw new Error("Para gravar, informe motivo explicito com pelo menos 10 caracteres.");
       }
-      const escrita = await meliWrite(env, "POST", `/items/${item_id}/compatibilities`, payload);
+      const escrita = await meliWrite(env, "POST", `/user-products/${userProductId}/compatibilities`, payload);
       const depois = await meliGet(env, `/items/${item_id}/compatibilities`, { extended: "true" });
       const itemDepois = await meliGet(env, `/items/${item_id}`);
       return textResult({
