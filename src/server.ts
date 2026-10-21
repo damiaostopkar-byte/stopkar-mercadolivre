@@ -28,7 +28,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.24";
+const SERVER_VERSION = "0.17.25";
 
 function textResult(value: unknown) {
   return {
@@ -1773,6 +1773,17 @@ function createServer(env: Env) {
       const userProductId = String(item?.user_product_id || "");
       if (!/^MLBU\d+$/.test(userProductId)) {
         throw new Error("Anuncio sem User Product valido; verificar tipo de anuncio antes do cadastro.");
+      }
+      // As consultas de veiculos por valor_name podem retornar zero indevidamente.
+      // Exigimos identificadores oficiais obtidos de top_values antes de gravar.
+      for (const [indice, familia] of familias.entries()) {
+        const attrs = familia.attributes;
+        for (const required of ["BRAND", "MODEL", "VEHICLE_YEAR"]) {
+          const match = attrs.find((a) => (a.id === "YEAR" ? "VEHICLE_YEAR" : a.id) === required);
+          if (!match?.value_id) {
+            throw new Error("Familia " + (indice + 1) + ": falta ID oficial para " + required + ". Use consultar_valores_veiculos_catalogo para obter os IDs antes de simular ou gravar.");
+          }
+        }
       }
       const domains = [...new Set(familias.map((f) => f.domain_id))];
       if (domains.length !== 1) throw new Error("Todas as familias do lote precisam usar o mesmo dominio.");
