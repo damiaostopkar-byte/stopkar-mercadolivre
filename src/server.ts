@@ -1745,8 +1745,7 @@ function createServer(env: Env) {
       }
       const domains = [...new Set(familias.map((f) => f.domain_id))];
       if (domains.length !== 1) throw new Error("Todas as familias do lote precisam usar o mesmo dominio.");
-      const compatibilityDomain = domains[0] === "MLB-CARS_AND_VANS"
-        ? "MLB-CARS_AND_VANS_FOR_COMPATIBILITIES" : domains[0];
+      const compatibilityDomain = domains[0];
       const payload = {
         domain_id: compatibilityDomain,
         category_id: String(item.category_id),
@@ -1755,7 +1754,7 @@ function createServer(env: Env) {
           creation_source: "ITEM_SUGGESTIONS",
           attributes: f.attributes.map((a) => ({
             ...a,
-            id: a.id === "MODEL" ? "CAR_AND_VAN_MODEL" : a.id
+            id: a.id === "YEAR" ? "VEHICLE_YEAR" : a.id
           }))
         }))
       };
