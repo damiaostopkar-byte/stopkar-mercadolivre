@@ -593,7 +593,9 @@
       "name": "Fiat Uno 1987 1.3 S 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -601,7 +603,17 @@
       "name": "Fiat Uno 2001 1.0 Smart 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB19593354",
+      "name": "Fiat Palio 2016 1.0 Fire Celebration Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -609,7 +621,9 @@
       "name": "Fiat Uno 1986 1.3 S 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -642,6 +656,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7420205318"
+      ]
+    },
+    {
+      "id": "MLB19593526",
+      "name": "Fiat Palio 2011 1.0 Itália Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -769,7 +791,9 @@
       "name": "Fiat Uno mille 1998 1.0 Young 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -777,7 +801,8 @@
       "name": "Fiat Uno 1984 1.3 S 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454"
       ]
     },
     {
@@ -893,6 +918,14 @@
       ]
     },
     {
+      "id": "MLB19594322",
+      "name": "Fiat Palio 2015 1.0 Fire Celebration Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB19594356",
       "name": "Volkswagen Gol 1983 1.6 S 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -925,6 +958,14 @@
       ]
     },
     {
+      "id": "MLB19594520",
+      "name": "Fiat Palio 2016 1.4 Best Seller Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB19594526",
       "name": "Volkswagen Voyage 1992 1.6 C 2p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -946,6 +987,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5065013307"
+      ]
+    },
+    {
+      "id": "MLB19594639",
+      "name": "Fiat Palio 2016 1.0 Fire Celebration Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -1007,6 +1056,14 @@
       ]
     },
     {
+      "id": "MLB19594811",
+      "name": "Fiat Palio 2015 1.6 16v Sporting Interlagos Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB19594869",
       "name": "Volkswagen Kombi 1969 1.5 Standard 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1028,6 +1085,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB19594940",
+      "name": "Fiat Palio 2009 1.0 Itália Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -1083,7 +1148,9 @@
       "name": "Fiat Uno 1985 1.3 S 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -1147,11 +1214,28 @@
       ]
     },
     {
+      "id": "MLB19595362",
+      "name": "Fiat Fiorino 1997 1.5 Working 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB19595394",
       "name": "Volkswagen Kombi 1988 1.6 Standard 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5065013307"
+      ]
+    },
+    {
+      "id": "MLB19595433",
+      "name": "Fiat Palio 2014 1.0 Fire Celebration Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -1223,7 +1307,9 @@
       "name": "Fiat Uno 1990 1.3 S 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -1367,6 +1453,14 @@
       ]
     },
     {
+      "id": "MLB19596189",
+      "name": "Fiat Palio 2010 1.0 Itália Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB19596190",
       "name": "Volkswagen Gol 1987 1.8 Gt 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1420,6 +1514,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB7420205318"
+      ]
+    },
+    {
+      "id": "MLB19596362",
+      "name": "Fiat Palio 2016 1.0 Best Seller Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -1491,6 +1593,15 @@
       ]
     },
     {
+      "id": "MLB19596557",
+      "name": "Fiat Fiorino 1996 1.5 Working 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB19596594",
       "name": "Volkswagen Kombi 1992 1.6 Standard 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1519,7 +1630,9 @@
       "name": "Fiat Uno 2001 1.0 Smart 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -1539,6 +1652,14 @@
       ]
     },
     {
+      "id": "MLB19596851",
+      "name": "Fiat Palio 2014 1.0 Fire Celebration Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB19596883",
       "name": "Ford Courier 1998 1.4 Si 2p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1552,7 +1673,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -1628,6 +1753,14 @@
       ]
     },
     {
+      "id": "MLB19608092",
+      "name": "Fiat Palio 2015 1.6 16v Sporting Interlagos Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB19608093",
       "name": "Chevrolet Corsa Pick Up 1998 1.6 St 2p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1696,7 +1829,9 @@
       "name": "Fiat Uno 1989 1.3 S 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -1722,7 +1857,9 @@
       "name": "Fiat Uno 1988 1.3 S 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -1730,7 +1867,9 @@
       "name": "Fiat Uno 1991 1.3 S 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -1828,6 +1967,14 @@
       ]
     },
     {
+      "id": "MLB19608910",
+      "name": "Fiat Palio 2015 1.0 Fire Celebration Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB19608938",
       "name": "Volkswagen Kombi 1970 1.5 Standard 2p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -1880,7 +2027,8 @@
       "name": "Fiat Uno 1984 1.3 S 3p Etanol BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454"
       ]
     },
     {
@@ -1888,7 +2036,9 @@
       "name": "Fiat Uno 1985 1.3 S 3p Etanol BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -2016,7 +2166,9 @@
       "name": "Fiat Uno 1988 1.3 S 3p Etanol BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -2040,7 +2192,9 @@
       "name": "Fiat Uno 1991 1.3 S 3p Etanol BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -2057,7 +2211,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -2137,7 +2295,9 @@
       "name": "Fiat Uno 1989 1.3 S 3p Etanol BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -2249,7 +2409,9 @@
       "name": "Fiat Uno 1986 1.3 S 3p Etanol BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -2273,7 +2435,9 @@
       "name": "Fiat Uno 1987 1.3 S 3p Etanol BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -2329,7 +2493,9 @@
       "name": "Fiat Uno 1990 1.3 S 3p Etanol BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -2361,7 +2527,9 @@
       "name": "Fiat Uno 1992 1.3 S 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -2369,7 +2537,9 @@
       "name": "Fiat Uno 1992 1.3 S 3p Etanol BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -3570,11 +3740,21 @@
       ]
     },
     {
+      "id": "MLB22568546",
+      "name": "Fiat Uno Furgão 2014 1.0 Flex 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218156"
+      ]
+    },
+    {
       "id": "MLB22576829",
       "name": "Fiat Uno mille 2000 1.0 Ex 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -4439,7 +4619,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -4450,7 +4631,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -4461,7 +4643,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -4472,7 +4655,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -4483,7 +4667,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -4503,7 +4688,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -4514,7 +4700,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -4525,7 +4712,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -4536,7 +4724,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -4547,7 +4736,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -4567,7 +4757,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -4578,7 +4769,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -4589,7 +4781,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -4705,6 +4898,15 @@
       ]
     },
     {
+      "id": "MLB25172160",
+      "name": "Fiat Fiorino 1993 1.3 Fire 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB25172170",
       "name": "Volkswagen Gol 1995 1.0 Se 2p",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -4719,6 +4921,15 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5065013307"
+      ]
+    },
+    {
+      "id": "MLB25172187",
+      "name": "Fiat Fiorino 1995 1.5 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -4926,6 +5137,15 @@
       ]
     },
     {
+      "id": "MLB25172440",
+      "name": "Fiat Fiorino 1993 1.5 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB25172441",
       "name": "Volkswagen Kombi 1995 1.6 2p Álcool",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -4983,7 +5203,9 @@
       "name": "Fiat Uno Mille 1997 1.0 Ex 3p",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -5027,7 +5249,9 @@
       "name": "Fiat Uno Mille 1997 1.0 Ex 5p Álcool",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -5185,7 +5409,9 @@
       "name": "Fiat Uno Mille 1998 1.0 Ex 5p Álcool",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -5246,7 +5472,9 @@
       "name": "Fiat Uno Mille 1998 1.0 Ex 3p",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -5290,7 +5518,9 @@
       "name": "Fiat Uno Mille 2001 1.0 Ex 3p",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -5350,7 +5580,9 @@
       "name": "Fiat Uno Mille 2001 1.0 Ex 5p Álcool",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -5402,7 +5634,9 @@
       "name": "Fiat Uno 2000 1.0 Smart 5p Álcool",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -5970,7 +6204,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -6178,11 +6413,48 @@
       ]
     },
     {
+      "id": "MLB25815094",
+      "name": "Fiat Fiorino 1986 1.3 Flex 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB25815118",
+      "name": "Fiat Fiorino 1996 1.5 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB25815126",
       "name": "Fiat Uno Mille 2003 1.0 Ex 5p Álcool",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB25815128",
+      "name": "Fiat Uno Mille 2004 1.0 Ex 3p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB25815169",
+      "name": "Fiat Fiorino 1994 1.3 Flex 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -6190,7 +6462,9 @@
       "name": "Fiat Uno Mille 2003 1.0 Ex 3p",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -6206,7 +6480,9 @@
       "name": "Fiat Uno 1999 1.0 Smart 3p Gasolina",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -6214,7 +6490,9 @@
       "name": "Fiat Uno Mille 2002 1.0 Ex 5p Álcool",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -6296,6 +6574,59 @@
       ]
     },
     {
+      "id": "MLB25815492",
+      "name": "Fiat Fiorino 1992 1.3 Flex 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB25815493",
+      "name": "Fiat Fiorino 1994 1.5 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB25815503",
+      "name": "Fiat Fiorino 1987 1.3 Flex 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB25815504",
+      "name": "Fiat Fiorino 1989 1.3 Flex 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB25815505",
+      "name": "Fiat Fiorino 1990 1.3 Flex 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB25815533",
+      "name": "Fiat Uno Mille 2004 1.0 Ex 5p Álcool",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB25815536",
       "name": "Ford Courier 1999 1.3 2p",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -6312,12 +6643,23 @@
       ]
     },
     {
+      "id": "MLB25815558",
+      "name": "Fiat Fiorino 1991 1.3 Flex 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB25815595",
       "name": "Fiat Uno 2014 1.3 Way Flex 5p Marchas",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -6326,6 +6668,24 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB25815615",
+      "name": "Fiat Fiorino 1988 1.3 Flex 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB25815623",
+      "name": "Fiat Fiorino 1992 1.5 4p",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -6341,7 +6701,9 @@
       "name": "Fiat Uno Mille 2002 1.0 Ex 3p",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -6813,7 +7175,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -8065,7 +8428,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8082,7 +8449,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8091,7 +8462,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -8108,7 +8481,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8117,7 +8494,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8126,7 +8507,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8143,7 +8528,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8162,7 +8551,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -8181,7 +8571,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -8216,7 +8607,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8225,7 +8620,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8234,7 +8633,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -8259,7 +8660,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8268,7 +8673,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8277,7 +8686,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8286,7 +8699,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8295,7 +8712,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -8312,7 +8731,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8321,7 +8744,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8330,7 +8757,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8339,7 +8770,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8348,7 +8783,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -8357,7 +8794,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -8366,7 +8807,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -8401,6 +8844,22 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB39254544",
+      "name": "Fiat Palio 2016 1.0 Fire Way Celebration Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB39254546",
+      "name": "Fiat Palio 2015 1.0 Fire Way Celebration Flex 5P BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -8448,7 +8907,9 @@
       "name": "Fiat Uno mille 1994 1.0 Electronic BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -10505,7 +10966,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -10854,7 +11316,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -10922,7 +11385,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -11062,7 +11526,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -11465,7 +11930,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -11504,7 +11970,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -11629,7 +12096,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -11733,7 +12201,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -11964,7 +12433,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -12031,7 +12501,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -12111,7 +12582,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -12184,7 +12656,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -12256,7 +12729,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -12372,7 +12846,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -12383,7 +12858,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -12412,7 +12888,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -13134,7 +13611,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -13795,7 +14273,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -13862,7 +14341,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -14354,7 +14834,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -14429,7 +14910,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -14504,7 +14986,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -14711,7 +15194,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -14722,7 +15206,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -14816,7 +15301,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -14870,7 +15356,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -15035,7 +15522,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -15169,7 +15657,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -15596,7 +16085,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -16623,7 +17113,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -16758,7 +17249,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -16933,7 +17425,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -16952,7 +17445,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -18285,7 +18779,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -18474,7 +18969,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -18619,7 +19115,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -18694,7 +19191,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -18849,7 +19347,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -19127,7 +19626,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -19342,6 +19842,15 @@
       ]
     },
     {
+      "id": "MLB7855316",
+      "name": "Fiat Uno mille 2006 1.0 Fire Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7855346",
       "name": "Renault Logan 2012 1.6 Expression Hi-torque 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -19355,7 +19864,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -19372,6 +19883,22 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7855392",
+      "name": "Fiat Palio 2011 1.0 Elx Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7855398",
+      "name": "Fiat Palio 2014 1.4 Itália Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -19420,6 +19947,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7855534",
+      "name": "Fiat Palio 2015 1.0 Fire Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -19479,6 +20014,23 @@
       ]
     },
     {
+      "id": "MLB7855641",
+      "name": "Fiat Palio 2017 1.6 16v Essence Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7855645",
+      "name": "Fiat Uno mille 2008 1.0 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7855672",
       "name": "Renault Logan 2013 1.6 Expression Hi-power 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -19495,11 +20047,27 @@
       ]
     },
     {
+      "id": "MLB7855697",
+      "name": "Fiat Uno Furgão 2010 1.3 Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218156"
+      ]
+    },
+    {
       "id": "MLB7855705",
       "name": "Ford Ka 2007 1.0 One 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7855708",
+      "name": "Fiat Palio 2017 1.6 16v Sporting Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -19519,11 +20087,38 @@
       ]
     },
     {
+      "id": "MLB7855746",
+      "name": "Fiat Palio 2013 1.6 16v Sporting Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7855751",
       "name": "Fiat Fiorino 2015 1.4 Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7568305454"
+      ]
+    },
+    {
+      "id": "MLB7855757",
+      "name": "Fiat Uno mille 2008 1.0 Fire Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7855773",
+      "name": "Fiat Palio 2015 1.0 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -19532,6 +20127,22 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7855784",
+      "name": "Fiat Palio 2014 1.0 Itália Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7855793",
+      "name": "Fiat Palio 2009 1.8 1.8r Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -19564,7 +20175,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -19581,7 +20194,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -19590,6 +20207,15 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7855970",
+      "name": "Fiat Fiorino 2005 1.3 Fire 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -19630,7 +20256,19 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7856050",
+      "name": "Fiat Palio 2014 1.6 16v Essence Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -19655,6 +20293,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7856078",
+      "name": "Fiat Palio 2014 1.0 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -19687,7 +20333,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -19707,6 +20357,14 @@
       ]
     },
     {
+      "id": "MLB7856228",
+      "name": "Fiat Palio 2012 1.0 Fire Economy Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7856234",
       "name": "Ford Fiesta 1999 1.0 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -19720,6 +20378,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5187687721"
+      ]
+    },
+    {
+      "id": "MLB7856255",
+      "name": "Fiat Palio 2009 1.0 Fire Celebration Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -19795,11 +20461,21 @@
       ]
     },
     {
+      "id": "MLB7856451",
+      "name": "Fiat Palio 2009 1.0 Fire Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7856475",
       "name": "Fiat Uno mille 2000 1.0 Ex 3p Gasolina BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -19824,7 +20500,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -19852,12 +20530,30 @@
       ]
     },
     {
+      "id": "MLB7856582",
+      "name": "Fiat Palio 2014 1.6 16v Sporting Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7856588",
       "name": "Fiat Uno 2014 1.4 Sporting Flex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
+      ]
+    },
+    {
+      "id": "MLB7856591",
+      "name": "Fiat Palio 2011 1.0 Fire Economy Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -19929,7 +20625,9 @@
       "name": "Fiat Uno 2002 1.0 Fire 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -19954,7 +20652,19 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7856794",
+      "name": "Fiat Palio 2017 1.0 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -19963,6 +20673,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7856838",
+      "name": "Fiat Palio 2009 1.0 Elx Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -19986,7 +20704,9 @@
       "name": "Fiat Uno 2003 1.0 Fire 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -19998,11 +20718,38 @@
       ]
     },
     {
+      "id": "MLB7856926",
+      "name": "Fiat Palio 2014 1.0 Fire Economy Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7856959",
+      "name": "Fiat Fiorino 1998 1.5 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7856972",
       "name": "Fiat Uno 2001 1.0 Smart 5p Álcool BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7856995",
+      "name": "Fiat Palio 2012 1.6 16v Essence Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -20018,7 +20765,17 @@
       "name": "Fiat Uno mille 2002 1.0 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7857015",
+      "name": "Fiat Palio 2013 1.4 Itália Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -20086,6 +20843,22 @@
       ]
     },
     {
+      "id": "MLB7857132",
+      "name": "Fiat Palio 2013 1.0 Itália Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7857151",
+      "name": "Fiat Palio 2010 1.0 Fire Economy Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7857156",
       "name": "Ford Fiesta 2003 1.0 Street 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -20099,6 +20872,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7857260",
+      "name": "Fiat Palio 2017 1.6 16v Essence Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -20174,11 +20955,21 @@
       ]
     },
     {
+      "id": "MLB7857416",
+      "name": "Fiat Palio 2014 1.6 16v Sporting Interlagos Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7857417",
       "name": "Fiat Uno mille 2000 1.0 Ex 3p Álcool BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -20235,7 +21026,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -20255,6 +21050,14 @@
       ]
     },
     {
+      "id": "MLB7857542",
+      "name": "Fiat Palio 2016 1.6 16v Sporting Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7857551",
       "name": "Renault Sandero 2013 1.6 Gt Line Hi-power 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -20268,6 +21071,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7857573",
+      "name": "Fiat Palio 2009 1.0 Elx Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -20287,6 +21098,15 @@
       ]
     },
     {
+      "id": "MLB7857594",
+      "name": "Fiat Uno mille 2007 1.0 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7857606",
       "name": "Ford Fiesta 2001 1.0 Gl 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -20303,6 +21123,15 @@
       ]
     },
     {
+      "id": "MLB7857630",
+      "name": "Fiat Fiorino 2007 1.3 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7857648",
       "name": "Ford Fiesta Sedan 2009 1.0 Pulse Flex 4p 68.8 hp BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -20316,7 +21145,17 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
+      ]
+    },
+    {
+      "id": "MLB7857676",
+      "name": "Fiat Palio 2016 1.6 16v Sporting Blue Edition Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -20341,7 +21180,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -20350,7 +21193,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -20391,7 +21238,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -20416,6 +21265,15 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7857987",
+      "name": "Fiat Uno mille 2006 1.0 Fire 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -20456,7 +21314,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -20484,6 +21346,15 @@
       ]
     },
     {
+      "id": "MLB7858053",
+      "name": "Fiat Fiorino 1995 1.5 Trekking 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7858055",
       "name": "Ford Ka 2009 1.6 Tecno Flex 3p 102.4 hp BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -20505,7 +21376,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -20538,7 +21413,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -20566,11 +21445,22 @@
       ]
     },
     {
+      "id": "MLB7858224",
+      "name": "Fiat Uno mille 2006 1.0 Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7858239",
       "name": "Fiat Uno mille 2003 1.0 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -20638,6 +21528,14 @@
       ]
     },
     {
+      "id": "MLB7858359",
+      "name": "Fiat Palio 2016 1.6 16v Essence Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7858367",
       "name": "Ford Ka 2003 1.6 Action 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -20654,11 +21552,27 @@
       ]
     },
     {
+      "id": "MLB7858443",
+      "name": "Fiat Palio 2010 1.0 Elx Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7858467",
       "name": "Ford Ka 1999 1.0 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7858469",
+      "name": "Fiat Palio 2013 1.4 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -20686,6 +21600,14 @@
       ]
     },
     {
+      "id": "MLB7858506",
+      "name": "Fiat Palio 2015 1.6 16v Essence Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7858511",
       "name": "Ford Ka 2013 1.0 Se Flex 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -20710,6 +21632,14 @@
       ]
     },
     {
+      "id": "MLB7858580",
+      "name": "Fiat Palio 2011 1.0 Fire Economy Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7858597",
       "name": "Ford Fiesta 2012 1.6 Fly Flex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -20726,11 +21656,30 @@
       ]
     },
     {
+      "id": "MLB7858634",
+      "name": "Fiat Palio 2014 1.0 Fire Economy Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7858654",
+      "name": "Fiat Uno mille 2005 1.0 Fire 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7858702",
       "name": "Fiat Uno 2001 1.0 Smart 3p Álcool BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -20754,7 +21703,9 @@
       "name": "Fiat Fiorino 2012 1.3 Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -20771,7 +21722,27 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7859004",
+      "name": "Fiat Palio 2014 1.6 16v Sporting Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7859013",
+      "name": "Fiat Palio 2012 1.0 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -20795,7 +21766,9 @@
       "name": "Fiat Uno mille 2003 1.0 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -20839,6 +21812,14 @@
       ]
     },
     {
+      "id": "MLB7859094",
+      "name": "Fiat Palio 2011 1.0 Elx Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7859095",
       "name": "Ford Courier 2000 1.4 Si 2p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -20852,6 +21833,15 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5187687721"
+      ]
+    },
+    {
+      "id": "MLB7859166",
+      "name": "Fiat Fiorino 2009 1.3 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -20911,6 +21901,14 @@
       ]
     },
     {
+      "id": "MLB7859311",
+      "name": "Fiat Palio 2013 1.0 Fire Economy Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7859362",
       "name": "Renault Logan 2009 1.6 16v Petrobrás Hi-flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -20959,6 +21957,14 @@
       ]
     },
     {
+      "id": "MLB7859463",
+      "name": "Fiat Palio 2016 1.6 16v Sporting Blue Edition Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7859506",
       "name": "Fiat Uno 2016 1.4 Way Flex Dualogic 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -20980,7 +21986,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21000,6 +22010,15 @@
       ]
     },
     {
+      "id": "MLB7859594",
+      "name": "Fiat Uno 2004 1.0 Fire 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7859654",
       "name": "Ford Ka 2009 1.6 Pulse Flex 3p 102.4 hp BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -21016,11 +22035,29 @@
       ]
     },
     {
+      "id": "MLB7859672",
+      "name": "Fiat Fiorino 2003 1.5 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7859723",
       "name": "Fiat Uno 2016 1.0 Vivace Flex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7859742",
+      "name": "Fiat Uno mille 2005 1.0 Fire 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21045,6 +22082,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7859804",
+      "name": "Fiat Palio 2017 1.4 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -21104,11 +22149,29 @@
       ]
     },
     {
+      "id": "MLB7859949",
+      "name": "Fiat Uno mille 2006 1.0 Fire 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7859965",
       "name": "Ford Fiesta Sedan 2008 1.6 Fly Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7859976",
+      "name": "Fiat Fiorino 1997 1.5 Trekking 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21144,11 +22207,27 @@
       ]
     },
     {
+      "id": "MLB7860153",
+      "name": "Fiat Palio 2012 1.4 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7860176",
       "name": "Ford Fiesta Sedan 2008 1.6 First Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7860178",
+      "name": "Fiat Palio 2010 1.8 1.8r Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -21160,11 +22239,52 @@
       ]
     },
     {
+      "id": "MLB7860194",
+      "name": "Fiat Palio 2009 1.8 1.8r Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7860200",
+      "name": "Fiat Palio 2014 1.4 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7860211",
+      "name": "Fiat Palio 2010 1.8 Elx Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7860216",
+      "name": "Fiat Fiorino 2004 1.3 Fire 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7860224",
       "name": "Renault Megane 2007 1.6 Expression Hi-flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5187687721"
+      ]
+    },
+    {
+      "id": "MLB7860234",
+      "name": "Fiat Palio 2009 1.0 Fire Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -21224,6 +22344,14 @@
       ]
     },
     {
+      "id": "MLB7860292",
+      "name": "Fiat Palio 2014 1.0 Fire Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7860339",
       "name": "Ford Ka 2012 1.0 Flex 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -21244,7 +22372,9 @@
       "name": "Fiat Uno mille 2002 1.0 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21253,7 +22383,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21281,6 +22415,22 @@
       ]
     },
     {
+      "id": "MLB7860453",
+      "name": "Fiat Palio 2016 1.6 16v Sporting Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7860455",
+      "name": "Fiat Palio 2015 1.6 16v Essence Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7860478",
       "name": "Ford Ka 2003 1.0 One 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -21294,6 +22444,31 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7860499",
+      "name": "Fiat Uno Furgão 2012 1.3 Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218156"
+      ]
+    },
+    {
+      "id": "MLB7860516",
+      "name": "Fiat Palio 2015 1.0 Fire Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7860539",
+      "name": "Fiat Uno mille 2006 1.0 Way Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21333,7 +22508,18 @@
       "name": "Fiat Fiorino 2016 1.4 Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7568305454"
+      ]
+    },
+    {
+      "id": "MLB7860639",
+      "name": "Fiat Fiorino 2007 1.3 Fire 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21342,7 +22528,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -21375,7 +22563,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -21384,7 +22574,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -21392,7 +22584,9 @@
       "name": "Fiat Fiorino 2013 1.3 Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21412,11 +22606,28 @@
       ]
     },
     {
+      "id": "MLB7860752",
+      "name": "Fiat Palio 2013 1.0 Fire Economy Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7860772",
       "name": "Renault Sandero 2010 1.0 16v Expression Hi-flex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5187687721"
+      ]
+    },
+    {
+      "id": "MLB7860788",
+      "name": "Fiat Fiorino 1996 1.5 Trekking 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21472,7 +22683,8 @@
       "name": "Fiat Fiorino 2017 1.4 Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076"
       ]
     },
     {
@@ -21484,11 +22696,28 @@
       ]
     },
     {
+      "id": "MLB7860956",
+      "name": "Fiat Fiorino 1999 1.5 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7860977",
       "name": "Ford Fiesta Sedan 2013 1.0 Pulse Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7861020",
+      "name": "Fiat Palio 2011 1.6 16v Essence Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -21521,7 +22750,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21541,11 +22774,28 @@
       ]
     },
     {
+      "id": "MLB7861119",
+      "name": "Fiat Palio 2010 1.4 Elx Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7861155",
       "name": "Ford Ka 2000 1.3 Clx 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7861172",
+      "name": "Fiat Fiorino 2006 1.3 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21577,7 +22827,25 @@
       "name": "Fiat Uno 2002 1.0 Fire 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7861220",
+      "name": "Fiat Palio 2012 1.0 Fire Economy Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7861237",
+      "name": "Fiat Uno Furgão 2011 1.3 Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218156"
       ]
     },
     {
@@ -21650,7 +22918,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -21670,6 +22940,15 @@
       ]
     },
     {
+      "id": "MLB7861386",
+      "name": "Fiat Fiorino 1998 1.5 Trekking 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7861394",
       "name": "Ford Ka 2010 1.0 Tecno Flex 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -21683,6 +22962,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5187687721"
+      ]
+    },
+    {
+      "id": "MLB7861410",
+      "name": "Fiat Palio 2015 1.6 16v Sporting Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -21718,6 +23005,14 @@
       ]
     },
     {
+      "id": "MLB7861473",
+      "name": "Fiat Palio 2013 1.6 16v Sporting Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7861487",
       "name": "Fiat Uno 2015 1.4 Way Flex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -21731,7 +23026,20 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7861525",
+      "name": "Fiat Fiorino 1997 1.5 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21740,6 +23048,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7861553",
+      "name": "Fiat Palio 2015 1.4 Best Seller Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -21815,6 +23131,15 @@
       ]
     },
     {
+      "id": "MLB7861660",
+      "name": "Fiat Uno mille 2004 1.0 Fire 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7861683",
       "name": "Ford Fiesta 2000 1.0 Gl 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -21844,7 +23169,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21925,7 +23254,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21937,11 +23270,30 @@
       ]
     },
     {
+      "id": "MLB7861829",
+      "name": "Fiat Uno mille 2008 1.0 Fire Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7861909",
+      "name": "Fiat Palio 2014 1.6 16v Sporting Interlagos Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7861927",
       "name": "Fiat Uno mille 1999 1.0 Young 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -21977,12 +23329,33 @@
       ]
     },
     {
+      "id": "MLB7862012",
+      "name": "Fiat Uno 2004 1.0 Fire 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7862023",
       "name": "Fiat Uno 2013 1.4 Economy Flex 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7862036",
+      "name": "Fiat Palio 2013 1.0 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -22158,7 +23531,9 @@
       "name": "Fiat Uno mille 2000 1.0 Ex 5p Álcool BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -22222,7 +23597,9 @@
       "name": "Fiat Fiorino 2011 1.3 Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -22314,6 +23691,14 @@
       ]
     },
     {
+      "id": "MLB7862663",
+      "name": "Fiat Palio 2013 1.6 16v Essence Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7862674",
       "name": "Ford Fiesta 2014 1.5 S Flex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -22322,11 +23707,27 @@
       ]
     },
     {
+      "id": "MLB7862684",
+      "name": "Fiat Palio 2014 1.0 Fire Economy Itália Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7862720",
       "name": "Ford Ka 2009 1.6 Fly Flex 3p 102 hp BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7862721",
+      "name": "Fiat Palio 2012 1.6 16v Essence Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -22343,7 +23744,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -22360,7 +23763,9 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156"
       ]
     },
     {
@@ -22377,6 +23782,32 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7862792",
+      "name": "Fiat Palio 2010 1.0 Fire Economy Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7862797",
+      "name": "Fiat Uno mille 2004 1.0 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7862808",
+      "name": "Fiat Uno mille 2007 1.0 Way Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -22401,7 +23832,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -22410,6 +23845,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7862934",
+      "name": "Fiat Palio 2009 1.0 Fire Celebration Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -22458,7 +23901,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -22470,11 +23917,28 @@
       ]
     },
     {
+      "id": "MLB7863145",
+      "name": "Fiat Palio 2015 1.4 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7863151",
       "name": "Fiat Fiorino 2017 1.4 Hard Working Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076"
+      ]
+    },
+    {
+      "id": "MLB7863182",
+      "name": "Fiat Palio 2013 1.6 16v Sporting Interlagos Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -22539,7 +24003,28 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7863342",
+      "name": "Fiat Fiorino 2008 1.3 Flex 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7863346",
+      "name": "Fiat Palio 2010 1.0 Elx Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -22583,6 +24068,15 @@
       ]
     },
     {
+      "id": "MLB7863441",
+      "name": "Fiat Fiorino 1998 1.5 Working 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7863442",
       "name": "Ford Fiesta 2009 1.0 Pulse Flex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -22599,6 +24093,14 @@
       ]
     },
     {
+      "id": "MLB7863490",
+      "name": "Fiat Palio 2010 1.8 1.8r Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7863497",
       "name": "Renault Sandero 2008 1.6 Expression Hi-torque 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -22607,12 +24109,24 @@
       ]
     },
     {
+      "id": "MLB7863506",
+      "name": "Fiat Palio 2014 1.0 Fire Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7863508",
       "name": "Fiat Uno 2013 1.0 Vivace Flex 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -22620,7 +24134,9 @@
       "name": "Fiat Fiorino 2014 1.4 Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7568305454"
       ]
     },
     {
@@ -22669,7 +24185,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -22721,11 +24241,28 @@
       ]
     },
     {
+      "id": "MLB7863643",
+      "name": "Fiat Fiorino 2002 1.5 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7863679",
       "name": "Ford Ka 2009 1.0 Pulse Flex 3p 70 hp BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7863713",
+      "name": "Fiat Palio 2016 1.0 Fire Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -22742,6 +24279,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5187687721"
+      ]
+    },
+    {
+      "id": "MLB7863734",
+      "name": "Fiat Palio 2013 1.6 16v Essence Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -22821,7 +24366,9 @@
       "name": "Fiat Uno mille 1999 1.0 Ex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -22830,7 +24377,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -22906,6 +24457,22 @@
       ]
     },
     {
+      "id": "MLB7864087",
+      "name": "Fiat Palio 2010 1.8 Elx Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7864094",
+      "name": "Fiat Palio 2016 1.0 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7864095",
       "name": "Renault Sandero 2010 1.0 16v Authentique Hi-flex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -22918,7 +24485,9 @@
       "name": "Fiat Uno 2001 1.0 Smart 3p Gasolina BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -22946,12 +24515,41 @@
       ]
     },
     {
+      "id": "MLB7864229",
+      "name": "Fiat Palio 2011 1.6 16v Essence Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7864277",
+      "name": "Fiat Palio 2011 1.4 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7864284",
+      "name": "Fiat Fiorino 2001 1.5 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7864287",
       "name": "Fiat Uno 2012 1.4 Sporting Flex 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -23003,6 +24601,23 @@
       ]
     },
     {
+      "id": "MLB7864529",
+      "name": "Fiat Fiorino 2006 1.3 Fire 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7864559",
+      "name": "Fiat Palio 2014 1.6 16v Essence Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7864564",
       "name": "Renault Logan 2015 1.6 Sl Exclusive Hi-power 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -23016,6 +24631,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7864595",
+      "name": "Fiat Palio 2015 1.6 16v Sporting Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -23040,6 +24663,14 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5187687721"
+      ]
+    },
+    {
+      "id": "MLB7864691",
+      "name": "Fiat Palio 2015 1.0 Fire Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -23115,6 +24746,23 @@
       ]
     },
     {
+      "id": "MLB7864881",
+      "name": "Fiat Palio 2016 1.0 Fire Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7864882",
+      "name": "Fiat Uno mille 2006 1.0 Fire Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7864913",
       "name": "Renault Sandero 2013 1.6 16v Privilège Hi-flex Aut. 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -23135,7 +24783,9 @@
       "name": "Fiat Fiorino 2010 1.3 Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -23152,7 +24802,20 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7865002",
+      "name": "Fiat Uno mille 2004 1.0 Fire 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -23188,6 +24851,15 @@
       ]
     },
     {
+      "id": "MLB7865135",
+      "name": "Fiat Fiorino 2000 1.5 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7865145",
       "name": "Ford Fiesta 2014 1.6 Rocam Se Flex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -23200,7 +24872,9 @@
       "name": "Fiat Uno mille 2000 1.0 Ex 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -23220,6 +24894,14 @@
       ]
     },
     {
+      "id": "MLB7865291",
+      "name": "Fiat Palio 2016 1.4 Attractive Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7865311",
       "name": "Renault Megane 2010 1.6 Dynamique Hi-flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -23228,11 +24910,28 @@
       ]
     },
     {
+      "id": "MLB7865314",
+      "name": "Fiat Palio 2009 1.4 Elx Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7865316",
       "name": "Ford Fiesta 1999 1.4 Clx 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7865322",
+      "name": "Fiat Uno mille 2004 1.0 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -23268,6 +24967,14 @@
       ]
     },
     {
+      "id": "MLB7865439",
+      "name": "Fiat Palio 2015 1.0 Best Seller Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7865457",
       "name": "Ford Fiesta 2002 1.0 Street 5p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -23281,7 +24988,11 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -23301,11 +25012,28 @@
       ]
     },
     {
+      "id": "MLB7865511",
+      "name": "Fiat Palio 2016 1.6 16v Essence Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7865514",
       "name": "Renault Logan 2015 1.6 Dynamique Hi-power 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5187687721"
+      ]
+    },
+    {
+      "id": "MLB7865589",
+      "name": "Fiat Fiorino 2003 1.3 Fire 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -23321,7 +25049,9 @@
       "name": "Fiat Uno mille 1999 1.0 Ex 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -23341,12 +25071,32 @@
       ]
     },
     {
+      "id": "MLB7865619",
+      "name": "Fiat Palio 2012 1.6 16v Sporting Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7865634",
+      "name": "Fiat Palio 2013 1.6 16v Sporting Interlagos Flex Dualogic 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7865656",
       "name": "Fiat Uno 2012 1.0 Way Flex 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5400610233",
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076",
+        "MLB7420218156",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -23366,6 +25116,14 @@
       ]
     },
     {
+      "id": "MLB7865727",
+      "name": "Fiat Palio 2017 1.6 16v Sporting Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7865734",
       "name": "Ford Fiesta Sedan 2010 1.0 Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
@@ -23378,7 +25136,27 @@
       "name": "Fiat Uno 2001 1.0 Smart 5p Gasolina BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7865739",
+      "name": "Fiat Fiorino 2004 1.5 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7865771",
+      "name": "Fiat Fiorino 1999 1.5 Working 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -23398,11 +25176,30 @@
       ]
     },
     {
+      "id": "MLB7865798",
+      "name": "Fiat Palio 2016 1.0 Fire Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7865804",
+      "name": "Fiat Uno mille 2007 1.0 Fire Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
       "id": "MLB7865824",
       "name": "Fiat Uno 2003 1.0 Fire 3p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB7420243854"
+        "MLB7420243854",
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -23414,11 +25211,37 @@
       ]
     },
     {
+      "id": "MLB7865861",
+      "name": "Fiat Palio 2012 1.6 16v Sporting Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
       "id": "MLB7865889",
       "name": "Ford Fiesta Sedan 2009 1.6 Pulse Flex 4p 105 hp BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7865901",
+      "name": "Fiat Uno mille 2007 1.0 Fire Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7865933",
+      "name": "Fiat Uno mille 2008 1.0 Way Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -23435,6 +25258,15 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7865956",
+      "name": "Fiat Fiorino 1999 1.5 Trekking 2p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
       ]
     },
     {
@@ -23459,6 +25291,23 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5386411701"
+      ]
+    },
+    {
+      "id": "MLB7866020",
+      "name": "Fiat Fiorino 2005 1.5 4p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7568305454",
+        "MLB7645619936"
+      ]
+    },
+    {
+      "id": "MLB7866074",
+      "name": "Fiat Uno Furgão 2013 1.3 Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218156"
       ]
     },
     {
@@ -23531,7 +25380,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -23571,7 +25421,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -23591,7 +25442,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -23925,7 +25777,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24008,7 +25861,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24037,7 +25891,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24085,7 +25940,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24096,7 +25952,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24272,7 +26129,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24344,7 +26202,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24391,7 +26250,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24402,7 +26262,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24413,7 +26274,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24453,7 +26315,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24671,7 +26534,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24699,7 +26563,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24782,7 +26647,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24821,7 +26687,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24842,7 +26709,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -24983,7 +26851,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -25041,7 +26910,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -25061,7 +26931,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -25117,7 +26988,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -25330,7 +27202,8 @@
         "MLB7783160988",
         "MLB5248353911",
         "MLB5065013307",
-        "MLB5245644673"
+        "MLB5245644673",
+        "MLB5245656041"
       ]
     },
     {
@@ -25396,6 +27269,22 @@
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
         "MLB5065000671"
+      ]
+    },
+    {
+      "id": "MLB7938464",
+      "name": "Fiat Palio 2009 1.0 Fire Economy Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB7938686",
+      "name": "Fiat Palio 2009 1.0 Fire Economy Flex 3p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -25499,7 +27388,8 @@
       "name": "Fiat Fiorino 2018 1.4 Hard Working Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076"
       ]
     },
     {
@@ -25515,7 +27405,8 @@
       "name": "Fiat Fiorino 2018 1.4 Flex 4p BR",
       "domain_id": "MLB-CARS_AND_VANS",
       "source_items": [
-        "MLB5065000671"
+        "MLB5065000671",
+        "MLB7420218076"
       ]
     },
     {
@@ -25574,6 +27465,14 @@
       "source_items": [
         "MLB5065013307",
         "MLB7420205318"
+      ]
+    },
+    {
+      "id": "MLB8739667",
+      "name": "Fiat Palio 2012 1.0 Itália Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -25639,6 +27538,22 @@
         "MLB7783160988",
         "MLB5065013307",
         "MLB7420205318"
+      ]
+    },
+    {
+      "id": "MLB8864018",
+      "name": "Fiat Palio 2017 1.0 Fire Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
+      ]
+    },
+    {
+      "id": "MLB8864021",
+      "name": "Fiat Palio 2017 1.0 Fire Way Flex 5p BR",
+      "domain_id": "MLB-CARS_AND_VANS",
+      "source_items": [
+        "MLB7420218056"
       ]
     },
     {
@@ -25749,7 +27664,13 @@
     "MLB5245644673",
     "MLB5386411701",
     "MLB5187687721",
-    "MLB7420205318"
+    "MLB7420205318",
+    "MLB7420218076",
+    "MLB7420218056",
+    "MLB7420218156",
+    "MLB7568305454",
+    "MLB7645619936",
+    "MLB5245656041"
   ],
-  "unique_vehicles": 2952
+  "unique_vehicles": 3130
 }
