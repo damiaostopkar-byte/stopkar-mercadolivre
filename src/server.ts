@@ -1675,7 +1675,7 @@ function createServer(env: Env) {
     "diagnosticar_compatibilidades_anuncio",
     {
       description: "Diagnostica sinalizacao incomplete_compatibilities, separa compatibilidades SELLER/CATALOGO e informa quando a tag persiste apesar de veiculos cadastrados. Somente leitura.",
-      inputSchema: { item_id: z.string().regex(/^MLB\\d+$/) }
+      inputSchema: { item_id: z.string().regex(/^MLB\d+$/) }
     },
     async ({ item_id }) => {
       const item = await meliGet(env, `/items/${item_id}`);
@@ -1720,7 +1720,7 @@ function createServer(env: Env) {
     {
       description: "Simula ou adiciona familias de veiculos com dominio e atributos oficiais confirmados (marca, modelo, ano, etc.). Nunca remove existentes e exige aprovacao explicita.",
       inputSchema: {
-        item_id: z.string().regex(/^MLB\\d+$/),
+        item_id: z.string().regex(/^MLB\d+$/),
         familias: z.array(z.object({
           domain_id: z.string().regex(/^MLB-[A-Z0-9_]+$/),
           attributes: z.array(z.object({
