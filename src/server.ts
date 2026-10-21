@@ -1739,11 +1739,25 @@ function createServer(env: Env) {
       if (item?.id !== item_id || item?.status !== "active") throw new Error("Anuncio nao esta ativo ou nao foi encontrado.");
       if (!token?.user_id || Number(item.seller_id) !== Number(token.user_id)) throw new Error("Anuncio nao pertence a conta autenticada.");
       const antes = await meliGet(env, `/items/${item_id}/compatibilities`, { extended: "true" });
-      const payload = { products_families: familias.map((f) => ({
-        domain_id: f.domain_id,
-        creation_source: "ITEM_SUGGESTIONS",
-        attributes: f.attributes
-      })) };
+      const userProductId = String(item?.user_product_id || "");
+      if (!/^MLBU\\d+$/.test(userProductId)) {
+        throw new Error("Anuncio sem User Product valido; verificar tipo de anuncio antes do cadastro.");
+      }
+      const domains = [...new Set(familias.map((f) => f.domain_id))];
+      if (domains.length !== 1) throw new Error("Todas as familias do lote precisam usar o mesmo dominio.");
+      const compatibilityDomain = domains[0] === "MLB-CARS_AND_VANS"
+        ? "MLB-CARS_AND_VANS_FOR_COMPATIBILITIES" : domains[0];
+      const payload = {
+        domain_id: compatibilityDomain,
+        category_id: String(item.category_id),
+        products_families: familias.map((f) => ({
+          domain_id: compatibilityDomain,
+          attributes: f.attributes.map((a) => ({
+            ...a,
+            id: a.id === "MODEL" ? "CAR_AND_VAN_MODEL" : a.id
+          }))
+        }))
+      };
       if (!confirmar) return textResult({
         acao: "simulacao", somente_leitura: true, item_id,
         titulo: item.title, familias_propostas: payload.products_families,
@@ -1752,7 +1766,7 @@ function createServer(env: Env) {
       });
       if (env.LISTING_WRITES_ENABLED !== "true") throw new Error("LISTING_WRITES_ENABLED nao habilitado.");
       if (!motivo || motivo.trim().length < 10) throw new Error("Motivo de aprovacao explicita obrigatorio (minimo 10 caracteres).");
-      const escrita = await meliWrite(env, "POST", `/items/${item_id}/compatibilities`, payload);
+      const escrita = await meliWrite(env, "POST", `/user-products/${userProductId}/compatibilities`, payload);
       const depois = await meliGet(env, `/items/${item_id}/compatibilities`, { extended: "true" });
       const itemDepois = await meliGet(env, `/items/${item_id}`);
       return textResult({
