@@ -1752,15 +1752,40 @@ function createServer(env: Env) {
         category_id: String(item.category_id),
         products_families: familias.map((f) => ({
           domain_id: compatibilityDomain,
+          creation_source: "ITEM_SUGGESTIONS",
           attributes: f.attributes.map((a) => ({
             ...a,
             id: a.id === "MODEL" ? "CAR_AND_VAN_MODEL" : a.id
           }))
         }))
       };
+      // A API aceita no maximo 200 veiculos por chamada. Validar primeiro
+      // cada familia de atributos, sem qualquer alteracao do anuncio.
+      const contagens: Array<{ familia: number; quantidade: number }> = [];
+      let totalPrevisto = 0;
+      for (let i = 0; i < payload.products_families.length; i += 1) {
+        const familia = payload.products_families[i];
+        const consulta = await meliWrite(
+          env, "POST", "/catalog_compatibilities/products_search/count_family_products",
+          { domain_id: compatibilityDomain, attributes: familia.attributes }
+        );
+        const quantidade = Number(consulta.data?.count);
+        if (!Number.isInteger(quantidade) || quantidade < 0) {
+          throw new Error("Catalogo nao retornou contagem confiavel para a familia " + (i + 1));
+        }
+        if (quantidade === 0) {
+          throw new Error("Nenhuma versao encontrada para familia " + (i + 1) + "; confira os nomes e anos.");
+        }
+        contagens.push({ familia: i + 1, quantidade });
+        totalPrevisto += quantidade;
+      }
+      if (totalPrevisto > 200) {
+        throw new Error("Lote ultrapassa 200 veiculos (" + totalPrevisto + "). Divida por ano/modelo para evitar erro ou inclusao excessiva.");
+      }
       if (!confirmar) return textResult({
         acao: "simulacao", somente_leitura: true, item_id,
         titulo: item.title, familias_propostas: payload.products_families,
+        contagens, total_previsto: totalPrevisto, user_product_id: userProductId,
         compatibilidades_antes: antes,
         aviso: "Familias por dominio podem abranger muitas versoes. Verifique marca, modelo, ano, motorizacao, lado e posicao antes de confirmar. Nao houve escrita."
       });
