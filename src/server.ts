@@ -1441,7 +1441,12 @@ const ADS_CAMPAIGN_METRICS = [
   "units_quantity",
   "direct_amount",
   "indirect_amount",
-  "total_amount"
+  "total_amount",
+  "impression_share",
+  "top_impression_share",
+  "lost_impression_share_by_budget",
+  "lost_impression_share_by_ad_rank",
+  "acos_benchmark"
 ].join(",");
 
 const ADS_AD_GROUP_METRICS = [
@@ -8256,6 +8261,57 @@ function createServer(env: Env) {
         paging: data?.paging ?? null,
         metrics_summary: data?.metrics_summary ?? null,
         results: Array.isArray(data?.results) ? data.results : []
+      });
+    }
+  );
+
+  server.registerTool(
+    "consultar_ads_competitividade",
+    {
+      description:
+        "Consulta SOMENTE LEITURA das impressoes ganhas, perdidas por orcamento e perdidas por classificacao de uma campanha Mercado Ads Product Ads. Confere disponibilidade da API oficial e nao interpreta ausencia de dados como zero.",
+      inputSchema: {
+        campaign_id: z.union([z.string().min(1), z.number().int().positive()]),
+        data_inicial: z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/),
+        data_final: z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+      }
+    },
+    async ({ campaign_id, data_inicial, data_final }) => {
+      if (data_inicial > data_final) throw new Error("Periodo invalido: data inicial maior que final.");
+      const advertiser = await getProductAdsAdvertiser(env);
+      const fields = [
+        "impression_share",
+        "top_impression_share",
+        "lost_impression_share_by_budget",
+        "lost_impression_share_by_ad_rank",
+        "acos_benchmark"
+      ];
+      const data = await meliGet(
+        env,
+        `/advertising/${encodeURIComponent(advertiser.site_id)}/advertisers/${encodeURIComponent(
+          String(advertiser.advertiser_id)
+        )}/product_ads/campaigns/${encodeURIComponent(String(campaign_id))}`,
+        {
+          date_from: data_inicial,
+          date_to: data_final,
+          metrics: fields.join(",")
+        },
+        { "api-version": "2" }
+      );
+      const metrics = data?.metrics ?? {};
+      const value = (field: string) =>
+        typeof metrics[field] === "number" ? metrics[field] : null;
+      return textResult({
+        campaign_id: data?.id ?? campaign_id,
+        campanha: data?.name ?? null,
+        periodo: { data_inicial, data_final },
+        fonte: "Mercado Livre Product Ads API v2 - detalhes da campanha",
+        impression_share: value("impression_share"),
+        top_impression_share: value("top_impression_share"),
+        lost_impression_share_by_budget: value("lost_impression_share_by_budget"),
+        lost_impression_share_by_ad_rank: value("lost_impression_share_by_ad_rank"),
+        acos_benchmark: value("acos_benchmark"),
+        nota: "Valores em percentual conforme API; null significa indisponivel, nao zero. Avalie ROAS e margem antes de ampliar publicidade."
       });
     }
   );
