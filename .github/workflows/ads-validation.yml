@@ -16,6 +16,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm install --ignore-scripts --no-audit --no-fund
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
       - run: npx tsc --noEmit
       - run: npx vite build
