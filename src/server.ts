@@ -2009,7 +2009,7 @@ function createServer(env: Env) {
     {
       description: "Simula ou atualiza peso e dimensões de até 25 produtos da Tray. Confere IDs, impede mudanças de preço e estoque, exige confirmação e TRAY_WRITES_ENABLED=true. Produtos com variações são bloqueados.",
       inputSchema: {
-        produto_ids: z.array(z.union([z.string().regex(/^\\d+$/), z.number().int().positive()])).min(1).max(25),
+        produto_ids: z.array(z.union([z.string().regex(/^\d+$/), z.number().int().positive()])).min(1).max(25),
         comprimento: z.number().positive().max(300),
         largura: z.number().positive().max(300),
         altura: z.number().positive().max(300),
