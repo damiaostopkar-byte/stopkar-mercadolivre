@@ -1,0 +1,21 @@
+name: Validate Mercado Ads integration
+on:
+  pull_request:
+    paths:
+      - 'src/server.ts'
+      - 'src/server-ads-fixed.ts'
+      - 'package.json'
+      - 'tsconfig.json'
+      - '.github/workflows/ads-validation.yml'
+  workflow_dispatch:
+jobs:
+  typecheck-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - run: npx tsc --noEmit
+      - run: npx vite build
