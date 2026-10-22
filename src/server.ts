@@ -10,6 +10,7 @@ interface Env {
   MELI_TOKENS?: KVNamespace;
   TRAY_CONSUMER_KEY?: string;
   TRAY_CONSUMER_SECRET?: string;
+  TRAY_WRITES_ENABLED?: string;
   ADS_WRITES_ENABLED?: string;
   LISTING_WRITES_ENABLED?: string;
   PROMOTION_WRITES_ENABLED?: string;
@@ -1998,6 +1999,64 @@ function createServer(env: Env) {
         paging: data?.paging ?? null,
         produtos
       });
+    }
+  );
+
+
+  // Atualiza exclusivamente medidas logísticas da Tray, com prévia e conferência.
+  server.registerTool(
+    "atualizar_medidas_produtos_tray",
+    {
+      description: "Simula ou atualiza peso e dimensões de até 25 produtos da Tray. Confere IDs, impede mudanças de preço e estoque, exige confirmação e TRAY_WRITES_ENABLED=true. Produtos com variações são bloqueados.",
+      inputSchema: {
+        produto_ids: z.array(z.union([z.string().regex(/^\\d+$/), z.number().int().positive()])).min(1).max(25),
+        comprimento: z.number().positive().max(300),
+        largura: z.number().positive().max(300),
+        altura: z.number().positive().max(300),
+        peso: z.number().positive().max(50000).describe("Peso em gramas"),
+        confirmar: z.boolean().optional().default(false),
+        motivo: z.string().min(10).max(300).optional()
+      }
+    },
+    async ({ produto_ids, comprimento, largura, altura, peso, confirmar, motivo }) => {
+      const ids = produto_ids.map(String);
+      if (new Set(ids).size !== ids.length) throw new Error("Há IDs de produtos repetidos.");
+      if (confirmar && !motivo) throw new Error("Informe um motivo para gravar.");
+      const desired = { length: comprimento, width: largura, height: altura, weight: peso };
+      const products = [];
+      for (const id of ids) {
+        const data = await trayGet(env, "products", { id, limit: "5" });
+        const matched = trayProductRows(data).map(trayProductObject).filter((p: any) => String(p.id) === id);
+        if (matched.length !== 1) throw new Error(`Produto Tray ${id} ausente ou ambiguo; nada foi gravado.`);
+        const p = matched[0];
+        const variants = p?.Variants ?? p?.variants ?? p?.Variant ?? [];
+        if ((Array.isArray(variants) && variants.length > 0) || Number(p.has_variation ?? 0) === 1) {
+          throw new Error(`Produto Tray ${id} possui variacoes; operacao bloqueada.`);
+        }
+        products.push({
+          id,
+          nome: p.name ?? p.title ?? null,
+          antes: { length: p.length, width: p.width, height: p.height, weight: p.weight },
+          depois: desired
+        });
+      }
+      if (!confirmar) return textResult({ acao: "simulacao", somente_leitura: true, produtos: products, gravacao_habilitada: env.TRAY_WRITES_ENABLED === "true" });
+      if (env.TRAY_WRITES_ENABLED !== "true") throw new Error("Escrita na Tray desabilitada. Configure TRAY_WRITES_ENABLED=true depois de validar a integracao.");
+      const resultados = [];
+      for (const product of products) {
+        try {
+          const response = await trayPutProductMeasurements(env, product.id, desired);
+          const check = await trayGet(env, "products", { id: product.id, limit: "5" });
+          const found = trayProductRows(check).map(trayProductObject).find((p: any) => String(p.id) === product.id);
+          const confirmado = Boolean(found) && Object.entries(desired).every(([k, v]) => Number(found[k]) === v);
+          resultados.push({ id: product.id, nome: product.nome, confirmado, retorno: response?.message ?? null });
+          if (!confirmado) break;
+        } catch (error) {
+          resultados.push({ id: product.id, confirmado: false, erro: error instanceof Error ? error.message : String(error) });
+          break;
+        }
+      }
+      return textResult({ acao: "atualizacao_tray", motivo, produtos: products, resultados, alerta: resultados.length < products.length ? "Processamento interrompido; os produtos restantes nao foram alterados." : null });
     }
   );
 
@@ -8910,6 +8969,37 @@ async function trayGet(
     throw new Error(`Tray API ${response.status}: ${message}`);
   }
 
+  return data;
+}
+
+
+async function trayPutProductMeasurements(
+  env: Env,
+  id: string,
+  dims: { length: number; width: number; height: number; weight: number }
+): Promise<any> {
+  let token = await loadLatestTrayToken(env);
+  const requestOnce = async (current: TrayStoredToken) => {
+    const base = normalizeHttpsUrl(current.api_host, "api_host da Tray");
+    const url = new URL("products/" + encodeURIComponent(id), base.toString().endsWith("/") ? base.toString() : base.toString() + "/");
+    url.searchParams.set("access_token", current.access_token);
+    return fetch(url.toString(), {
+      method: "PUT",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify({ Product: dims })
+    });
+  };
+  let response = await requestOnce(token);
+  if (response.status === 401) {
+    token = await refreshTrayToken(env, token);
+    response = await requestOnce(token);
+  }
+  const raw = await response.text();
+  let data: any;
+  try { data = raw ? JSON.parse(raw) : null; } catch { data = raw; }
+  if (!response.ok || (data && typeof data.code === "number" && data.code >= 400)) {
+    throw new Error("Tray recusou a edicao do produto " + id + " (HTTP " + response.status + "): " + String(data?.message ?? data?.error ?? "falha"));
+  }
   return data;
 }
 
