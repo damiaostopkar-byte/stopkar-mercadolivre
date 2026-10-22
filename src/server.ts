@@ -1441,12 +1441,7 @@ const ADS_CAMPAIGN_METRICS = [
   "units_quantity",
   "direct_amount",
   "indirect_amount",
-  "total_amount",
-  "impression_share",
-  "top_impression_share",
-  "lost_impression_share_by_budget",
-  "lost_impression_share_by_ad_rank",
-  "acos_benchmark"
+  "total_amount"
 ].join(",");
 
 const ADS_AD_GROUP_METRICS = [
@@ -8288,9 +8283,7 @@ function createServer(env: Env) {
       ];
       const data = await meliGet(
         env,
-        `/advertising/${encodeURIComponent(advertiser.site_id)}/advertisers/${encodeURIComponent(
-          String(advertiser.advertiser_id)
-        )}/product_ads/campaigns/${encodeURIComponent(String(campaign_id))}`,
+        `/advertising/${encodeURIComponent(advertiser.site_id)}/product_ads/campaigns/${encodeURIComponent(String(campaign_id))}`,
         {
           date_from: data_inicial,
           date_to: data_final,
