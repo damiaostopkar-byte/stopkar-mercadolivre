@@ -8267,8 +8267,8 @@ function createServer(env: Env) {
         "Consulta SOMENTE LEITURA das impressoes ganhas, perdidas por orcamento e perdidas por classificacao de uma campanha Mercado Ads Product Ads. Confere disponibilidade da API oficial e nao interpreta ausencia de dados como zero.",
       inputSchema: {
         campaign_id: z.union([z.string().min(1), z.number().int().positive()]),
-        data_inicial: z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/),
-        data_final: z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/)
+        data_inicial: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        data_final: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
       }
     },
     async ({ campaign_id, data_inicial, data_final }) => {
@@ -8315,8 +8315,8 @@ function createServer(env: Env) {
       description:
         "Auditoria somente leitura de todas as campanhas Product Ads, incluindo ROAS, ACOS, CPC, CTR, CVR, vendas, participacao de impressoes e perdas por classificacao/orcamento. Nao altera publicidade nem confunde SOV com impression_share. Dados ausentes ficam null.",
       inputSchema: {
-        data_inicial: z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/),
-        data_final: z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/),
+        data_inicial: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        data_final: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         limite: z.number().int().min(1).max(30).optional().default(20),
         roas_minimo: z.number().positive().optional().default(8)
       }
