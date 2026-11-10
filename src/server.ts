@@ -29,7 +29,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.26";
+const SERVER_VERSION = "0.17.27";
 
 function textResult(value: unknown) {
   return {
@@ -5761,6 +5761,8 @@ function createServer(env: Env) {
             .describe("MLBs especificos para validar e incluir, evitando paginacao de centenas de anuncios."),
           deal_price: z.number().positive().optional()
             .describe("Preco do DEAL para um unico item_id. Permite entrar no 11.11 sem depender de uma SELLER_CAMPAIGN iniciada."),
+          deal_prices: z.record(z.string().regex(/^MLB\d+$/), z.number().positive()).optional()
+            .describe("Precos promocionais por MLB (ate 5 anuncios por lote). Usar apos aprovacao individual dos precos."),
           component_skus: z.array(z.string().min(1)).min(1).max(20).optional()
             .describe("SKUs Tray que compoem um kit. O custo e somado automaticamente para validar a margem."),
           margem_minima_percentual: z.number().min(0).max(80).optional().default(10),
@@ -5768,7 +5770,7 @@ function createServer(env: Env) {
           motivo: z.string().max(300).optional()
         }
       },
-      async ({ limite_lote, item_ids, deal_price, component_skus, margem_minima_percentual, confirmar, motivo }) => {
+      async ({ limite_lote, item_ids, deal_price, deal_prices, component_skus, margem_minima_percentual, confirmar, motivo }) => {
         const sourcePromotionId = "C-MLB5661788";
         const targetPromotionId = "P-MLB17909028";
         const batchLimit = Number(limite_lote ?? 20);
@@ -5831,7 +5833,7 @@ function createServer(env: Env) {
         );
   
         const sourceCampaignName = String(sourceCampaign?.name ?? "").trim().toLocaleLowerCase("pt-BR");
-        if (!sourceCampaign || !["damiao", "damião", "sk pecas", "sk peças"].includes(sourceCampaignName)) {
+        if (!item_ids?.length && (!sourceCampaign || !["damiao", "damião", "sk pecas", "sk peças"].includes(sourceCampaignName))) {
           throw new Error("Protecao Stop Kar: a campanha de origem SK pecas nao foi confirmada.");
         }
         if (!targetCampaign || String(targetCampaign?.name ?? "") !== "11.11 da Black") {
@@ -5843,6 +5845,7 @@ function createServer(env: Env) {
         }
   
         const damiaoStarted: any[] = [];
+        const semPrecoExplicito: string[] = [];
         const targetCandidates: any[] = [];
         const targetStarted: any[] = [];
         // Clientes que ainda exponham o esquema antigo podem enviar o escopo
@@ -5859,6 +5862,11 @@ function createServer(env: Env) {
         }
         if (deal_price !== undefined && selectedItemIds?.length !== 1) {
           throw new Error("deal_price explicito exige exatamente um item_id.");
+        }
+        const idsComPrecoExplicito = Object.keys(deal_prices ?? {});
+        if (idsComPrecoExplicito.length && (!selectedItemIds?.length ||
+          idsComPrecoExplicito.some((id) => !selectedItemIds.includes(id)))) {
+          throw new Error("deal_prices deve conter apenas MLBs presentes no lote selecionado.");
         }
         if (component_skus?.length && selectedItemIds?.length !== 1) {
           throw new Error("component_skus exige exatamente um item_id.");
@@ -5879,15 +5887,19 @@ function createServer(env: Env) {
                 promotionIdOf(row) === targetPromotionId &&
                 String(row?.type ?? row?.promotion_type ?? "").toUpperCase() === "DEAL"
             );
-            if (source) {
-              damiaoStarted.push({ ...source, id: itemId });
-            } else if (target?.status === "candidate" && Number(deal_price) > 0) {
+            const precoExplicitado = deal_prices?.[itemId] ??
+              (selectedItemIds?.length === 1 ? deal_price : undefined);
+            if (target?.status === "candidate" && precoExplicitado !== undefined) {
               damiaoStarted.push({
                 id: itemId,
-                price: Number(deal_price),
+                price: Number(precoExplicitado),
                 status: "explicit_price",
-                origem_preco: "deal_price_explicito"
+                origem_preco: "deal_prices_ou_deal_price"
               });
+            } else if (source) {
+              damiaoStarted.push({ ...source, id: itemId });
+            } else if (target?.status === "candidate") {
+              semPrecoExplicito.push(itemId);
             }
             if (target?.status === "candidate") targetCandidates.push({ ...target, id: itemId });
             if (target?.status === "started") targetStarted.push({ ...target, id: itemId });
@@ -5910,7 +5922,7 @@ function createServer(env: Env) {
         const alreadyStarted = damiaoStarted.filter((entry: any) =>
           startedIds.has(String(entry?.id))
         );
-        const blocked: any[] = [];
+        const blocked: any[] = semPrecoExplicito.map((item_id) => ({ item_id, motivo: "preco_explicito_necessario_sem_campanha_origem" }));
         const eligible: Array<{
           item_id: string;
           deal_price: number;
@@ -6168,9 +6180,8 @@ function createServer(env: Env) {
               adsStatusConfirmado = true;
             } catch {}
   
-            const adsReservaPercentualItem = adsStatusConfirmado
-              ? (adsAtivo ? adsReservaPercentualPadrao : 0)
-              : adsReservaPercentualPadrao;
+            // Precificacao conservadora: reserva 10% para Ads mesmo se o anuncio estiver pausado.
+            const adsReservaPercentualItem = adsReservaPercentualPadrao;
   
             const preco = entry.deal_price;
             const lucro =
@@ -6234,6 +6245,7 @@ function createServer(env: Env) {
           imposto_percentual: impostoPercentual,
           ads_reserva_percentual_padrao: adsReservaPercentualPadrao,
           preco_explicito_1111: deal_price ?? null,
+          deal_prices: deal_prices ?? {},
           component_skus: component_skus ?? [],
           elegiveis_restantes: safeBatch.length,
           pendentes_de_validacao_de_margem: Math.max(0, eligible.length - margemVerificada),
@@ -6359,6 +6371,8 @@ function createServer(env: Env) {
             .describe("MLBs especificos para validar e incluir, evitando paginacao de centenas de anuncios."),
           deal_price: z.number().positive().optional()
             .describe("Preco do DEAL para um unico item_id. Permite entrar no Black Friday 2026 sem depender de uma SELLER_CAMPAIGN iniciada."),
+          deal_prices: z.record(z.string().regex(/^MLB\d+$/), z.number().positive()).optional()
+            .describe("Precos promocionais por MLB (ate 5 anuncios por lote). Usar apos aprovacao individual dos precos."),
           component_skus: z.array(z.string().min(1)).min(1).max(20).optional()
             .describe("SKUs Tray que compoem um kit. O custo e somado automaticamente para validar a margem."),
           margem_minima_percentual: z.number().min(0).max(80).optional().default(10),
@@ -6366,13 +6380,10 @@ function createServer(env: Env) {
           motivo: z.string().max(300).optional()
         }
       },
-      async ({ limite_lote, item_ids, deal_price, component_skus, margem_minima_percentual, confirmar, motivo }) => {
+      async ({ limite_lote, item_ids, deal_price, deal_prices, component_skus, margem_minima_percentual, confirmar, motivo }) => {
         const sourcePromotionId = "C-MLB5661788";
         const targetPromotionId = "P-MLB17911004";
         const batchLimit = Number(limite_lote ?? 20);
-        if (!item_ids || item_ids.length !== 1 || !(Number(deal_price) > 0)) {
-          throw new Error("Black Friday: informe exatamente um MLB e deal_price explicito para revisao segura.");
-        }
   
         const fetchPromotionItems = async (
           promotionId: string,
@@ -6444,6 +6455,7 @@ function createServer(env: Env) {
         }
   
         const damiaoStarted: any[] = [];
+        const semPrecoExplicito: string[] = [];
         const targetCandidates: any[] = [];
         const targetStarted: any[] = [];
         // Clientes que ainda exponham o esquema antigo podem enviar o escopo
@@ -6460,6 +6472,11 @@ function createServer(env: Env) {
         }
         if (deal_price !== undefined && selectedItemIds?.length !== 1) {
           throw new Error("deal_price explicito exige exatamente um item_id.");
+        }
+        const idsComPrecoExplicito = Object.keys(deal_prices ?? {});
+        if (idsComPrecoExplicito.length && (!selectedItemIds?.length ||
+          idsComPrecoExplicito.some((id) => !selectedItemIds.includes(id)))) {
+          throw new Error("deal_prices deve conter apenas MLBs presentes no lote selecionado.");
         }
         if (component_skus?.length && selectedItemIds?.length !== 1) {
           throw new Error("component_skus exige exatamente um item_id.");
@@ -6480,15 +6497,19 @@ function createServer(env: Env) {
                 promotionIdOf(row) === targetPromotionId &&
                 String(row?.type ?? row?.promotion_type ?? "").toUpperCase() === "DEAL"
             );
-            if (source) {
-              damiaoStarted.push({ ...source, id: itemId });
-            } else if (target?.status === "candidate" && Number(deal_price) > 0) {
+            const precoExplicitado = deal_prices?.[itemId] ??
+              (selectedItemIds?.length === 1 ? deal_price : undefined);
+            if (target?.status === "candidate" && precoExplicitado !== undefined) {
               damiaoStarted.push({
                 id: itemId,
-                price: Number(deal_price),
+                price: Number(precoExplicitado),
                 status: "explicit_price",
-                origem_preco: "deal_price_explicito"
+                origem_preco: "deal_prices_ou_deal_price"
               });
+            } else if (source) {
+              damiaoStarted.push({ ...source, id: itemId });
+            } else if (target?.status === "candidate") {
+              semPrecoExplicito.push(itemId);
             }
             if (target?.status === "candidate") targetCandidates.push({ ...target, id: itemId });
             if (target?.status === "started") targetStarted.push({ ...target, id: itemId });
@@ -6511,7 +6532,7 @@ function createServer(env: Env) {
         const alreadyStarted = damiaoStarted.filter((entry: any) =>
           startedIds.has(String(entry?.id))
         );
-        const blocked: any[] = [];
+        const blocked: any[] = semPrecoExplicito.map((item_id) => ({ item_id, motivo: "preco_explicito_necessario_sem_campanha_origem" }));
         const eligible: Array<{
           item_id: string;
           deal_price: number;
@@ -6769,9 +6790,8 @@ function createServer(env: Env) {
               adsStatusConfirmado = true;
             } catch {}
   
-            const adsReservaPercentualItem = adsStatusConfirmado
-              ? (adsAtivo ? adsReservaPercentualPadrao : 0)
-              : adsReservaPercentualPadrao;
+            // Precificacao conservadora: reserva 10% para Ads mesmo se o anuncio estiver pausado.
+            const adsReservaPercentualItem = adsReservaPercentualPadrao;
   
             const preco = entry.deal_price;
             const lucro =
@@ -6835,6 +6855,7 @@ function createServer(env: Env) {
           imposto_percentual: impostoPercentual,
           ads_reserva_percentual_padrao: adsReservaPercentualPadrao,
           preco_explicito_black_2026: deal_price ?? null,
+          deal_prices: deal_prices ?? {},
           component_skus: component_skus ?? [],
           elegiveis_restantes: safeBatch.length,
           pendentes_de_validacao_de_margem: Math.max(0, eligible.length - margemVerificada),
