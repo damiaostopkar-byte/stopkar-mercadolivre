@@ -29,7 +29,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.27";
+const SERVER_VERSION = "0.17.28";
 
 function textResult(value: unknown) {
   return {
@@ -5766,11 +5766,13 @@ function createServer(env: Env) {
           component_skus: z.array(z.string().min(1)).min(1).max(20).optional()
             .describe("SKUs Tray que compoem um kit. O custo e somado automaticamente para validar a margem."),
           margem_minima_percentual: z.number().min(0).max(80).optional().default(10),
+          ads_reserva_percentual: z.number().min(0).max(10).optional().default(10)
+            .describe("Reserva Ads no calculo de margem. Informe 0 para precificar sem Ads, ou 10 para reserva conservadora."),
           confirmar: z.boolean().optional().default(false),
           motivo: z.string().max(300).optional()
         }
       },
-      async ({ limite_lote, item_ids, deal_price, deal_prices, component_skus, margem_minima_percentual, confirmar, motivo }) => {
+      async ({ limite_lote, item_ids, deal_price, deal_prices, component_skus, margem_minima_percentual, ads_reserva_percentual, confirmar, motivo }) => {
         const sourcePromotionId = "C-MLB5661788";
         const targetPromotionId = "P-MLB17909028";
         const batchLimit = Number(limite_lote ?? 20);
@@ -5889,20 +5891,26 @@ function createServer(env: Env) {
             );
             const precoExplicitado = deal_prices?.[itemId] ??
               (selectedItemIds?.length === 1 ? deal_price : undefined);
-            if (target?.status === "candidate" && precoExplicitado !== undefined) {
+            const statusOferta = String(target?.status ?? "");
+            const precoInformado = precoExplicitado !== undefined;
+            const ofertaDisponivel = ["candidate", "started", "pending"].includes(statusOferta);
+            // MLB explicitamente selecionado pode atualizar DEAL ja ativo/programado.
+            if (ofertaDisponivel && precoInformado) {
               damiaoStarted.push({
                 id: itemId,
                 price: Number(precoExplicitado),
                 status: "explicit_price",
                 origem_preco: "deal_prices_ou_deal_price"
               });
-            } else if (source) {
+            } else if (source && statusOferta === "candidate") {
               damiaoStarted.push({ ...source, id: itemId });
-            } else if (target?.status === "candidate") {
+            } else if (statusOferta === "candidate") {
               semPrecoExplicito.push(itemId);
             }
-            if (target?.status === "candidate") targetCandidates.push({ ...target, id: itemId });
-            if (target?.status === "started") targetStarted.push({ ...target, id: itemId });
+            if (statusOferta === "candidate" || (ofertaDisponivel && precoInformado)) {
+              targetCandidates.push({ ...target, id: itemId });
+            }
+            if (statusOferta === "started") targetStarted.push({ ...target, id: itemId });
           }
         } else {
           const pages = await Promise.all([
@@ -5930,11 +5938,13 @@ function createServer(env: Env) {
           min_discounted_price: number | null;
           max_discounted_price: number | null;
           suggested_discounted_price: number | null;
+          atualizar_oferta_existente: boolean;
+          preco_anterior_oferta: number | null;
         }> = [];
   
         for (const source of damiaoStarted) {
           const itemId = String(source?.id ?? "");
-          if (!itemId || startedIds.has(itemId)) continue;
+          if (!itemId || (startedIds.has(itemId) && source?.status !== "explicit_price")) continue;
           const candidate = candidateById.get(itemId);
           if (!candidate) {
             blocked.push({ item_id: itemId, motivo: "sem_convite_1111" });
@@ -5942,6 +5952,24 @@ function createServer(env: Env) {
           }
   
           const price = Number(source?.price);
+          const statusAtualOferta = String(candidate?.status ?? "");
+          const atualizarOfertaExistente = ["started", "pending"].includes(statusAtualOferta);
+          const precoAtualOferta = Number(candidate?.price);
+          if (atualizarOfertaExistente && (
+            source?.status !== "explicit_price" ||
+            !Number.isFinite(precoAtualOferta) ||
+            precoAtualOferta <= 0 ||
+            !Number.isFinite(price) ||
+            price >= precoAtualOferta - 0.000001
+          )) {
+            blocked.push({
+              item_id: itemId,
+              motivo: "atualizacao_deal_exige_preco_explicito_menor_que_atual",
+              preco_atual: Number.isFinite(precoAtualOferta) ? precoAtualOferta : null,
+              preco_solicitado: Number.isFinite(price) ? price : null
+            });
+            continue;
+          }
           const minPrice = Number(candidate?.min_discounted_price);
           const maxPrice = Number(candidate?.max_discounted_price);
           const hasMin = Number.isFinite(minPrice) && minPrice > 0;
@@ -5966,6 +5994,8 @@ function createServer(env: Env) {
           eligible.push({
             item_id: itemId,
             deal_price: price,
+            atualizar_oferta_existente: atualizarOfertaExistente,
+            preco_anterior_oferta: atualizarOfertaExistente ? precoAtualOferta : null,
             original_price: Number.isFinite(Number(candidate?.original_price))
               ? Number(candidate.original_price)
               : null,
@@ -5996,7 +6026,7 @@ function createServer(env: Env) {
         let margemVerificada = 0;
         const margemMinimaPercentual = Number(margem_minima_percentual ?? 10);
         const impostoPercentual = 11;
-        const adsReservaPercentualPadrao = 10;
+        const adsReservaPercentualPadrao = Number(ads_reserva_percentual ?? 10);
   
         for (const entry of eligible) {
           if (safeBatch.length >= batchLimit) break;
@@ -6252,6 +6282,7 @@ function createServer(env: Env) {
           bloqueados: blocked.length,
           limite_lote: batchLimit,
           lote_preparado: batch.length,
+          atualizacoes_de_preco_preparadas: batch.filter((entry) => entry.atualizar_oferta_existente).length,
           proximos_itens: batch,
           bloqueios: blocked.slice(0, 25),
           escrita_promocoes_habilitada: promotionWritesEnabled(env)
@@ -6276,7 +6307,7 @@ function createServer(env: Env) {
           try {
             const write = await meliWrite(
               env,
-              "POST",
+              entry.atualizar_oferta_existente ? "PUT" : "POST",
               `/seller-promotions/items/${encodeURIComponent(entry.item_id)}?app_version=v2`,
               {
                 deal_price: entry.deal_price,
@@ -6376,11 +6407,13 @@ function createServer(env: Env) {
           component_skus: z.array(z.string().min(1)).min(1).max(20).optional()
             .describe("SKUs Tray que compoem um kit. O custo e somado automaticamente para validar a margem."),
           margem_minima_percentual: z.number().min(0).max(80).optional().default(10),
+          ads_reserva_percentual: z.number().min(0).max(10).optional().default(10)
+            .describe("Reserva Ads no calculo de margem. Informe 0 para precificar sem Ads, ou 10 para reserva conservadora."),
           confirmar: z.boolean().optional().default(false),
           motivo: z.string().max(300).optional()
         }
       },
-      async ({ limite_lote, item_ids, deal_price, deal_prices, component_skus, margem_minima_percentual, confirmar, motivo }) => {
+      async ({ limite_lote, item_ids, deal_price, deal_prices, component_skus, margem_minima_percentual, ads_reserva_percentual, confirmar, motivo }) => {
         const sourcePromotionId = "C-MLB5661788";
         const targetPromotionId = "P-MLB17911004";
         const batchLimit = Number(limite_lote ?? 20);
@@ -6499,20 +6532,26 @@ function createServer(env: Env) {
             );
             const precoExplicitado = deal_prices?.[itemId] ??
               (selectedItemIds?.length === 1 ? deal_price : undefined);
-            if (target?.status === "candidate" && precoExplicitado !== undefined) {
+            const statusOferta = String(target?.status ?? "");
+            const precoInformado = precoExplicitado !== undefined;
+            const ofertaDisponivel = ["candidate", "started", "pending"].includes(statusOferta);
+            // MLB explicitamente selecionado pode atualizar DEAL ja ativo/programado.
+            if (ofertaDisponivel && precoInformado) {
               damiaoStarted.push({
                 id: itemId,
                 price: Number(precoExplicitado),
                 status: "explicit_price",
                 origem_preco: "deal_prices_ou_deal_price"
               });
-            } else if (source) {
+            } else if (source && statusOferta === "candidate") {
               damiaoStarted.push({ ...source, id: itemId });
-            } else if (target?.status === "candidate") {
+            } else if (statusOferta === "candidate") {
               semPrecoExplicito.push(itemId);
             }
-            if (target?.status === "candidate") targetCandidates.push({ ...target, id: itemId });
-            if (target?.status === "started") targetStarted.push({ ...target, id: itemId });
+            if (statusOferta === "candidate" || (ofertaDisponivel && precoInformado)) {
+              targetCandidates.push({ ...target, id: itemId });
+            }
+            if (statusOferta === "started") targetStarted.push({ ...target, id: itemId });
           }
         } else {
           const pages = await Promise.all([
@@ -6540,11 +6579,13 @@ function createServer(env: Env) {
           min_discounted_price: number | null;
           max_discounted_price: number | null;
           suggested_discounted_price: number | null;
+          atualizar_oferta_existente: boolean;
+          preco_anterior_oferta: number | null;
         }> = [];
   
         for (const source of damiaoStarted) {
           const itemId = String(source?.id ?? "");
-          if (!itemId || startedIds.has(itemId)) continue;
+          if (!itemId || (startedIds.has(itemId) && source?.status !== "explicit_price")) continue;
           const candidate = candidateById.get(itemId);
           if (!candidate) {
             blocked.push({ item_id: itemId, motivo: "sem_convite_black_2026" });
@@ -6552,6 +6593,24 @@ function createServer(env: Env) {
           }
   
           const price = Number(source?.price);
+          const statusAtualOferta = String(candidate?.status ?? "");
+          const atualizarOfertaExistente = ["started", "pending"].includes(statusAtualOferta);
+          const precoAtualOferta = Number(candidate?.price);
+          if (atualizarOfertaExistente && (
+            source?.status !== "explicit_price" ||
+            !Number.isFinite(precoAtualOferta) ||
+            precoAtualOferta <= 0 ||
+            !Number.isFinite(price) ||
+            price >= precoAtualOferta - 0.000001
+          )) {
+            blocked.push({
+              item_id: itemId,
+              motivo: "atualizacao_deal_exige_preco_explicito_menor_que_atual",
+              preco_atual: Number.isFinite(precoAtualOferta) ? precoAtualOferta : null,
+              preco_solicitado: Number.isFinite(price) ? price : null
+            });
+            continue;
+          }
           const minPrice = Number(candidate?.min_discounted_price);
           const maxPrice = Number(candidate?.max_discounted_price);
           const hasMin = Number.isFinite(minPrice) && minPrice > 0;
@@ -6576,6 +6635,8 @@ function createServer(env: Env) {
           eligible.push({
             item_id: itemId,
             deal_price: price,
+            atualizar_oferta_existente: atualizarOfertaExistente,
+            preco_anterior_oferta: atualizarOfertaExistente ? precoAtualOferta : null,
             original_price: Number.isFinite(Number(candidate?.original_price))
               ? Number(candidate.original_price)
               : null,
@@ -6606,7 +6667,7 @@ function createServer(env: Env) {
         let margemVerificada = 0;
         const margemMinimaPercentual = Number(margem_minima_percentual ?? 10);
         const impostoPercentual = 11;
-        const adsReservaPercentualPadrao = 10;
+        const adsReservaPercentualPadrao = Number(ads_reserva_percentual ?? 10);
   
         for (const entry of eligible) {
           if (safeBatch.length >= batchLimit) break;
@@ -6862,6 +6923,7 @@ function createServer(env: Env) {
           bloqueados: blocked.length,
           limite_lote: batchLimit,
           lote_preparado: batch.length,
+          atualizacoes_de_preco_preparadas: batch.filter((entry) => entry.atualizar_oferta_existente).length,
           proximos_itens: batch,
           bloqueios: blocked.slice(0, 25),
           escrita_promocoes_habilitada: promotionWritesEnabled(env)
@@ -6886,7 +6948,7 @@ function createServer(env: Env) {
           try {
             const write = await meliWrite(
               env,
-              "POST",
+              entry.atualizar_oferta_existente ? "PUT" : "POST",
               `/seller-promotions/items/${encodeURIComponent(entry.item_id)}?app_version=v2`,
               {
                 deal_price: entry.deal_price,
