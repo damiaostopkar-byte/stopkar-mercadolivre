@@ -155,7 +155,7 @@ export function registerMedidasTools(server: any, env: any, deps: Dependencies):
         const atuaisCompletas = Object.values(atuais).every((n) => typeof n === "number" && n > 0);
         [atualFrete, novoFrete] = await Promise.all([
           simularFrete(deps, env, String(seller.id), item,
-            atuaisCompletas ? atuais as Medidas : undefined),
+            atuaisCompletas ? atuais as unknown as Medidas : undefined),
           simularFrete(deps, env, String(seller.id), item, propostas)
         ]);
       }
