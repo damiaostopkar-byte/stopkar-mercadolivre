@@ -1,3 +1,4 @@
+import { registerMedidasTools } from "./server-medidas";
 import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
@@ -29,7 +30,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.29";
+const SERVER_VERSION = "0.17.30";
 
 function textResult(value: unknown) {
   return {
@@ -7122,6 +7123,15 @@ function createServer(env: Env) {
     }
   );
 
+
+  // Correcoes de medidas de embalagem: preview obrigatorio, aprovacao e verificacao.
+  registerMedidasTools(server, env, {
+    meliGet,
+    meliWrite,
+    textResult,
+    requireListingWritesEnabled,
+    recordOperationAudit
+  });
 
   // Auditoria da integracao conectada ao proprio ChatGPT. Exclusivamente GET.
   // Importante: nao ha equivalencia comprovada entre um desvio de medida
