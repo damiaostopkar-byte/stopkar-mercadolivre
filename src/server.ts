@@ -29,7 +29,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.28";
+const SERVER_VERSION = "0.17.29";
 
 function textResult(value: unknown) {
   return {
@@ -7118,6 +7118,133 @@ function createServer(env: Env) {
         endpoint_utilizado: write.path_used,
         resposta_api: write.data,
         promocoes_depois: afterPromos.map((entry: any) => compactPromotionItem(entry))
+      });
+    }
+  );
+
+
+  // Auditoria da integracao conectada ao proprio ChatGPT. Exclusivamente GET.
+  // Importante: nao ha equivalencia comprovada entre um desvio de medida
+  // observado na API e a lista interna "dimensoes incorretas" do painel.
+  server.registerTool(
+    "auditar_dimensoes_anuncios",
+    {
+      description: "Audita diretamente nesta integracao do ChatGPT as medidas declaradas e aferidas pelo Mercado Livre, inclusive Full. Lista divergencias candidatas, sem alegar que sejam exatamente os alertas do painel. Apenas leitura; nao modifica anuncios.",
+      inputSchema: {
+        status: z.enum(["active", "paused", "all"]).optional().default("all"),
+        offset: z.number().int().min(0).optional().default(0),
+        limite: z.number().int().min(1).max(30).optional().default(20),
+        apenas_divergentes: z.boolean().optional().default(false),
+        apenas_full: z.boolean().optional().default(false)
+      }
+    },
+    async ({ status, offset, limite, apenas_divergentes, apenas_full }) => {
+      const me = await meliGet(env, "/users/me");
+      const seller = String(me?.id || "");
+      if (!/^\d+$/.test(seller)) throw new Error("Nao foi possivel identificar a conta vendedora.");
+      const search = await meliGet(env, `/users/${seller}/items/search`, {
+        ...(status === "all" ? {} : { status }),
+        limit: String(limite),
+        offset: String(offset)
+      });
+      const ids = (Array.isArray(search?.results) ? search.results : [])
+        .map((x: any) => String(typeof x === "string" ? x : x?.id || ""))
+        .filter((id: string) => /^MLB\d+$/.test(id));
+      const parseField = (arr: any[], id: string, unit: "cm" | "g") => {
+        const attr = arr.find((a: any) => a?.id === id);
+        if (!attr) return null;
+        const struct = attr.value_struct ?? attr.values?.[0]?.struct;
+        if (struct && typeof struct.number === "number") {
+          const u = String(struct.unit ?? unit).toLowerCase();
+          if (u === unit && Number.isFinite(struct.number) && struct.number > 0)
+            return struct.number;
+        }
+        const match = String(attr.value_name ?? "").trim()
+          .match(/^(\d+(?:[.,]\d+)?)\s*(cm|g)?$/i);
+        if (!match || (match[2] && match[2].toLowerCase() !== unit)) return null;
+        const value = Number(match[1].replace(",", "."));
+        return Number.isFinite(value) && value > 0 ? value : null;
+      };
+      const measure = (attrs: any[], prefix: string) => ({
+        altura_cm: parseField(attrs, prefix + "HEIGHT", "cm"),
+        largura_cm: parseField(attrs, prefix + "WIDTH", "cm"),
+        comprimento_cm: parseField(attrs, prefix + "LENGTH", "cm"),
+        peso_g: parseField(attrs, prefix + "WEIGHT", "g")
+      });
+      const rows: any[] = [];
+      const errors: any[] = [];
+      // Lotes pequenos evitam explosao de requisicoes e rate limiting.
+      for (let start = 0; start < ids.length; start += 5) {
+        const selected = ids.slice(start, start + 5);
+        const responses = await Promise.allSettled(selected.map((id: string) =>
+          meliGet(env, `/items/${id}`, {
+            include_attributes: "all",
+            include_internal_attributes: "true"
+          })
+        ));
+        responses.forEach((result, index) => {
+          const id = selected[index];
+          if (result.status !== "fulfilled") {
+            errors.push({ item_id: id, erro: "Falha ao consultar atributos do anuncio" });
+            return;
+          }
+          const item = result.value;
+          const attrs = Array.isArray(item?.attributes) ? item.attributes : [];
+          const sellerPackage = measure(attrs, "SELLER_PACKAGE_");
+          const mlPackage = measure(attrs, "PACKAGE_");
+          const sellerValues = [sellerPackage.altura_cm, sellerPackage.largura_cm,
+            sellerPackage.comprimento_cm, sellerPackage.peso_g];
+          const mlValues = [mlPackage.altura_cm, mlPackage.largura_cm,
+            mlPackage.comprimento_cm, mlPackage.peso_g];
+          const sellerComplete = sellerValues.every((v: any) => v !== null);
+          const mlComplete = mlValues.every((v: any) => v !== null);
+          const dimensionalVolume = (p: any) => p.altura_cm * p.largura_cm * p.comprimento_cm;
+          const volumeDifference = sellerComplete && mlComplete
+            ? Math.abs(dimensionalVolume(sellerPackage) - dimensionalVolume(mlPackage))
+                / Math.max(dimensionalVolume(mlPackage), 1)
+            : null;
+          const weightDifference = sellerPackage.peso_g && mlPackage.peso_g
+            ? Math.abs(sellerPackage.peso_g - mlPackage.peso_g) / Math.max(mlPackage.peso_g, 1)
+            : null;
+          const reasons = [];
+          if (!sellerComplete) reasons.push("declaracao_incompleta");
+          if (volumeDifference !== null && volumeDifference > 0.2)
+            reasons.push("volume_divergente_maior_que_20_percent");
+          if (weightDifference !== null && weightDifference > 0.2)
+            reasons.push("peso_divergente_maior_que_20_percent");
+          const logistic = String(item?.shipping?.logistic_type || "");
+          const shippingRaw = item?.shipping?.dimensions ?? null;
+          rows.push({
+            item_id: id, titulo: item?.title || null, sku: getSellerSku(item),
+            status: item?.status || null, logistica: logistic,
+            full: logistic === "fulfillment",
+            medidas_declaradas: sellerPackage,
+            medidas_medidas_ml: mlPackage,
+            fonte_medicao: attrs.find((a: any) => a?.id === "PACKAGE_DATA_SOURCE")?.value_name ?? null,
+            medidas_shipping: typeof shippingRaw === "string" ? shippingRaw : null,
+            diferenca_volume_percentual: volumeDifference === null ? null : Math.round(volumeDifference * 100),
+            diferenca_peso_percentual: weightDifference === null ? null : Math.round(weightDifference * 100),
+            motivos_revisao: reasons,
+            divergencia_candidata: reasons.length > 0,
+            alerta_oficial_dimensoes_incorretas: "nao_disponivel_nesta_rota",
+            observacao: "Sinalizacao candidata; nao confirma inclusao na lista de alertas do painel."
+          });
+        });
+      }
+      const candidates = rows.filter(x => x.divergencia_candidata);
+      const filtered = rows.filter(x => (!apenas_full || x.full) &&
+        (!apenas_divergentes || x.divergencia_candidata));
+      const total = Number(search?.paging?.total ?? ids.length);
+      return textResult({
+        somente_leitura: true,
+        fonte: "API oficial Mercado Livre /items, atributos publicos e internos",
+        conta_vendedora: seller,
+        filtros: { status, offset, limite, apenas_divergentes, apenas_full },
+        total_anuncios_busca: total,
+        consultados: rows.length, candidatos_de_revisao_na_pagina: candidates.length,
+        erros_consulta: errors, proximo_offset: offset + limite < total ? offset + limite : null,
+        itens: filtered,
+        aviso: "Este diagnostico nao acessa diretamente a lista de 31 sinalizados do painel. Medidas diferentes ou ausentes nao provam infracao; confirme contra embalagens fisicas e orientacoes do Mercado Livre."
       });
     }
   );
