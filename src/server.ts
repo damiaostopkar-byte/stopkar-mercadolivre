@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
+import { registerShippingBillingTools } from "./shipping-billing-tools";
 
 interface Env {
   MELI_CLIENT_ID?: string;
@@ -29,7 +30,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.29";
+const SERVER_VERSION = "0.17.30";
 
 function textResult(value: unknown) {
   return {
@@ -1642,6 +1643,8 @@ function createServer(env: Env) {
     name: "Stop Kar Mercado Livre",
     version: SERVER_VERSION
   });
+
+  registerShippingBillingTools(server, (path, params, headers) => meliGet(env, path, params, headers));
 
 
   // Compatibilidades de autopecas: somente leitura por padrao e inclusao aditiva,
