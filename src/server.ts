@@ -1,3 +1,4 @@
+import { registerMedidasTools } from "./server-medidas";
 import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
@@ -7159,6 +7160,15 @@ function createServer(env: Env) {
     }
   );
 
+
+  // Correcoes de medidas de embalagem: preview obrigatorio, aprovacao e verificacao.
+  registerMedidasTools(server, env, {
+    meliGet,
+    meliWrite,
+    textResult,
+    requireListingWritesEnabled,
+    recordOperationAudit
+  });
 
   // Auditoria da integracao conectada ao proprio ChatGPT. Exclusivamente GET.
   // Importante: nao ha equivalencia comprovada entre um desvio de medida
