@@ -46,18 +46,18 @@ function periodsBetween(first: string, last: string): string[] {
   }
   return periods;
 }
-function classify(description: string, subType: string, concept: string): Kind {
+export function classify(description: string, subType: string, concept: string): Kind {
   const t = latin(description);
   const c = latin(concept);
   const freight = /frete|envio|envios|shipment|shipping|pacote|logistic|transporte/.test(t)
     || /^(cxd|bxd|cflx|bflx)$/i.test(subType) || c === "shipping";
   const dimensions = /pes[oa]|medid|dimens|cuba(g|d)|volume|weight|measurement/.test(t);
   const diff = /diferenc|diverg|ajust|adicion|sobretaxa|incorret|surcharge|compens|correc|extra/.test(t);
-  if (freight && dimensions && diff) return "diferenca_peso_medidas";
+  if (dimensions && diff && (freight || /diferenc|diverg/.test(t))) return "diferenca_peso_medidas";
   if (freight && diff) return "possivel_ajuste_frete";
   return freight ? "frete_normal" : "outro";
 }
-function parseRow(raw: any, doc: DocType, periodo: string): Entry | null {
+export function parseRow(raw: any, doc: DocType, periodo: string): Entry | null {
   if (!raw || typeof raw !== "object") return null;
   const info = obj(raw.charge_info);
   const shipping = obj(raw.shipping_info);
@@ -94,17 +94,27 @@ function isAdjustment(r: Entry) {
 function isBonus(r: Entry) {
   return r.valor > 0 && (r.documento === "CREDIT_NOTE" || r.tipo === "BONUS");
 }
-function ledger(all: Entry[]) {
+export function ledger(all: Entry[]) {
   const unique = new Map<string, Entry>();
   all.forEach((r, i) => unique.set(r.documento + ":" + (r.lancamento_id || r.periodo + ":" + i), r));
   const records = [...unique.values()];
   const charges = records.filter(isAdjustment);
   const credits = records.filter(isBonus);
+  // Nota de credito e bonus podem representar o mesmo abatimento documental.
+  // Quando valor e referencia coincidem, nao abatemos duas vezes sem prova.
+  const creditKeys = new Set(credits
+    .filter(r => r.documento === "CREDIT_NOTE" && r.referencia_cobranca_id)
+    .map(r => r.referencia_cobranca_id + ":" + r.valor.toFixed(2)));
+  const duplicateBonus = credits.filter(r => r.documento === "BILL"
+    && r.tipo === "BONUS" && r.referencia_cobranca_id
+    && creditKeys.has(r.referencia_cobranca_id + ":" + r.valor.toFixed(2)));
+  const duplicateBonusIds = new Set(duplicateBonus.map(r => r.lancamento_id));
   const linked = new Map(charges.map(r => [r.lancamento_id, 0]));
   const linkedCredits: Entry[] = [];
   const unmatchedCredits: Entry[] = [];
   const byId = new Map(charges.filter(r => r.lancamento_id).map(r => [r.lancamento_id, r]));
   for (const cr of credits) {
+    if (cr.documento === "BILL" && cr.tipo === "BONUS" && duplicateBonusIds.has(cr.lancamento_id)) continue;
     const ref = cr.referencia_cobranca_id;
     if (ref && byId.has(ref)) {
       linked.set(ref, round((linked.get(ref) || 0) + cr.valor));
@@ -135,6 +145,7 @@ function ledger(all: Entry[]) {
     cobrancas: results,
     creditos_vinculados: linkedCredits,
     creditos_sem_vinculo_comprovado: unmatchedCredits,
+    bonus_com_possivel_duplicidade: duplicateBonus,
     envios: [...groups.values()].map(g => ({ ...g, saldo_documental: round(g.adicionais - g.creditos) })),
     resumo: {
       quantidade_ajustes_identificados: results.length,
@@ -168,7 +179,7 @@ async function readPage(read: ReadApi, periodo: string, tipo: DocType, cursor: s
     total_informado: typeof data.total === "number" ? data.total : null,
   };
 }
-async function scan(read: ReadApi, periods: string[], limit: number, maxPages: number,
+export async function scan(read: ReadApi, periods: string[], limit: number, maxPages: number,
                     firstBill = "0", firstCredit = "0") {
   const rows: Entry[] = [];
   const cursors: Record<string, { completo: boolean; proximo_from_id: string | null; paginas_lidas: number; registros_lidos: number }> = {};
