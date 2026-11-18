@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+// @ts-ignore Node 22 native strip-types requires the explicit .ts specifier
 import { classify, parseRow, ledger, scan } from "../src/shipping-billing-tools.ts";
 
 const period = "2026-11-01";
