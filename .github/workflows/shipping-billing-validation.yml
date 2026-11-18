@@ -1,0 +1,30 @@
+name: Validate Mercado Livre shipping billing plugin
+
+on:
+  pull_request:
+    paths:
+      - 'src/shipping-billing-tools.ts'
+      - 'src/server.ts'
+      - 'tests/shipping-billing.test.ts'
+      - '.github/workflows/shipping-billing-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shipping-billing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Verify shipping billing tests
+        run: node --experimental-strip-types --test tests/shipping-billing.test.ts
+      - name: Build Cloudflare worker
+        run: npx vite build

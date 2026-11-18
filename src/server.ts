@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
+import { registerShippingBillingTools } from "./shipping-billing-tools";
 
 interface Env {
   MELI_CLIENT_ID?: string;
@@ -29,7 +30,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.29";
+const SERVER_VERSION = "0.17.30";
 
 function textResult(value: unknown) {
   return {
@@ -1632,6 +1633,39 @@ async function putItemTitle(env: Env, mlbId: string, title: string): Promise<any
   return data;
 }
 
+// Os relatorios de faturamento podem retornar HTTP 206 (resposta incompleta).
+// O meliGet generico considera 206 como OK; por isso usamos um leitor
+// especifico de billing e NUNCA marcamos dados parciais como completos.
+async function meliBillingRead(
+  env: Env,
+  path: string,
+  params: Record<string, string | undefined> = {},
+  extraHeaders: Record<string, string> = {}
+): Promise<any> {
+  if (!path.startsWith("/billing/integration/") || path.includes("..")) {
+    throw new Error("A consulta de faturamento nao permite esta rota.");
+  }
+  const url = new URL(path, MELI_API);
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== "") url.searchParams.set(key, value);
+  }
+  const makeRequest = (access: string) => fetch(url.toString(), {
+    method: "GET", headers: { Authorization: `Bearer ${access}`, Accept: "application/json", ...extraHeaders }
+  });
+  let response = await makeRequest(await getAccessToken(env));
+  if (response.status === 401) response = await makeRequest((await refreshToken(env)).access_token);
+  if (response.status === 206) {
+    throw new Error("Mercado Livre API 206: faturamento parcial. Nao conciliar esta pagina; repetir em outra atualizacao.");
+  }
+  const data = await parseApiResponse(response);
+  if (!response.ok) {
+    const errorText = data && typeof data === "object"
+      ? String(data.message || data.error || "resposta sem detalhes") : String(data);
+    throw new Error(`Mercado Livre Billing API ${response.status}: ${errorText.slice(0, 240)}`);
+  }
+  return data;
+}
+
 async function recordTitleAudit(env: Env, id: string, phase: "before" | "after", entry: Record<string, unknown>) {
   if (!env.MELI_TOKENS) throw new Error("KV MELI_TOKENS necessaria para auditoria de titulos.");
   await env.MELI_TOKENS.put(`items:title:audit:${id}:${phase}`, JSON.stringify(entry));
@@ -1642,6 +1676,9 @@ function createServer(env: Env) {
     name: "Stop Kar Mercado Livre",
     version: SERVER_VERSION
   });
+
+  registerShippingBillingTools(server, (path, params, headers) => path.startsWith("/billing/integration/")
+    ? meliBillingRead(env, path, params, headers) : meliGet(env, path, params, headers));
 
 
   // Compatibilidades de autopecas: somente leitura por padrao e inclusao aditiva,
