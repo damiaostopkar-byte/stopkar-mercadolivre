@@ -393,6 +393,15 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname === "/mcp") {
+      // A interceptacao precisa obedecer a mesma autenticacao das demais ferramentas.
+      // Falhar fechado evita expor a escrita em Ads caso o secret nao esteja configurado.
+      if (!env.MCP_SHARED_SECRET) {
+        return new Response("MCP authentication not configured", { status: 503 });
+      }
+      if (request.headers.get("authorization") !== `Bearer ${env.MCP_SHARED_SECRET}`) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+
       const intercepted = await interceptMcpToolCall(request, env);
       if (intercepted) return intercepted;
     }
