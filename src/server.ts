@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
 import { registerShippingBillingTools } from "./shipping-billing-tools";
+import { registerOfficialStoreTools } from "./official-store-tools";
 
 interface Env {
   MELI_CLIENT_ID?: string;
@@ -1679,6 +1680,13 @@ function createServer(env: Env) {
 
   registerShippingBillingTools(server, (path, params, headers) => path.startsWith("/billing/integration/")
     ? meliBillingRead(env, path, params, headers) : meliGet(env, path, params, headers));
+
+  registerOfficialStoreTools(server, {
+    read: (path, params) => meliGet(env, path, params),
+    write: (path, body) => meliWrite(env, "PUT", path, body),
+    requireWritesEnabled: () => requireListingWritesEnabled(env),
+    audit: (prefix, entry) => recordOperationAudit(env, prefix, entry)
+  });
 
 
   // Compatibilidades de autopecas: somente leitura por padrao e inclusao aditiva,
