@@ -31,7 +31,7 @@ const MELI_API = "https://api.mercadolibre.com";
 const MELI_AUTH = "https://auth.mercadolivre.com.br/authorization";
 const TOKEN_KEY = "mercadolivre:oauth:tokens";
 const SAO_PAULO_TZ = "America/Sao_Paulo";
-const SERVER_VERSION = "0.17.31";
+const SERVER_VERSION = "0.17.32";
 
 function textResult(value: unknown) {
   return {
@@ -1813,7 +1813,8 @@ function createServer(env: Env) {
     async ({ item_id, familias, confirmar, motivo }) => {
       const item = await meliGet(env, `/items/${item_id}`);
       const token = await loadToken(env);
-      if (item?.id !== item_id || item?.status !== "active") throw new Error("Anuncio nao esta ativo ou nao foi encontrado.");
+      const podeEditarCompatibilidade = item?.status === "active" || (item?.status === "under_review" && Array.isArray(item?.sub_status) && item.sub_status.includes("waiting_for_patch"));
+      if (item?.id !== item_id || !podeEditarCompatibilidade) throw new Error("Anuncio inexistente ou status indisponivel para corrigir compatibilidade.");
       if (!token?.user_id || Number(item.seller_id) !== Number(token.user_id)) throw new Error("Anuncio nao pertence a conta autenticada.");
       const antes = await meliGet(env, `/items/${item_id}/compatibilities`, { extended: "true" });
       const userProductId = String(item?.user_product_id || "");
@@ -1907,8 +1908,9 @@ function createServer(env: Env) {
         throw new Error("IDs duplicados: informe somente uma vez cada veiculo.");
       }
       const item = await meliGet(env, `/items/${item_id}`);
-      if (!item || item.id !== item_id || item.status !== "active") {
-        throw new Error("Anuncio inexistente, inativo ou indisponivel para alteracao.");
+      const podeEditarCompatibilidade = item?.status === "active" || (item?.status === "under_review" && Array.isArray(item?.sub_status) && item.sub_status.includes("waiting_for_patch"));
+      if (!item || item.id !== item_id || !podeEditarCompatibilidade) {
+        throw new Error("Anuncio inexistente ou status indisponivel para corrigir compatibilidade.");
       }
       const token = await loadToken(env);
       if (!token?.user_id || Number(item.seller_id) !== Number(token.user_id)) {
