@@ -7172,6 +7172,67 @@ function createServer(env: Env) {
   // Importante: nao ha equivalencia comprovada entre um desvio de medida
   // observado na API e a lista interna "dimensoes incorretas" do painel.
   server.registerTool(
+    "atualizar_dimensoes_anuncio",
+    {
+      description: "Consulta ou altera exclusivamente os quatro atributos de embalagem declarados pelo vendedor no Mercado Livre. Somente ME2 sem Full e sem variacoes. Exige SKU, medidas reais do pacote, confirmacao explicita e motivo para gravar; verifica resultado por GET.",
+      inputSchema: {
+        item_id: z.string().regex(/^MLB\d+$/),
+        sku: z.string().min(1),
+        altura_cm: z.number().int().positive().max(300),
+        largura_cm: z.number().int().positive().max(300),
+        comprimento_cm: z.number().int().positive().max(300),
+        peso_g: z.number().int().positive().max(50000),
+        confirmar: z.boolean().optional().default(false),
+        embalagem_real_confirmada: z.boolean().optional().default(false),
+        motivo: z.string().max(300).optional()
+      }
+    },
+    async ({ item_id, sku, altura_cm, largura_cm, comprimento_cm, peso_g, confirmar, embalagem_real_confirmada, motivo }) => {
+      const path = `/items/${item_id}`;
+      const params = { include_attributes: "all", include_internal_attributes: "true" };
+      const me = await meliGet(env, "/users/me");
+      const item = await meliGet(env, path, params);
+      if (!me?.id || String(item?.seller_id) !== String(me.id))
+        throw new Error("Anuncio nao pertence a conta autorizada.");
+      if (String(getSellerSku(item) ?? "").trim() !== sku.trim())
+        throw new Error("SKU nao confere; nenhuma alteracao realizada.");
+      if (!["active", "paused"].includes(String(item?.status)))
+        throw new Error("Status do anuncio nao elegivel.");
+      if (item?.shipping?.mode !== "me2" || !["cross_docking", "xd_drop_off", "drop_off", "self_service"].includes(String(item?.shipping?.logistic_type)))
+        throw new Error("Logistica nao elegivel; Full e modalidades desconhecidas bloqueadas.");
+      if (item?.variations?.length) throw new Error("Anuncios com variacoes bloqueados.");
+      const expected = {
+        SELLER_PACKAGE_HEIGHT: altura_cm,
+        SELLER_PACKAGE_WIDTH: largura_cm,
+        SELLER_PACKAGE_LENGTH: comprimento_cm,
+        SELLER_PACKAGE_WEIGHT: peso_g
+      };
+      const attrs = Object.entries(expected).map(([id, n]) => ({ id, value_name: `${n} ${id.endsWith("WEIGHT") ? "g" : "cm"}` }));
+      const extract = (raw: any) => Object.fromEntries(Object.keys(expected).map(id => {
+        const a = (Array.isArray(raw?.attributes) ? raw.attributes : []).find((x: any) => x?.id === id);
+        const unit = id.endsWith("WEIGHT") ? "g" : "cm";
+        const st = a?.value_struct ?? a?.values?.[0]?.struct;
+        const match = String(a?.value_name ?? "").trim().match(/^(\d+(?:[.,]\d+)?)\s*(cm|g)?$/i);
+        const n = st && String(st.unit).toLowerCase() === unit ? Number(st.number) :
+          match && (!match[2] || match[2].toLowerCase() === unit) ? Number(match[1].replace(",", ".")) : null;
+        return [id, n];
+      }));
+      const antes = extract(item);
+      const equal = (actual: Record<string, unknown>) => Object.entries(expected).every(([id, n]) => actual[id] === n);
+      if (equal(antes)) return textResult({ item_id, sku, confirmado: true, alterado: false, antes, depois: antes });
+      if (!confirmar) return textResult({ item_id, sku, somente_leitura: true, antes, proposto: expected, aviso: "Confirme medidas reais da embalagem, nao apenas da peca; a API pode rejeitar limites ou atributos imutaveis." });
+      requireListingWritesEnabled(env);
+      if (!embalagem_real_confirmada || !motivo || motivo.trim().length < 10)
+        throw new Error("Confirme a embalagem real e informe motivo com pelo menos 10 caracteres.");
+      const write = await meliWrite(env, "PUT", path, { attributes: attrs });
+      const after = await meliGet(env, path, params);
+      const depois = extract(after);
+      const preservados = ["price", "available_quantity", "title", "listing_type_id", "status"].every(k => item[k] === after[k]);
+      return textResult({ item_id, sku, antes, proposto: expected, depois, confirmado: equal(depois) && preservados, campos_principais_preservados: preservados, motivo, aviso: equal(depois) ? "Medidas declaradas conferidas; alertas do painel e afericoes logisticas nao confirmados." : "API nao refletiu todas as medidas. Nao repetir automaticamente.", resposta_api: { warnings: write.data?.warnings ?? [] } });
+    }
+  );
+
+  server.registerTool(
     "auditar_dimensoes_anuncios",
     {
       description: "Audita diretamente nesta integracao do ChatGPT as medidas declaradas e aferidas pelo Mercado Livre, inclusive Full. Lista divergencias candidatas, sem alegar que sejam exatamente os alertas do painel. Apenas leitura; nao modifica anuncios.",
